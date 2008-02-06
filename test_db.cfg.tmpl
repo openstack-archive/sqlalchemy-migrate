@@ -1,0 +1,13 @@
+# test_db.cfg
+# 
+# This file contains a list of connection strings which will be used by 
+# database tests. Tests will be executed once for each string in this file. 
+# You should be sure that the database used for the test doesn't contain any
+# important data. See README for more information.
+# 
+# The string '__tmp__' is substituted for a temporary file in each connection
+# string. This is useful for sqlite tests.
+sqlite:///__tmp__
+postgres://scott:tiger@localhost/test
+mysql://scott:tiger@localhost/test
+oracle://scott:tiger@localhost

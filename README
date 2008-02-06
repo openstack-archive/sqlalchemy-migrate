@@ -1,0 +1,14 @@
+Help: 
+http://code.google.com/p/sqlalchemy-migrate/
+http://groups.google.com/group/migrate-users
+
+To run automated tests:
+- Copy test_db.cfg.tmpl to test_db.cfg
+- Edit test_db.cfg with database connection strings sutable for running tests. 
+  (Use empty databases.)
+- python setup.py test
+
+Note that py.test[1] is required to run migrate's tests. It should be 
+installed automatically; if not, try "easy_install py".
+
+[1] http://codespeak.net/py/current/doc/test.html

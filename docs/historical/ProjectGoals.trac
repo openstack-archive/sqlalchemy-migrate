@@ -1,0 +1,50 @@
+== Goals ==
+
+=== DBMS-independent schema changes ===
+Many projects need to run on more than one DBMS. Similar changes need to be applied to both types of databases upon a schema change. The usual solution to database changes - .sql scripts with ALTER statements - runs into problems since different DBMSes have different dialects of SQL; we end up having to create a different script for each DBMS. This project will simplify this by providing an API, similar to the table definition API that already exists in SQLAlchemy, to alter a table independent of the DBMS being used, where possible. 
+
+This project will support all DBMSes currently supported by SQLAlchemy: SQLite, Postgres, MySQL, Oracle, and MS SQL. Adding support for more should be as possible as it is in SQLAlchemy.
+
+Many are already used to writing .sql scripts for database changes, aren't interested in learning a new API, and have projects where DBMS-independence isn't an issue. Writing SQL statements as part of a (Python) change script must be an option, of course. Writing change scripts as .sql scripts, eliminating Python scripts from the picture entirely, would be nice too, although this is a lower-priority goal. 
+
+=== Database versioning and change script organization ===
+Once we've accumulated a set of change scripts, it's important to know which ones have been applied/need to be applied to a particular database: suppose we need to upgrade a database that's extremenly out-of-date; figuring out the scripts to run by hand is tedious. Applying changes in the wrong order, or applying changes when they shouldn't be applied, is bad; attempting to manage all of this by hand inevitably leads to an accident. This project will be able to detect the version of a particular database and apply the scripts required to bring it up to the latest version, or up to any specified version number (given all change scripts required to reach that version number). 
+
+Sometimes we need to be able to revert a schema to an older version. There's no automatic way to do this without rebuilding the database from scratch, so our project will allow one to write scripts to downgrade the database as well as upgrade it. If such scripts have been written, we should be able to apply them in the correct order, just like upgrading. 
+
+Large projects inevitably accumulate a large number of database change scripts; it's important that we have a place to keep them. Once a script has been written, this project will deal with organizing it among existing change scripts, and the user will never have to look at it again. 
+
+=== Change testing ===
+It's important to test one's database changes before applying them to a production database (unless you happen to like disasters). Much testing is up to the user and can't be automated, but there's a few places we can help ensure at least a minimal level of schema integrity. A few examples are below; we could add more later. 
+
+Given an obsolete schema, a database change script, and an up-to-date schema known to be correct, this project will be able to ensure that applying the
+change script to the obsolete schema will result in an up-to-date schema - all without actually changing the obsolete database. Folks who have SQLAlchemy create their database using table.create() might find this useful; this is also useful for ensuring database downgrade scripts are correct. 
+
+Given a schema of a known version and a complete set of change scripts up to that version, this project will be able to detect if the schema matches its version. If a schema has gone through changes not present in migration scripts, this test will fail; if applying all scripts in sequence up to the specified version creates an identical schema, this test will succeed. Identifying that a schema is corrupt is sufficient; it would be nice if we could give a clue as to what's wrong, but this is lower priority. (Implementation: we'll probably show a diff of two schema dumps; this should be enough to tell the user what's gone wrong.) 
+
+== Non-Goals ==
+ie. things we will '''not''' try to do (at least, during the Summer of Code)
+
+=== Automatic generation of schema changes ===
+For example, one might define a table: 
+{{{
+CREATE TABLE person (
+   id integer,
+   name varchar(80)
+);
+}}}
+Later, we might add additional columns to the definition:
+{{{
+CREATE TABLE person (
+   id integer,
+   name varchar(80),
+   profile text
+);
+}}}
+It might be nice if a tool could look at both table definitions and spit out a change script; something like
+{{{
+ALTER TABLE person ADD COLUMN profile text;
+}}}
+This is a difficult problem for a number of reasons. I have no intention of tackling this problem as part of the Summer of Code. This project aims to give you a better way to write that ALTER statement and make sure it's applied correctly, not to write it for you.
+
+(Using an [http://sqlfairy.sourceforge.net/ existing] [http://xml2ddl.berlios.de/ tool] to add this sort of thing later might be worth looking into, but it will not be done during the Summer of Code. Among other reasons, methinks it's best to start with a system that isn't dependent on this sort of automation.)

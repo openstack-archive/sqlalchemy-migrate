@@ -1,0 +1,56 @@
+An important aspect of this project is database versioning. For migration scripts to be most useful, we need to know what version the database is: that is, has a particular migration script already been run?
+
+An option not discussed below is "no versioning"; that is, simply apply any script we're given, and rely on the user to ensure it's valid. This is entirely too error-prone to seriously consider, and takes a lot of the usefulness out of the proposed tool.
+
+
+=== Database-wide version numbers ===
+A single integer version number would specify the version of each database. This is stored in the database in a table, let's call it "schema"; each migration script is associated with a certain database version number.
+
++ Simple implementation[[br]]
+Of the 3 solutions presented here, this one is by far the simplest. 
+
++ Past success[[br]]
+Used in [http://www.rubyonrails.org/ Ruby on Rails' migrations].
+
+~ Can detect corrupt schemas, but requires some extra work and a *complete* set of migrations.[[br]]
+If we have a set of database migration scripts that build the database from the ground up, we can apply them in sequence to a 'dummy' database, dump a diff of the real and dummy schemas, and expect a valid schema to match the dummy schema.
+
+- Requires changes to the database schema.[[br]]
+Not a tremendous change - a single table with a single column and a single row - but a change nonetheless.
+
+=== Table/object-specific version numbers ===
+Each database "object" - usually tables, though we might also deal with other database objects, such as stored procedures or Postgres' sequences - would have a version associated with it, initially 1. These versions are stored in a table, let's call it "schema". This table has two columns: the name of the database object and its current version number.
+
++ Allows us to write migration scripts for a subset of the database.[[br]]
+If we have multiple people working on a very large database, we may want to write migration scripts for a section of the database without stepping on another person's work. This allows unrelated to
+
+- Requires changes to the database schema.
+Similar to the database-wide version number; the contents of the new table are more complex, but still shouldn't conflict with anything.
+
+- More difficult to implement than a database-wide version number.
+
+- Determining the version of database-specific objects (ie. stored procedures, functions) is difficult.
+
+- Ultimately gains nothing over the previous solution.[[br]]
+The intent here was to allow multiple people to write scripts for a single database, but if database-wide version numbers aren't assigned until the script is placed in the repository, we could already do this. 
+
+=== Version determined via introspection ===
+Each script has a schema associated with it, rather than a version number. The database schema is loaded, analyzed, and compared to the schema expected by the script. 
+
++ No modifications to the database are necessary for this versioning system.[[br]]
+The primary advantage here is that no changes to the database are required. 
+
+- Most difficult solution to implement, by far.[[br]]
+Comparing the state of every schema object in the database is much more complex than simply comparing a version number, especially since we need to do it in a database-independent way (ie. we can't just diff the dump of each schema). SQLAlchemy's reflection would certainly be very helpful, but this remains the most complex solution.
+
++ "Automatically" detects corrupt schemas.[[br]]
+A corrupt schema won't match any migration script.
+
+- Difficult to deal with corrupt schemas.[[br]]
+When version numbers are stored in the database, you have some idea of where an error occurred. Without this, we have no idea what version the database was in before corruption.
+
+- Potential ambiguity: what if two database migration scripts expect the same schema?
+
+----
+
+'''Conclusion''': database-wide version numbers are the best way to go. 

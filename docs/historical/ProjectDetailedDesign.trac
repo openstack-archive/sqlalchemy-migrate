@@ -1,0 +1,29 @@
+This is very much a draft/brainstorm right now. It should be made prettier and thought about in more detail later, but it at least gives some idea of the direction we're headed right now. 
+----
+ * Two distinct tools; should not be coupled (can work independently):
+   * Versioning tool
+     * Command line tool; let's call it "samigrate"
+     * Organizes old migration scripts into repositories
+     * Runs groups of migration scripts on a database, updating it to a specified version/latest version
+     * Helps run various tests
+     * usage
+       * "samigrate create PATH": Create project migration-script repository
+         * We shouldn't have to enter the path for every other command. Use a hidden file
+         * (This means we can't move the repository after it's created. Oh well)
+       * "samigrate add SCRIPT [VERSION]": Add script to this project's repository; latest version
+         * If a .sql script: how to determine engine, operation (up/down)? Options:
+           * specify at the command line: "samigrate add SCRIPT UP_OR_DOWN ENGINE"
+           * naming convention: SCRIPT is named something like NAME.postgres.up.sql
+       * "samigrate upgrade CONNECTION_STRING [VERSION] [SCRIPT...]": connect to the specified database and upgrade (or downgrade) it to the specified version (default latest)
+         * If SCRIPT... specified: act like these scripts are in the repository (useful for testing?)
+       * "samigrate dump CONNECTION_STRING [VERSION] [SCRIPT...]": like update, but sends all sql to stdout instead of the db
+       * (Later: some more commands, to be used for script testing tools)
+   * Alchemy API extensions for altering schema
+     * Operations here are DB-independent
+     * Each database modification is a script that may use this API
+     * Can handwrite SQL for all databases or a single database
+     * upgrade()/downgrade() functions: need only one file for both operations
+       * sql scripts reqire either (2 files, *.up.sql;*.down.sql) or (don't use downgrade)
+     * usage
+       * "python NAME.py ENGINE up": upgrade sql > stdout
+       * "python NAME.py ENGINE down": downgrade sql > stdout

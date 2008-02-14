@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.4.0",
+    version = "0.4.1dev",
     packages = find_packages(exclude=['test*']),
     scripts = ['shell/migrate'],
     include_package_data = True,

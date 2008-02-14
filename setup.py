@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.4.0dev",
+    version = "0.4.0",
     packages = find_packages(exclude=['test*']),
     scripts = ['shell/migrate'],
     include_package_data = True,
@@ -20,7 +20,7 @@ Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with datab
 Migrate extends SQLAlchemy to have database changeset handling. It provides a database change repository mechanism which can be used from the command line as well as from inside python code.
 """,
 
-    install_requires = ['sqlalchemy >= 0.4.0'],
+    install_requires = ['sqlalchemy >= 0.3.10'],
     setup_requires = ['py >= 0.9.0-beta'],
     dependency_links = [
         "http://codespeak.net/download/py/",

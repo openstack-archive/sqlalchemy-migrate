@@ -35,7 +35,7 @@ The database is specified as a `SQLAlchemy database url`_.
 
 We can have any number of databases under this repository's version control.
 
-Each schema has a version that Migrate manages. Each change script applied to the database increments this version number. You can see a database's current version::
+Each schema has a version that SQLAlchemy Migrate manages. Each change script applied to the database increments this version number. You can see a database's current version::
 
  % migrate db_version sqlite:///project.db my_repository
  0 
@@ -111,7 +111,7 @@ You should be very careful about importing files from the rest of your applicati
 
 Commit the change script
 ------------------------
-Now that our script is done, we'll commit it to our repository. Committed scripts are considered 'done' - once a script is committed, it is moved into the repository, the change script file 'disappears', and your change script can be applied to a database. Once a script is committed, Migrate expects that the SQL the script generates will not change. (As mentioned above, this may be a bad assumption when importing files from your application!)
+Now that our script is done, we'll commit it to our repository. Committed scripts are considered 'done' - once a script is committed, it is moved into the repository, the change script file 'disappears', and your change script can be applied to a database. Once a script is committed, SQLAlchemy Migrate expects that the SQL the script generates will not change. (As mentioned above, this may be a bad assumption when importing files from your application!)
 
 Change scripts should be tested before they are committed. Testing a script will run its upgrade() and downgrade() functions on a specified database; you can ensure the script runs without error. You should be testing on a test database - if something goes wrong here, you'll need to correct it by hand. If the test is successful, the database should appear unchanged after upgrade() and downgrade() run.
 
@@ -154,7 +154,7 @@ Writing change scripts
 
 By default, change scripts may do anything any other SQLAlchemy program can do. 
 
-Migrate extends SQLAlchemy with several operations used to change existing schemas - ie. ALTER TABLE stuff. See changeset_ documentation for details.
+SQLAlchemy Migrate extends SQLAlchemy with several operations used to change existing schemas - ie. ALTER TABLE stuff. See changeset_ documentation for details.
 
 .. _changeset: changeset.html
 
@@ -229,7 +229,7 @@ Sometimes you need to write code for a specific database. Migrate scripts can ru
 .sql scripts
 ------------
 
-You might prefer to write your change scripts in SQL, as .sql files, rather than as Python scripts. Migrate can work with that::
+You might prefer to write your change scripts in SQL, as .sql files, rather than as Python scripts. SQLAlchemy Migrate can work with that::
 
  % migrate version my_repository
  10
@@ -242,11 +242,11 @@ You might prefer to write your change scripts in SQL, as .sql files, rather than
 
 Here, two scripts are given, one for each *operation*, or function defined in a Python change script - upgrade and downgrade. Both are specified to run with Postgres databases - we can commit more for different databases if we like. Any database defined by SQLAlchemy may be used here - ex. sqlite, postgres, oracle, mysql...
 
-For every .sql script added after the first, we must specify the version - if you don't enter a version to commit, Migrate assumes that commit is for a new version.
+For every .sql script added after the first, we must specify the version - if you don't enter a version to commit, SQLAlchemy Migrate assumes that commit is for a new version.
 
 Python API
 ==========
-All commands available from the command line are also available for your Python scripts by importing `migrate.versioning.api`_. See the `migrate.versioning.api`_ documentation for a list of functions; function names match equivalent shell commands. You can use this to help integrate Migrate with your existing update process. 
+All commands available from the command line are also available for your Python scripts by importing `migrate.versioning.api`_. See the `migrate.versioning.api`_ documentation for a list of functions; function names match equivalent shell commands. You can use this to help integrate SQLAlchemy Migrate with your existing update process. 
 
 For example, the following commands are similar:
  

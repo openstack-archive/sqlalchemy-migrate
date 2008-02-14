@@ -6,7 +6,7 @@ migrate.changeset
 
 Importing ``migrate.changeset`` adds some new methods to existing SA objects, as well as creating functions of its own. Most operations can be done either by a method or a function. Methods match SA's existing API and are more intuitive when the object is available; functions allow one to make changes when only the name of an object is available (for example, adding a column to a table in the database without having to load that table into Python). 
 
-Changeset operations can be used independently of Migrate's `versioning system`_. 
+Changeset operations can be used independently of SQLAlchemy Migrate's `versioning system`_. 
 
 For more information, see the generated documentation for `migrate.changeset`_.
 
@@ -81,7 +81,7 @@ Rename an index, given an SQLAlchemy ``Index`` object::
 Constraint
 ==========
 
-SQLAlchemy supports creating/dropping constraints at the same time a table is created/dropped. Migrate adds support for creating/dropping primary/foreign key constraints independently.
+SQLAlchemy supports creating/dropping constraints at the same time a table is created/dropped. SQLAlchemy Migrate adds support for creating/dropping primary/foreign key constraints independently.
 
 Primary key constraints::
 
@@ -91,7 +91,7 @@ Primary key constraints::
  # Drop the constraint
  cons.drop()
 
-Note that Oracle requires that you state the name of the primary key constraint to be created/dropped. Migrate will try to guess the name of the PK constraint for other databases, but if it's something other than the default, you'll need to give its name::
+Note that Oracle requires that you state the name of the primary key constraint to be created/dropped. SQLAlchemy Migrate will try to guess the name of the PK constraint for other databases, but if it's something other than the default, you'll need to give its name::
 
  PrimaryKeyConstraint(col1,col2,name='my_pk_constraint')
 

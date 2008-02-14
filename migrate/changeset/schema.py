@@ -27,7 +27,7 @@ def _to_table(table,engine=None):
     # Given: table name, maybe an engine
     meta = sqlalchemy.MetaData()
     if engine is not None:
-        meta.connect(engine)
+        meta.bind = engine #meta.connect(engine)
     return sqlalchemy.Table(table,meta)
 def _to_index(index,table=None,engine=None):
     if isinstance(index,sqlalchemy.Index):
@@ -305,6 +305,10 @@ class ChangesetColumn(object):
         for column defaults, only PassiveDefaults are managed by the database -
         changing others doesn't make sense. 
         """
+        if 'table' not in k:
+            k['table'] = self.table
+        if 'engine' not in k:
+            k['engine'] = k['table'].bind
         return alter_column(self,*p,**k)
 
     def create(self,table=None,*args,**kwargs):
@@ -324,7 +328,8 @@ class ChangesetColumn(object):
         table = _normalize_table(self,table)
         engine = table.bind
         visitorcallable = get_engine_visitor(engine,'columndropper')
-        engine._run_visitor(visitorcallable,self,*args,**kwargs)
+        #engine._run_visitor(visitorcallable,self,*args,**kwargs)
+        engine._run_visitor(lambda dialect, conn: visitorcallable(conn), self, *args, **kwargs)
         ## Remove col from table object, too
         #del table._columns[self.key]
         #if self in table.primary_key:

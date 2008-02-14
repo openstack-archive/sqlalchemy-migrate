@@ -36,7 +36,8 @@ class TestConstraint(fixture.DB):
             pk.name = 'fgsfds'
         pk.create()
         self.refresh_table()
-        self.assertEquals(list(self.table.primary_key),list(cols))
+        if not self.url.startswith('sqlite'):
+            self.assertEquals(list(self.table.primary_key),list(cols))
         #self.assert_(self.table.primary_key.name is not None)
 
         # Drop the PK constraint
@@ -125,7 +126,8 @@ class TestAutoname(fixture.DB):
         cons = PrimaryKeyConstraint(self.table.c.id)
         cons.create()
         self.refresh_table()
-        self.assertEquals(list(cons.columns),list(self.table.primary_key))
+        if not self.url.startswith('sqlite'):
+            self.assertEquals(list(cons.columns),list(self.table.primary_key))
 
         # Remove the name, drop the constraint; it should succeed
         cons.name = None

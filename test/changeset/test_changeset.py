@@ -188,7 +188,7 @@ class TestRename(fixture.DB):
     meta = MetaData()
 
     def setUp(self):
-        self.meta.connect(self.engine)
+        self.meta.bind = self.engine #self.meta.connect(self.engine)
 
     @fixture.usedb()
     def test_rename_table(self):

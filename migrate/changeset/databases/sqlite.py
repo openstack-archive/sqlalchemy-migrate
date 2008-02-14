@@ -33,7 +33,7 @@ class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
         msg = tmpl%(name,tname,cols)
         self.append(msg)
         self.execute()
-class SQLiteConstraintDropper(object):
+class SQLiteConstraintDropper(ansisql.ANSIColumnDropper):
     def visit_migrate_primary_key_constraint(self,constraint):
         tmpl = "DROP INDEX %s "
         name = constraint.name

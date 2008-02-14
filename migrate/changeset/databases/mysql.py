@@ -24,6 +24,7 @@ class MySQLSchemaChanger(MySQLSchemaGenerator,ansisql.ANSISchemaChanger):
                 "A column object is required to do this")
                 
         column = delta.result_column
+        if not column.table: column.table = delta.table # needed by get_column_specification
         colspec = self.get_column_specification(column)
         self.start_alter_table(table_name)
         self.append("CHANGE COLUMN ")

@@ -58,16 +58,16 @@ class AlterTableVisitor(SchemaIterator,RawAlterTableVisitor):
 
 class ANSIColumnGenerator(AlterTableVisitor,SchemaGenerator):
     """Extends ansisql generator for column creation (alter table add col)"""
-    def __init__(self, *args, **kwargs):
-        dialect = None
-        if isinstance(args[0], Connection):
-            dialect = args[0].engine.dialect
-        elif isinstance(args[0], Dialect):
-            dialect = args[0]
-        else:
-            raise exceptions.Error("Cannot infer dialect in __init__")
-        super(ANSIColumnGenerator, self).__init__(dialect, *args,
-**kwargs)
+    #def __init__(self, *args, **kwargs):
+    #    dialect = None
+    #    if isinstance(args[0], Connection):
+    #        dialect = args[0].engine.dialect
+    #    elif isinstance(args[0], Dialect):
+    #        dialect = args[0]
+    #    else:
+    #        raise exceptions.Error("Cannot infer dialect in __init__")
+    #    super(ANSIColumnGenerator, self).__init__(dialect, *args,
+    # **kwargs)
 
     def visit_column(self,column):
         """Create a column (table already exists); #32"""
@@ -192,7 +192,8 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
         if not isinstance(type,sa.types.AbstractType):
             # It's the class itself, not an instance... make an instance
             type = type()
-        type_text = type.engine_impl(self.engine).get_col_spec()
+        #type_text = type.engine_impl(self.engine).get_col_spec()
+        type_text = type.dialect_impl(self.dialect).get_col_spec()
         self.start_alter_table(table_name)
         self.append("ALTER COLUMN %s TYPE %s"%(col_name,type_text))
     def _visit_column_name(self,table_name,col_name,delta):

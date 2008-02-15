@@ -1,3 +1,7 @@
+0.4.1
+- setuptools patch by Kevin Dangoor
+- re-rename module to migrate
+
 0.4.0
 - SA 0.4.0 compatibility thanks to Christian Simms
 - all unit tests are working now (with sqlalchemy >= 0.3.10)

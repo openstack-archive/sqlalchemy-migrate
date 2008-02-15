@@ -8,10 +8,9 @@ except ImportError:
     pass
 
 setup(
-    name = "sqlalchemy-migrate",
-    version = "0.4.1dev",
+    name = "migrate",
+    version = "0.4.2dev",
     packages = find_packages(exclude=['test*']),
-    scripts = ['shell/migrate'],
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",
     long_description = """
@@ -33,5 +32,9 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
     maintainer_email = "jan@dittberner.info",
     license = "MIT",
 
+    entry_points = """
+    [console_scripts]
+    migrate = migrate.versioning.shell:main
+    """,
     test_suite = "py.test.cmdline.main",
 )

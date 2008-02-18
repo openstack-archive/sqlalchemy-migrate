@@ -4,10 +4,10 @@ happen to work with multiple databases.
 """
 import sqlalchemy as sa
 from sqlalchemy.engine.base import Connection, Dialect
+from sqlalchemy.sql.compiler import SchemaGenerator
 from migrate.changeset import constraint,exceptions
 
 SchemaIterator = sa.engine.SchemaIterator
-SchemaGenerator = sa.sql.compiler.SchemaGenerator
 
 class RawAlterTableVisitor(object):
     """Common operations for 'alter table' statements"""

@@ -8,7 +8,7 @@ except ImportError:
     pass
 
 setup(
-    name = "migrate",
+    name = "sqlalchemy-migrate",
     version = "0.4.3dev",
     packages = find_packages(exclude=['test*']),
     include_package_data = True,

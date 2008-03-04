@@ -7,8 +7,11 @@ from migrate.versioning.repository import Repository
 from migrate.versioning import shell
 from sqlalchemy import MetaData,Table
 
+python_version = sys.version[0:3]
+
 class Shell(fixture.Shell):
-    _cmd=os.path.join('python shell','migrate')
+    _cmd=os.path.join('python build', 'scripts-%s' % python_version, 
+                      'migrate')
     @classmethod
     def cmd(cls,*p):
         p = map(lambda s: str(s),p)

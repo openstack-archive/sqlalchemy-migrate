@@ -67,6 +67,11 @@ class TestVersionedRepository(fixture.Pathed):
         self.assert_(not os.path.exists(self.path_script))
         # .pyc file from the committed script shouldn't exist either
         self.assert_(not os.path.exists(self.path_script+'c'))
+        version = repos.versions.version()
+        self.assert_(os.path.exists(os.path.join(version.path, 
+                     "%s.py" % version.version)))
+        self.assert_(os.path.exists(os.path.join(version.path,
+                     "__init__.py")))
     def test_version(self):
         """We should correctly detect the version of a repository"""
         self.script_cls.create(self.path_script)

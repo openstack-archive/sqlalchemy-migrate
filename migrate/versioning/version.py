@@ -118,6 +118,10 @@ class Version(pathed.Pathed):
         self.python = None
         try:
             for script in os.listdir(path):
+                # skip __init__.py, because we assume that it's
+                # just there to mark the package
+                if script == '__init__.py':
+                    continue
                 self._add_script(os.path.join(path,script))
         except:
             raise exceptions.InvalidVersionError(path)
@@ -142,6 +146,11 @@ class Version(pathed.Pathed):
     @classmethod
     def create(cls,path):
         os.mkdir(path)
+        # craete the version as a proper Python package
+        initfile = os.path.join(path, "__init__.py")
+        if not os.path.exists(initfile):
+            # just touch the file
+            open(initfile, "w").close()
         try:
             ret=cls(path)
         except:

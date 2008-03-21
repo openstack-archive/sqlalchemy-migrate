@@ -45,7 +45,7 @@ class OracleSchemaChanger(OracleSchemaGenerator,ansisql.ANSISchemaChanger):
         
                 
         if dropdefault_hack: 
-            column.default = sa.PassiveDefault(sa.func.null())
+            column.default = sa.PassiveDefault(sa.sql.null())
         if notnull_hack:
             column.nullable = True
         colspec=self.get_column_specification(column,override_nullable=null_hack)

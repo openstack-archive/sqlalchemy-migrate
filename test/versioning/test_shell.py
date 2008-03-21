@@ -10,8 +10,7 @@ from sqlalchemy import MetaData,Table
 python_version = sys.version[0:3]
 
 class Shell(fixture.Shell):
-    _cmd=os.path.join('python build', 'scripts-%s' % python_version, 
-                      'migrate')
+    _cmd=os.path.join('python migrate', 'versioning', 'shell.py')
     @classmethod
     def cmd(cls,*p):
         p = map(lambda s: str(s),p)
@@ -341,11 +340,11 @@ class TestShellDatabase(Shell,fixture.DB):
 
         self.assertSuccess(self.cmd('commit',upgrade_path,repos_path,'postgres','upgrade'))
         self.assertEquals(self.cmd_version(repos_path),1)
-        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions','1'))),1)
+        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions','1'))),2)
 
         # Add, not replace
         self.assertSuccess(self.cmd('commit',downgrade_path,repos_path,'postgres','downgrade','--version=1'))
-        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions','1'))),2)
+        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions','1'))),3)
         self.assertEquals(self.cmd_version(repos_path),1)
 
 

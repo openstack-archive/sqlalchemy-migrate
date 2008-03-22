@@ -1,6 +1,6 @@
 import shutil
 import migrate.run
-from migrate.versioning import exceptions
+from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.base import operations
 from migrate.versioning.template import template
 from migrate.versioning.script import base
@@ -18,6 +18,37 @@ class PythonScript(base.BaseScript):
         template_file = None
         src = template.get_script(template_file)
         shutil.copy(src,path)
+
+    @classmethod
+    def script_python_changes(cls,path,engine,model,repository,**opts):
+        """Create a migration script"""
+        cls.require_notfound(path)
+        
+        # Compute differences.
+        if isinstance(repository, basestring):
+            from migrate.versioning.repository import Repository  # oh dear, an import cycle!
+            repository=Repository(repository)
+        if isinstance(model, basestring):  # TODO: centralize this code?
+            # Assume model is of form "mod1.mod2.varname".
+            varname = model.split('.')[-1]
+            modules = '.'.join(model.split('.')[:-1])
+            module = __import__(modules, globals(), {}, ['dummy-not-used'], -1)
+            model = getattr(module, varname)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(model, engine, excludeTables=[repository.version_table])
+        upgradeDecls, upgradeCommands = genmodel.ModelGenerator(diff).toUpgradePython()
+        #downgradeCommands = genmodel.ModelGenerator(diff).toDowngradePython()
+
+        # TODO: Use the default script template (defined in the template
+        # module) for now, but we might want to allow people to specify a
+        # different one later.
+        template_file = None
+        src = template.get_script(template_file)
+        contents = open(src).read()
+        search = 'def upgrade():'
+        contents = contents.replace(search, upgradeDecls + '\n\n' + search, 1)
+        if upgradeCommands: contents = contents.replace('    pass', upgradeCommands, 1)
+        #if downgradeCommands: contents = contents.replace('    pass', downgradeCommands, 1)  # TODO
+        open(path, 'w').write(contents)
 
     @classmethod
     def verify_module(cls,path):

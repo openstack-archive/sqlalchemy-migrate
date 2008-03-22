@@ -2,7 +2,7 @@ from sqlalchemy import Table,Column,MetaData,String,Integer,create_engine
 from sqlalchemy import exceptions as sa_exceptions
 from migrate.versioning.repository import Repository
 from migrate.versioning.version import VerNum
-from migrate.versioning import exceptions
+from migrate.versioning import exceptions, genmodel, schemadiff
 
 class ControlledSchema(object):
     """A database under version control"""
@@ -91,6 +91,30 @@ class ControlledSchema(object):
         engine.execute(table.insert(),repository_id=repository.id,
             repository_path=repository.path,version=int(version))
         return table
+    
+    @classmethod
+    def compare_db(cls,engine,model,repository):
+        """Compare the current model against the current database."""
+
+        if isinstance(repository, basestring):
+            repository=Repository(repository)
+        if isinstance(model, basestring):  # TODO: centralize this code?
+            # Assume model is of form "mod1.mod2.varname".
+            varname = model.split('.')[-1]
+            modules = '.'.join(model.split('.')[:-1])
+            module = __import__(modules, globals(), {}, ['dummy-not-used'], -1)
+            model = getattr(module, varname)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(model, engine, excludeTables=[repository.version_table])
+        return diff
+
+    @classmethod
+    def db_schema_dump(cls,engine,repository):
+        """Dump the current database as a Python model."""
+
+        if isinstance(repository, basestring):
+            repository=Repository(repository)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), engine, excludeTables=[repository.version_table])
+        return genmodel.ModelGenerator(diff).toPython()
 
     def drop(self):
         """Remove version control from a database"""

@@ -151,9 +151,17 @@ class ModelGenerator(object):
                     commonColsStr = ', '.join(commonCols)
                     return 'INSERT INTO %s (%s) SELECT %s FROM %s' % (tableName, commonColsStr, commonColsStr, tempName)
                 
-                self.diff.conn.execute('CREATE TEMPORARY TABLE %s as SELECT * from %s' % (tempName, modelTable.name))
-                modelTable.drop()
-                modelTable.create()
-                self.diff.conn.execute(getCopyStatement())
-                self.diff.conn.execute('DROP TABLE %s' % tempName)
+                # Move the data in one transaction, so that we don't leave the database in a nasty state.
+                connection = self.diff.conn.connect()
+                trans = connection.begin()
+                try:
+                    connection.execute('CREATE TEMPORARY TABLE %s as SELECT * from %s' % (tempName, modelTable.name))
+                    modelTable.drop(bind=connection)  # make sure the drop takes place inside our transaction with the bind parameter
+                    modelTable.create(bind=connection)
+                    connection.execute(getCopyStatement())
+                    connection.execute('DROP TABLE %s' % tempName)
+                    trans.commit()
+                except:
+                    trans.rollback()
+                    raise
                 

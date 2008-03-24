@@ -11,7 +11,7 @@ __all__=[
 'help',
 'create',
 'script',
-'script_python_changes',
+'make_update_script_for_model',
 'commit',
 'version',
 'source',
@@ -22,8 +22,9 @@ __all__=[
 'drop_version_control',
 'manage',
 'test',
-'compare_db',
-'db_schema_dump',
+'compare_model_to_db',
+'create_model',
+'update_db_from_model',
 ]
 
 cls_repository = repository.Repository
@@ -280,28 +281,28 @@ def manage(file,**opts):
     """
     return repository.manage(file,**opts)
 
-def compare_db(url,model,repository,**opts):
-    """%prog compare_db URL MODEL REPOSITORY_PATH
+def compare_model_to_db(url,model,repository,**opts):
+    """%prog compare_model_to_db URL MODEL REPOSITORY_PATH
 
     Compare the current model (assumed to be a module level variable of type sqlalchemy.MetaData) against the current database.
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine=create_engine(url)
-    print cls_schema.compare_db(engine,model,repository)
+    print cls_schema.compare_model_to_db(engine,model,repository)
 
-def db_schema_dump(url,repository,**opts):
-    """%prog db_schema_dump URL REPOSITORY_PATH
+def create_model(url,repository,**opts):
+    """%prog create_model URL REPOSITORY_PATH
 
     Dump the current database as a Python model to stdout.
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine=create_engine(url)
-    print cls_schema.db_schema_dump(engine,repository)
+    print cls_schema.create_model(engine,repository)
 
-def script_python_changes(path,url,model,repository,**opts):
-    """%prog script_python_changes PATH URL MODEL REPOSITORY_PATH
+def make_update_script_for_model(path,url,model,repository,**opts):
+    """%prog make_update_script_for_model PATH URL MODEL REPOSITORY_PATH
 
     Create a script changing the current (old) database to the current (new) Python model.
 
@@ -309,8 +310,18 @@ def script_python_changes(path,url,model,repository,**opts):
     """  # TODO: get rid of EXPERIMENTAL label
     engine=create_engine(url)
     try:
-        cls_script_python.script_python_changes(path,engine,model,repository,**opts)
+        cls_script_python.make_update_script_for_model(path,engine,model,repository,**opts)
     except exceptions.PathFoundError,e:
         raise exceptions.KnownError("The path %s already exists"%e.args[0])
+
+def update_db_from_model(url,model,repository,**opts):
+    """%prog update_db_from_model URL MODEL REPOSITORY_PATH
+
+    Modify the database to match the structure of the current Python model.
+
+    NOTE: This is EXPERIMENTAL.
+    """  # TODO: get rid of EXPERIMENTAL label
+    engine=create_engine(url)
+    cls_schema.update_db_from_model(engine,model,repository)
 
 

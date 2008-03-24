@@ -20,7 +20,7 @@ class PythonScript(base.BaseScript):
         shutil.copy(src,path)
 
     @classmethod
-    def script_python_changes(cls,path,engine,model,repository,**opts):
+    def make_update_script_for_model(cls,path,engine,model,repository,**opts):
         """Create a migration script"""
         cls.require_notfound(path)
         

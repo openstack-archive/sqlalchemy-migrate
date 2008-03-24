@@ -93,7 +93,7 @@ class ControlledSchema(object):
         return table
     
     @classmethod
-    def compare_db(cls,engine,model,repository):
+    def compare_model_to_db(cls,engine,model,repository):
         """Compare the current model against the current database."""
 
         if isinstance(repository, basestring):
@@ -108,13 +108,28 @@ class ControlledSchema(object):
         return diff
 
     @classmethod
-    def db_schema_dump(cls,engine,repository):
+    def create_model(cls,engine,repository):
         """Dump the current database as a Python model."""
 
         if isinstance(repository, basestring):
             repository=Repository(repository)
         diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), engine, excludeTables=[repository.version_table])
         return genmodel.ModelGenerator(diff).toPython()
+    
+    @classmethod
+    def update_db_from_model(cls,engine,model,repository):
+        """Modify the database to match the structure of the current Python model."""
+
+        if isinstance(repository, basestring):
+            repository=Repository(repository)
+        if isinstance(model, basestring):  # TODO: centralize this code?
+            # Assume model is of form "mod1.mod2.varname".
+            varname = model.split('.')[-1]
+            modules = '.'.join(model.split('.')[:-1])
+            module = __import__(modules, globals(), {}, ['dummy-not-used'], -1)
+            model = getattr(module, varname)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(model, engine, excludeTables=[repository.version_table])
+        return genmodel.ModelGenerator(diff).applyModel()
 
     def drop(self):
         """Remove version control from a database"""

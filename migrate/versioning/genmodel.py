@@ -3,7 +3,7 @@
 # Some of this is borrowed heavily from the AutoCode project at:  http://code.google.com/p/sqlautocode/
 
 import sys
-import sqlalchemy
+import migrate, sqlalchemy
 
 
 HEADER = """
@@ -28,11 +28,15 @@ class ModelGenerator(object):
             kwarg.append('primary_key')
         if not col.nullable: kwarg.append('nullable')
         if col.onupdate: kwarg.append('onupdate')
-        if col.default: kwarg.append('default')
+        if col.default:
+            if col.primary_key:
+                # I found that Postgres automatically creates a default value for the sequence, but let's not show that.
+                pass
+            else:
+                kwarg.append('default')
         ks = ', '.join('%s=%r' % (k, getattr(col, k)) for k in kwarg )
             
         name = col.name.encode('utf8')  # crs: not sure if this is good idea, but it gets rid of extra u''
-        #type = self.colTypeMappings[col.type.__class__]()
         type = self.colTypeMappings.get(col.type.__class__, None)
         if type:
             # Make the column type be an instance of this type.
@@ -96,3 +100,60 @@ class ModelGenerator(object):
     def toDowngradePython(self, indent='    '):
         return '    pass  #TODO DOWNGRADE'
     
+    def applyModel(self):
+        ''' Apply model to current database. '''
+        
+        # Yuck! We have to import from changeset to apply the monkey-patch to allow column adding/dropping.
+        from migrate.changeset import schema
+        
+        def dbCanHandleThisChange(missingInDatabase, missingInModel, diffDecl):
+            if missingInDatabase and not missingInModel and not diffDecl:
+                # Even sqlite can handle this.
+                return True
+            else:
+                return not self.diff.conn.url.drivername.startswith('sqlite')
+            
+        meta = sqlalchemy.MetaData(self.diff.conn.engine)
+        
+        for table in self.diff.tablesMissingInModel:
+            table = table.tometadata(meta)
+            table.drop()
+        for table in self.diff.tablesMissingInDatabase:
+            table = table.tometadata(meta)
+            table.create()
+        for modelTable in self.diff.tablesWithDiff:
+            modelTable = modelTable.tometadata(meta)
+            dbTable = self.diff.reflected_model.tables[modelTable.name]
+            #print 'TODO DEBUG.cols1', [x.name for x in dbTable.columns]
+            #dbTable = dbTable.tometadata(meta)
+            #print 'TODO DEBUG.cols2', [x.name for x in dbTable.columns]
+            tableName = modelTable.name
+            missingInDatabase, missingInModel, diffDecl = self.diff.colDiffs[tableName]
+            if dbCanHandleThisChange(missingInDatabase, missingInModel, diffDecl):
+                for col in missingInDatabase:
+                    modelTable.columns[col.name].create()
+                for col in missingInModel:
+                    dbTable.columns[col.name].drop()
+                for modelCol, databaseCol, modelDecl, databaseDecl in diffDecl:
+                    dbTable.columns[databaseCol.name].drop()
+                    modelTable.columns[modelCol.name].create()
+            else:
+                # Sqlite doesn't support drop column, so you have to do more:
+                #   create temp table, copy data to it, drop old table, create new table, copy data back.
+                
+                tempName = '_temp_%s' % modelTable.name  # I wonder if this is guaranteed to be unique?
+                def getCopyStatement():
+                    preparer = self.diff.conn.engine.dialect.preparer
+                    commonCols = []
+                    for modelCol in modelTable.columns:
+                        if dbTable.columns.has_key(modelCol.name):
+                            commonCols.append(modelCol.name)
+                    commonColsStr = ', '.join(commonCols)
+                    return 'INSERT INTO %s (%s) SELECT %s FROM %s' % (tableName, commonColsStr, commonColsStr, tempName)
+                
+                self.diff.conn.execute('CREATE TEMPORARY TABLE %s as SELECT * from %s' % (tempName, modelTable.name))
+                modelTable.drop()
+                modelTable.create()
+                self.diff.conn.execute(getCopyStatement())
+                self.diff.conn.execute('DROP TABLE %s' % tempName)
+                

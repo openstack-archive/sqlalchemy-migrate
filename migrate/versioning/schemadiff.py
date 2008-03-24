@@ -71,7 +71,7 @@ class SchemaDiff(object):
                                 # Types and nullable are the same.
                                 pass
                             else:
-                                self.storeColumnDiff(modelTable, modelDecl, databaseDecl)
+                                self.storeColumnDiff(modelTable, modelCol, databaseCol, modelDecl, databaseDecl)
                     else:
                         self.storeColumnMissingInModel(modelTable, databaseCol)
             else:
@@ -126,9 +126,9 @@ class SchemaDiff(object):
         missingInDatabase, missingInModel, diffDecl = self.colDiffs.setdefault(table.name, ([], [], []))
         missingInModel.append(col)
    
-    def storeColumnDiff(self, table, modelDecl, databaseDecl):
+    def storeColumnDiff(self, table, modelCol, databaseCol, modelDecl, databaseDecl):
         if table not in self.tablesWithDiff:
             self.tablesWithDiff.append(table)
         missingInDatabase, missingInModel, diffDecl = self.colDiffs.setdefault(table.name, ([], [], []))
-        diffDecl.append( (modelDecl, databaseDecl) )
+        diffDecl.append( (modelCol, databaseCol, modelDecl, databaseDecl) )
    

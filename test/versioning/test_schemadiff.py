@@ -42,7 +42,7 @@ class TestSchemaDiff(fixture.DB):
         fixture.DB.tearDown(self)
         
     def _applyLatestModel(self):
-        diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         genmodel.ModelGenerator(diff).applyModel()
         
     @fixture.usedb()
@@ -52,7 +52,7 @@ class TestSchemaDiff(fixture.DB):
         from migrate.changeset import schema
         
         def assertDiff(isDiff, tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff):
-            diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine)
+            diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
             self.assertEquals(bool(diff), isDiff)
             self.assertEquals( ([t.name for t in diff.tablesMissingInDatabase], [t.name for t in diff.tablesMissingInModel], [t.name for t in diff.tablesWithDiff]),
                            (tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff) )
@@ -61,7 +61,7 @@ class TestSchemaDiff(fixture.DB):
         assertDiff(True, [self.table_name], [], [])
         
         # Check Python upgrade of database from updated model.
-        diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         decl, commands = genmodel.ModelGenerator(diff).toUpgradePython()
         self.assertEqualsIgnoreWhitespace(decl, '''
         meta = MetaData(migrate_engine)
@@ -78,7 +78,7 @@ class TestSchemaDiff(fixture.DB):
         assertDiff(False, [], [], [])
         
         # Check Python code gen from database.
-        diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), self.engine)
+        diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), self.engine, excludeTables=['migrate_version'])
         src = genmodel.ModelGenerator(diff).toPython()
         src = src.replace(genmodel.HEADER, '')
         self.assertEqualsIgnoreWhitespace(src, '''

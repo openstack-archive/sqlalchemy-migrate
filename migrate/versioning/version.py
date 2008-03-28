@@ -165,7 +165,7 @@ class Version(pathed.Pathed):
             self._add_script_sql(path)
     def _add_script_sql(self,path):
         try:
-            version,dbms,op,ext=path.split('.',3)
+            version,dbms,op,ext=os.path.basename(path).split('.',3)
         except:
             raise exceptions.ScriptError("Invalid sql script name %s"%path)
 

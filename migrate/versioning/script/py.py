@@ -4,7 +4,7 @@ from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.base import operations
 from migrate.versioning.template import template
 from migrate.versioning.script import base
-from migrate.versioning.util import import_path
+from migrate.versioning.util import import_path, loadModel
 
 class PythonScript(base.BaseScript):
     @classmethod
@@ -28,12 +28,7 @@ class PythonScript(base.BaseScript):
         if isinstance(repository, basestring):
             from migrate.versioning.repository import Repository  # oh dear, an import cycle!
             repository=Repository(repository)
-        if isinstance(model, basestring):  # TODO: centralize this code?
-            # Assume model is of form "mod1.mod2.varname".
-            varname = model.split('.')[-1]
-            modules = '.'.join(model.split('.')[:-1])
-            module = __import__(modules, globals(), {}, ['dummy-not-used'], -1)
-            model = getattr(module, varname)
+        model = loadModel(model)
         diff = schemadiff.getDiffOfModelAgainstDatabase(model, engine, excludeTables=[repository.version_table])
         upgradeDecls, upgradeCommands = genmodel.ModelGenerator(diff).toUpgradePython()
         #downgradeCommands = genmodel.ModelGenerator(diff).toDowngradePython()

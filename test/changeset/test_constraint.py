@@ -14,6 +14,7 @@ class TestConstraint(fixture.DB):
         fixture.DB.tearDown(self)
 
     def _create_table(self):
+        self._connect(self.url)
         self.meta = MetaData(self.engine)
         self.table = Table('mytable',self.meta,
             Column('id',Integer),
@@ -106,6 +107,7 @@ class TestAutoname(fixture.DB):
 
     def setUp(self):
         fixture.DB.setUp(self)
+        self._connect(self.url)
         self.meta = MetaData(self.engine)
         self.table = Table('mytable',self.meta,
             Column('id',Integer),

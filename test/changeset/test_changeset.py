@@ -17,9 +17,8 @@ class TestAddDropColumn(fixture.DB):
     table_int = 0
 
     def setUp(self):
-        if self.url.startswith('sqlite://'):
-            self.engine = create_engine(self.url)
-        #self.engine.echo=True
+        fixture.DB.setUp(self)
+        self._connect(self.url)
         self.meta.clear()
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer,primary_key=True),
@@ -188,6 +187,8 @@ class TestRename(fixture.DB):
     meta = MetaData()
 
     def setUp(self):
+        fixture.DB.setUp(self)
+        self._connect(self.url)
         self.meta.bind = self.engine #self.meta.connect(self.engine)
 
     @fixture.usedb()
@@ -276,6 +277,8 @@ class TestColumnChange(fixture.DB):
 
     def setUp(self):
         fixture.DB.setUp(self)
+        self._connect(self.url)
+        #self.engine.echo=True
         self.meta = MetaData(self.engine)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer,primary_key=True),
@@ -289,16 +292,15 @@ class TestColumnChange(fixture.DB):
             # SQLite: database schema has changed
             if not self.url.startswith('sqlite://'):
                 raise
-        #self.engine.echo=True
     def tearDown(self):
-        #self.engine.echo=False
-        if self.table:
+        if self.table.exists():
             try:
-                self.table.drop()
+                self.table.drop(self.engine)
             except sqlalchemy.exceptions.SQLError,e:
                 # SQLite: database schema has changed
                 if not self.url.startswith('sqlite://'):
                     raise
+        #self.engine.echo=False
         fixture.DB.tearDown(self)
 
     @fixture.usedb(supported='sqlite')

@@ -24,6 +24,7 @@ class TestSchemaDiff(fixture.DB):
 
     def setUp(self):
         fixture.DB.setUp(self)
+        self._connect(self.url)
         self.meta = MetaData(self.engine)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),

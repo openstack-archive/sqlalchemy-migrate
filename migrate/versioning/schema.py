@@ -1,4 +1,4 @@
-from sqlalchemy import Table,Column,MetaData,String,Integer,create_engine
+from sqlalchemy import Table,Column,MetaData,String,Text,Integer,create_engine
 from sqlalchemy import exceptions as sa_exceptions
 from migrate.versioning.repository import Repository
 from migrate.versioning.util import loadModel
@@ -81,7 +81,7 @@ class ControlledSchema(object):
             table = Table(tname,meta,
                 #Column('repository_id',String,primary_key=True), # MySQL needs a length
                 Column('repository_id',String(255),primary_key=True),
-                Column('repository_path',String),
+                Column('repository_path',Text),
                 Column('version',Integer),
             )
             table.create()

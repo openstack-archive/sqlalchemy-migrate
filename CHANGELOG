@@ -1,6 +1,11 @@
 0.4.x
 - work by Christian Simms to compare metadata against databases
 
+0.4.4
+- patch by pwannygoodness for Issue #15
+- fixed unit tests to work with py.test 0.9.1
+- fix for a SQLAlchemy deprecation warning
+
 0.4.3
 - patch by Kevin Dangoor to handle database versions as packages and ignore
   their __init__.py files in version.py

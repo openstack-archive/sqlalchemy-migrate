@@ -8,17 +8,26 @@ def getDiffOfModelAgainstDatabase(model, conn, excludeTables=None):
     '''
     return SchemaDiff(model, conn, excludeTables)
     
+def getDiffOfModelAgainstModel(oldmodel, model, conn, excludeTables=None):
+    ''' Return differences of model against database.
+        Returned object will evaluate to True if there are differences else False.
+    '''
+    return SchemaDiff(model, conn, excludeTables, oldmodel=oldmodel)
+    
 
 class SchemaDiff(object):
     ''' Differences of model against database. '''
     
-    def __init__(self, model, conn, excludeTables=None):
+    def __init__(self, model, conn, excludeTables=None, oldmodel=None):
         ''' Parameter model is your Python model's metadata and conn is an active database connection. '''
         self.model = model
         self.conn = conn
         if not excludeTables: excludeTables = []  # [] can't be default value in Python parameter
         self.excludeTables = excludeTables
-        self.reflected_model = sqlalchemy.MetaData(conn, reflect=True)
+        if oldmodel:
+            self.reflected_model = oldmodel
+        else:
+            self.reflected_model = sqlalchemy.MetaData(conn, reflect=True)
         self.tablesMissingInDatabase, self.tablesMissingInModel, self.tablesWithDiff = [], [], []
         self.colDiffs = {}
         self.compareModelToDatabase()

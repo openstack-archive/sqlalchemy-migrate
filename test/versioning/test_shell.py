@@ -4,7 +4,7 @@ from StringIO import StringIO
 import os,shutil
 from test import fixture
 from migrate.versioning.repository import Repository
-from migrate.versioning import shell
+from migrate.versioning import genmodel, shell
 from sqlalchemy import MetaData,Table
 
 python_version = sys.version[0:3]
@@ -454,3 +454,99 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertSuccess(self.cmd('test',script_path,repos_path,self.url))
         self.assertEquals(self.cmd_version(repos_path),0)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
+        
+    @fixture.usedb()
+    def test_rundiffs_in_shell(self):
+        # This is a variant of the test_schemadiff tests but run through the shell level.
+        # These shell tests are hard to debug (since they keep forking processes), so they shouldn't replace the lower-level tests.
+        repos_name = 'repos_name'
+        repos_path = self.tmp()
+        script_path = self.tmp_py()
+        old_model_path = self.tmp_named('oldtestmodel.py')
+        model_path = self.tmp_named('testmodel.py')
+
+        # Create empty repository.
+        self.assertSuccess(self.cmd('create',repos_path,repos_name))
+        self.assertSuccess(self.cmd('version_control',self.url,repos_path))
+        self.assertEquals(self.cmd_version(repos_path),0)
+        self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
+
+        # Setup helper script.
+        model_module = 'testmodel.meta'
+        self.assertSuccess(self.cmd('manage',script_path,'--repository=%s --url=%s --model=%s' % (repos_path, self.url, model_module)))
+        self.assert_(os.path.exists(script_path))
+        
+        # Write old and new model to disk - old model is empty!
+        script_preamble="""
+        from sqlalchemy import *
+        
+        meta = MetaData()
+        """.replace("\n        ","\n")
+        
+        script_text="""
+        """.replace("\n        ","\n")
+        open(old_model_path, 'w').write(script_preamble + script_text)
+        
+        script_text="""
+        account = Table('account',meta,
+            Column('id',Integer,primary_key=True),
+            Column('login',String(40)),
+            Column('passwd',String(40)),
+        )
+        """.replace("\n        ","\n")
+        open(model_path, 'w').write(script_preamble + script_text)
+        
+        # Model is defined but database is empty.
+        output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
+        self.assertEquals(output, "Schema diffs:\n  tables missing in database: account")
+        
+        # Update db to latest model.
+        output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)
+        self.assertEquals(output, "")
+        output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
+        self.assertEquals(output, "No schema diffs")
+        output, exitcode = self.output_and_exitcode('python %s create_model' % script_path)
+        output = output.replace(genmodel.HEADER.strip(), '')  # need strip b/c output_and_exitcode called strip
+        self.assertEqualsIgnoreWhitespace(output, """
+            account = Table('account',meta,
+                Column('id',Integer(),primary_key=True,nullable=False),
+                Column('login',String(length=None,convert_unicode=False,assert_unicode=None)),
+                Column('passwd',String(length=None,convert_unicode=False,assert_unicode=None)),
+            )
+        """)  # TODO: length shouldn't be None above
+        
+        # We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
+        output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model' % script_path)  # intentionally omit a parameter
+        self.assertEquals('Error: Too few arguments' in output, True)
+        output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model --oldmodel=oldtestmodel.meta' % script_path)
+        self.assertEqualsIgnoreWhitespace(output, """
+            from sqlalchemy import *
+            from migrate import *
+
+            meta = MetaData(migrate_engine)
+            account = Table('account', meta,
+              Column('id', Integer() ,  primary_key=True, nullable=False),
+              Column('login', String(length=40, convert_unicode=False, assert_unicode=None)   ),
+              Column('passwd', String(length=40, convert_unicode=False, assert_unicode=None)   ),
+            )
+
+            def upgrade():
+                # Upgrade operations go here. Don't create your own engine; use the engine
+                # named 'migrate_engine' imported from migrate.
+                account.create()
+
+            def downgrade():
+                # Operations to reverse the above upgrade go here.
+                pass
+        """)
+        
+        # Commit the change.
+        upgrade_script_path = self.tmp_named('upgrade_script.py')
+        open(upgrade_script_path, 'w').write(output)
+        #output, exitcode = self.output_and_exitcode('python %s test %s' % (script_path, upgrade_script_path))  # no, we already upgraded the db above
+        #self.assertEquals(output, "")
+        output, exitcode = self.output_and_exitcode('python %s commit %s' % (script_path, upgrade_script_path))
+        self.assertEquals(output, "")
+        self.assertEquals(self.cmd_version(repos_path),1)
+        #self.assertEquals(self.cmd_db_version(self.url,repos_path),1)  TODO finish
+

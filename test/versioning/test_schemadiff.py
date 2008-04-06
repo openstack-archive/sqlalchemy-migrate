@@ -9,19 +9,6 @@ class TestSchemaDiff(fixture.DB):
     level=fixture.DB.CONNECT
     table_name = 'tmp_schemadiff'
 
-    def assertEqualsIgnoreWhitespace(self, v1, v2):
-        
-        def createLines(s):
-            s = s.replace(' ', '')
-            lines = s.split('\n')
-            return [ line for line in lines if line ]
-        
-        lines1 = createLines(v1)
-        lines2 = createLines(v2)
-        self.assertEquals(len(lines1), len(lines2))
-        for line1, line2 in zip(lines1, lines2):
-            self.assertEquals(line1, line2)
-
     def setUp(self):
         fixture.DB.setUp(self)
         self._connect(self.url)
@@ -39,7 +26,9 @@ class TestSchemaDiff(fixture.DB):
     
     def tearDown(self):
         if self.table.exists():
-            self.table.drop()
+            #self.table.drop()  # bummer, this doesn't work because the list of tables is out of date, but calling reflect didn't work
+            self.meta = MetaData(self.engine, reflect=True)
+            self.meta.drop_all()
         fixture.DB.tearDown(self)
         
     def _applyLatestModel(self):

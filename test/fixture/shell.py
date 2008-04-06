@@ -16,7 +16,7 @@ class Shell(Pathed):
         return fd
     def output_and_exitcode(self,*p,**k):
         fd=self.execute(*p,**k)
-        output = fd.read()
+        output = fd.read().strip()
         exitcode = fd.close()
         if k.pop('emit',False):
             print output

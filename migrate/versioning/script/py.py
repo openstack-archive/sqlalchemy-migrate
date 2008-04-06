@@ -20,16 +20,17 @@ class PythonScript(base.BaseScript):
         shutil.copy(src,path)
 
     @classmethod
-    def make_update_script_for_model(cls,path,engine,model,repository,**opts):
+    def make_update_script_for_model(cls,engine,oldmodel,model,repository,**opts):
         """Create a migration script"""
-        cls.require_notfound(path)
+        #cls.require_notfound(path)  # TODO: yank?
         
         # Compute differences.
         if isinstance(repository, basestring):
             from migrate.versioning.repository import Repository  # oh dear, an import cycle!
             repository=Repository(repository)
+        oldmodel = loadModel(oldmodel)
         model = loadModel(model)
-        diff = schemadiff.getDiffOfModelAgainstDatabase(model, engine, excludeTables=[repository.version_table])
+        diff = schemadiff.getDiffOfModelAgainstModel(oldmodel, model, engine, excludeTables=[repository.version_table])
         upgradeDecls, upgradeCommands = genmodel.ModelGenerator(diff).toUpgradePython()
         #downgradeCommands = genmodel.ModelGenerator(diff).toDowngradePython()
 
@@ -43,7 +44,7 @@ class PythonScript(base.BaseScript):
         contents = contents.replace(search, upgradeDecls + '\n\n' + search, 1)
         if upgradeCommands: contents = contents.replace('    pass', upgradeCommands, 1)
         #if downgradeCommands: contents = contents.replace('    pass', downgradeCommands, 1)  # TODO
-        open(path, 'w').write(contents)
+        return contents   # TODO: reinstate? open(path, 'w').write(contents)
 
     @classmethod
     def verify_module(cls,path):

@@ -23,6 +23,18 @@ class FakeTestCase(object):
         assert x != y
     def assertRaises(self,error,func,*p,**k):
         assert raises(error,func,*p,**k)
+        
+    def assertEqualsIgnoreWhitespace(self, v1, v2):
+        def createLines(s):
+            s = s.replace(' ', '')
+            lines = s.split('\n')
+            return [ line for line in lines if line ]
+        lines1 = createLines(v1)
+        lines2 = createLines(v2)
+        self.assertEquals(len(lines1), len(lines2))
+        for line1, line2 in zip(lines1, lines2):
+            self.assertEquals(line1, line2)
+
 
 class Base(FakeTestCase):
     """Base class for other test cases"""

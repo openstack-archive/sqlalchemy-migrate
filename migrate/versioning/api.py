@@ -301,18 +301,18 @@ def create_model(url,repository,**opts):
     engine=create_engine(url)
     print cls_schema.create_model(engine,repository)
 
-def make_update_script_for_model(path,url,model,repository,**opts):
-    """%prog make_update_script_for_model PATH URL MODEL REPOSITORY_PATH
+def make_update_script_for_model(url,oldmodel,model,repository,**opts):
+    """%prog make_update_script_for_model URL OLDMODEL MODEL REPOSITORY_PATH
 
-    Create a script changing the current (old) database to the current (new) Python model.
+    Create a script changing the old Python model to the new (current) Python model, sending to stdout.
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine=create_engine(url)
     try:
-        cls_script_python.make_update_script_for_model(path,engine,model,repository,**opts)
+        print cls_script_python.make_update_script_for_model(engine,oldmodel,model,repository,**opts)
     except exceptions.PathFoundError,e:
-        raise exceptions.KnownError("The path %s already exists"%e.args[0])
+        raise exceptions.KnownError("The path %s already exists"%e.args[0])  # TODO: get rid of this? if we don't add back path param
 
 def update_db_from_model(url,model,repository,**opts):
     """%prog update_db_from_model URL MODEL REPOSITORY_PATH

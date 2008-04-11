@@ -14,6 +14,7 @@ class TestSchemaDiff(fixture.DB):
         self._connect(self.url)
         self.meta = MetaData(self.engine, reflect=True)
         self.meta.drop_all()  # in case junk tables are lying around in the test database
+        self.meta = MetaData(self.engine, reflect=True)  # needed if we just deleted some tables
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),
             Column('name',UnicodeText()),
@@ -87,7 +88,7 @@ class TestSchemaDiff(fixture.DB):
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),
             Column('name',UnicodeText(length=None)),
-            Column('data2',UnicodeText(),nullable=True),
+            Column('data2',Integer(),nullable=True),
         )
         assertDiff(True, [], [], [self.table_name])
         
@@ -96,23 +97,34 @@ class TestSchemaDiff(fixture.DB):
         assertDiff(False, [], [], [])
         
         # Make sure data is still present.
-        result = self.engine.execute(self.table.select(), id=dataId)
+        result = self.engine.execute(self.table.select(self.table.c.id==dataId))
         rows = result.fetchall()
         self.assertEquals(len(rows), 1)
         self.assertEquals(rows[0].name, 'mydata')
+        
+        # Add data, later we'll make sure it's still present.
+        result = self.engine.execute(self.table.insert(), id=2, name=u'mydata2', data2=123)
+        dataId2 = result.last_inserted_ids()[0]
         
         # Change column type in model.
         self.meta.remove(self.table)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),
             Column('name',UnicodeText(length=None)),
-            Column('data2',Integer(),nullable=True),
+            Column('data2',UnicodeText(),nullable=True),
         )
         assertDiff(True, [], [], [self.table_name])  # TODO test type diff
         
         # Apply latest model changes and find no more diffs.
         self._applyLatestModel()
         assertDiff(False, [], [], [])
+        
+        # Make sure data is still present.
+        result = self.engine.execute(self.table.select(self.table.c.id==dataId2))
+        rows = result.fetchall()
+        self.assertEquals(len(rows), 1)
+        self.assertEquals(rows[0].name, 'mydata2')
+        self.assertEquals(rows[0].data2, '123')
         
         # Delete data, since we're about to make a required column.
         # Not even using sqlalchemy.PassiveDefault helps because we're doing explicit column select.
@@ -123,7 +135,7 @@ class TestSchemaDiff(fixture.DB):
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),
             Column('name',UnicodeText(length=None)),
-            Column('data2',Integer(),nullable=False),
+            Column('data2',UnicodeText(),nullable=False),
         )
         assertDiff(True, [], [], [self.table_name])  # TODO test nullable diff
         

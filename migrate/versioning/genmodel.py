@@ -135,8 +135,7 @@ class ModelGenerator(object):
                 for col in missingInModel:
                     dbTable.columns[col.name].drop()
                 for modelCol, databaseCol, modelDecl, databaseDecl in diffDecl:
-                    dbTable.columns[databaseCol.name].drop()
-                    modelTable.columns[modelCol.name].create()
+                    databaseCol.alter(modelCol)
             else:
                 # Sqlite doesn't support drop column, so you have to do more:
                 #   create temp table, copy data to it, drop old table, create new table, copy data back.

@@ -467,9 +467,12 @@ class TestShellDatabase(Shell,fixture.DB):
 
         # Create empty repository.
         self.assertSuccess(self.cmd('create',repos_path,repos_name))
+        self.exitcode(self.cmd('drop_version_control',self.url,repos_path))
         self.assertSuccess(self.cmd('version_control',self.url,repos_path))
         self.assertEquals(self.cmd_version(repos_path),0)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
+        self.meta = MetaData(self.engine, reflect=True)
+        self.meta.drop_all()  # in case junk tables are lying around in the test database
 
         # Setup helper script.
         model_module = 'testmodel.meta'
@@ -488,7 +491,7 @@ class TestShellDatabase(Shell,fixture.DB):
         open(old_model_path, 'w').write(script_preamble + script_text)
         
         script_text="""
-        account = Table('account',meta,
+        tmp_account_rundiffs = Table('tmp_account_rundiffs',meta,
             Column('id',Integer,primary_key=True),
             Column('login',String(40)),
             Column('passwd',String(40)),
@@ -498,7 +501,7 @@ class TestShellDatabase(Shell,fixture.DB):
         
         # Model is defined but database is empty.
         output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
-        self.assertEquals(output, "Schema diffs:\n  tables missing in database: account")
+        self.assertEquals(output, "Schema diffs:\n  tables missing in database: tmp_account_rundiffs")
         
         # Update db to latest model.
         output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)
@@ -508,7 +511,7 @@ class TestShellDatabase(Shell,fixture.DB):
         output, exitcode = self.output_and_exitcode('python %s create_model' % script_path)
         output = output.replace(genmodel.HEADER.strip(), '')  # need strip b/c output_and_exitcode called strip
         self.assertEqualsIgnoreWhitespace(output, """
-            account = Table('account',meta,
+            tmp_account_rundiffs = Table('tmp_account_rundiffs',meta,
                 Column('id',Integer(),primary_key=True,nullable=False),
                 Column('login',String(length=None,convert_unicode=False,assert_unicode=None)),
                 Column('passwd',String(length=None,convert_unicode=False,assert_unicode=None)),
@@ -524,7 +527,7 @@ class TestShellDatabase(Shell,fixture.DB):
             from migrate import *
 
             meta = MetaData(migrate_engine)
-            account = Table('account', meta,
+            tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
               Column('id', Integer() ,  primary_key=True, nullable=False),
               Column('login', String(length=40, convert_unicode=False, assert_unicode=None)   ),
               Column('passwd', String(length=40, convert_unicode=False, assert_unicode=None)   ),
@@ -533,7 +536,7 @@ class TestShellDatabase(Shell,fixture.DB):
             def upgrade():
                 # Upgrade operations go here. Don't create your own engine; use the engine
                 # named 'migrate_engine' imported from migrate.
-                account.create()
+                tmp_account_rundiffs.create()
 
             def downgrade():
                 # Operations to reverse the above upgrade go here.

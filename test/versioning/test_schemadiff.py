@@ -12,14 +12,13 @@ class TestSchemaDiff(fixture.DB):
     def setUp(self):
         fixture.DB.setUp(self)
         self._connect(self.url)
-        self.meta = MetaData(self.engine)
+        self.meta = MetaData(self.engine, reflect=True)
+        self.meta.drop_all()  # in case junk tables are lying around in the test database
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),
             Column('name',UnicodeText()),
             Column('data',UnicodeText()),
         )
-        if self.table.exists():
-            self.table.drop()
         WANT_ENGINE_ECHO = os.environ.get('WANT_ENGINE_ECHO', 'F')  # to get debugging: set this to T and run py.test with --pdb
         if WANT_ENGINE_ECHO == 'T':
             self.engine.echo = True

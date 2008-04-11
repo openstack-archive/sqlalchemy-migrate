@@ -112,15 +112,16 @@ class ControlledSchema(object):
         diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), engine, excludeTables=[repository.version_table])
         return genmodel.ModelGenerator(diff).toPython()
     
-    @classmethod
-    def update_db_from_model(cls,engine,model,repository):
+    def update_db_from_model(self,model):
         """Modify the database to match the structure of the current Python model."""
 
-        if isinstance(repository, basestring):
-            repository=Repository(repository)
+        if isinstance(self.repository, basestring):
+            self.repository=Repository(self.repository)
         model = loadModel(model)
-        diff = schemadiff.getDiffOfModelAgainstDatabase(model, engine, excludeTables=[repository.version_table])
-        return genmodel.ModelGenerator(diff).applyModel()
+        diff = schemadiff.getDiffOfModelAgainstDatabase(model, self.engine, excludeTables=[self.repository.version_table])
+        genmodel.ModelGenerator(diff).applyModel()
+        update = self.table.update(self.table.c.repository_id == str(self.repository.id))
+        self.engine.execute(update, version=int(self.repository.latest))
 
     def drop(self):
         """Remove version control from a database"""

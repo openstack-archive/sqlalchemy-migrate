@@ -466,13 +466,13 @@ class TestShellDatabase(Shell,fixture.DB):
         model_path = self.tmp_named('testmodel.py')
 
         # Create empty repository.
+        self.meta = MetaData(self.engine, reflect=True)
+        self.meta.drop_all()  # in case junk tables are lying around in the test database
         self.assertSuccess(self.cmd('create',repos_path,repos_name))
         self.exitcode(self.cmd('drop_version_control',self.url,repos_path))
         self.assertSuccess(self.cmd('version_control',self.url,repos_path))
         self.assertEquals(self.cmd_version(repos_path),0)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
-        self.meta = MetaData(self.engine, reflect=True)
-        self.meta.drop_all()  # in case junk tables are lying around in the test database
 
         # Setup helper script.
         model_module = 'testmodel.meta'
@@ -506,6 +506,8 @@ class TestShellDatabase(Shell,fixture.DB):
         # Update db to latest model.
         output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)
         self.assertEquals(output, "")
+        self.assertEquals(self.cmd_version(repos_path),0)
+        self.assertEquals(self.cmd_db_version(self.url,repos_path),0)  # version did not get bumped yet because new version not yet committed
         output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
         self.assertEquals(output, "No schema diffs")
         output, exitcode = self.output_and_exitcode('python %s create_model' % script_path)
@@ -550,6 +552,8 @@ class TestShellDatabase(Shell,fixture.DB):
         #self.assertEquals(output, "")
         output, exitcode = self.output_and_exitcode('python %s commit %s' % (script_path, upgrade_script_path))
         self.assertEquals(output, "")
+        output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)  # bump the db_version
+        self.assertEquals(output, "")
         self.assertEquals(self.cmd_version(repos_path),1)
-        #self.assertEquals(self.cmd_db_version(self.url,repos_path),1)  TODO finish
+        self.assertEquals(self.cmd_db_version(self.url,repos_path),1)
 

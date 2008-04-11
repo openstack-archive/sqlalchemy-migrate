@@ -318,10 +318,11 @@ def update_db_from_model(url,model,repository,**opts):
     """%prog update_db_from_model URL MODEL REPOSITORY_PATH
 
     Modify the database to match the structure of the current Python model.
+    This also sets the db_version number to the latest in the repository.
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine=create_engine(url)
-    cls_schema.update_db_from_model(engine,model,repository)
-
+    schema = cls_schema(engine,repository)
+    schema.update_db_from_model(model)
 

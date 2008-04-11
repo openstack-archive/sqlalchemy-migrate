@@ -1,4 +1,5 @@
 from sqlalchemy import Table,Column,MetaData,String,Text,Integer,create_engine
+from sqlalchemy.sql import and_
 from sqlalchemy import exceptions as sa_exceptions
 from migrate.versioning.repository import Repository
 from migrate.versioning.util import loadModel
@@ -32,7 +33,9 @@ class ControlledSchema(object):
             except (exceptions.NoSuchTableError):
                 raise exceptions.DatabaseNotControlledError(tname)
         # TODO?: verify that the table is correct (# cols, etc.)
-        result = self.engine.execute(self.table.select(),)
+        result = self.engine.execute(self.table.select(
+                    self.table.c.repository_id == str(self.repository.id))
+                )
         data = list(result)[0]
         # TODO?: exception if row count is bad
         # TODO: check repository id, exception if incorrect
@@ -86,11 +89,16 @@ class ControlledSchema(object):
             )
             table.create()
         except (sa_exceptions.ArgumentError,sa_exceptions.SQLError):
-            # The table already exists
-            raise exceptions.DatabaseAlreadyControlledError()
+            # The table already exists, skip creation.
+            pass
+            #raise exceptions.DatabaseAlreadyControlledError()
         # Insert data
-        engine.execute(table.insert(),repository_id=repository.id,
-            repository_path=repository.path,version=int(version))
+        try:
+            engine.execute(table.insert(),repository_id=repository.id,
+                repository_path=repository.path,version=int(version))
+        except sa_exceptions.IntegrityError:
+            # An Entry for this repo already exists.
+            raise exceptions.DatabaseAlreadyControlledError()
         return table
     
     @classmethod
@@ -150,7 +158,8 @@ class ControlledSchema(object):
         # Run the change
         change.run(self.engine,step)
         # Update/refresh database version
-        update = self.table.update(self.table.c.version == int(startver))
+        update = self.table.update(and_(self.table.c.version == int(startver),
+                                   self.table.c.repository_id == str(self.repository.id)))
         self.engine.execute(update, version=int(endver))
         self._load()
         

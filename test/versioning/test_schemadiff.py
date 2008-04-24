@@ -50,10 +50,10 @@ class TestSchemaDiff(fixture.DB):
         # Model is defined but database is empty.
         assertDiff(True, [self.table_name], [], [])
         
-        # Check Python upgrade of database from updated model.
+        # Check Python upgrade and downgrade of database from updated model.
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
-        decl, commands = genmodel.ModelGenerator(diff).toUpgradePython()
-        self.assertEqualsIgnoreWhitespace(decl, '''
+        decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
+        self.assertEqualsIgnoreWhitespace(decls, '''
         meta = MetaData(migrate_engine)
         tmp_schemadiff = Table('tmp_schemadiff',meta,
             Column('id',Integer(),primary_key=True,nullable=False),
@@ -61,7 +61,8 @@ class TestSchemaDiff(fixture.DB):
             Column('data',UnicodeText(length=None)),
         )
         ''')
-        self.assertEqualsIgnoreWhitespace(commands, '''tmp_schemadiff.create()''')
+        self.assertEqualsIgnoreWhitespace(upgradeCommands, '''tmp_schemadiff.create()''')
+        self.assertEqualsIgnoreWhitespace(downgradeCommands, '''tmp_schemadiff.drop()''')
         
         # Create table in database, now model should match database.
         self._applyLatestModel()

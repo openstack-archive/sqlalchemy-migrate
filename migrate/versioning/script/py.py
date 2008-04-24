@@ -22,7 +22,6 @@ class PythonScript(base.BaseScript):
     @classmethod
     def make_update_script_for_model(cls,engine,oldmodel,model,repository,**opts):
         """Create a migration script"""
-        #cls.require_notfound(path)  # TODO: yank?
         
         # Compute differences.
         if isinstance(repository, basestring):
@@ -31,20 +30,17 @@ class PythonScript(base.BaseScript):
         oldmodel = loadModel(oldmodel)
         model = loadModel(model)
         diff = schemadiff.getDiffOfModelAgainstModel(oldmodel, model, engine, excludeTables=[repository.version_table])
-        upgradeDecls, upgradeCommands = genmodel.ModelGenerator(diff).toUpgradePython()
-        #downgradeCommands = genmodel.ModelGenerator(diff).toDowngradePython()
+        decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
 
-        # TODO: Use the default script template (defined in the template
-        # module) for now, but we might want to allow people to specify a
-        # different one later.
+        # Store differences into file.
         template_file = None
         src = template.get_script(template_file)
         contents = open(src).read()
         search = 'def upgrade():'
-        contents = contents.replace(search, upgradeDecls + '\n\n' + search, 1)
+        contents = contents.replace(search, decls + '\n\n' + search, 1)
         if upgradeCommands: contents = contents.replace('    pass', upgradeCommands, 1)
-        #if downgradeCommands: contents = contents.replace('    pass', downgradeCommands, 1)  # TODO
-        return contents   # TODO: reinstate? open(path, 'w').write(contents)
+        if downgradeCommands: contents = contents.replace('    pass', downgradeCommands, 1)
+        return contents
 
     @classmethod
     def verify_module(cls,path):

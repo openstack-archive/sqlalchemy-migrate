@@ -80,25 +80,27 @@ class ModelGenerator(object):
             out.append("")
         return '\n'.join(out)
         
-    def toUpgradePython(self, indent='    '):
+    def toUpgradeDowngradePython(self, indent='    '):
         ''' Assume model is most current and database is out-of-date. '''
         
         decls = ['meta = MetaData(migrate_engine)']
         for table in self.diff.tablesMissingInModel + self.diff.tablesMissingInDatabase:
             decls.extend(self.getTableDefn(table))
             
-        cmds = []
+        upgradeCommands, downgradeCommands = [], []
         for table in self.diff.tablesMissingInModel:
             tableName = table.name
-            cmds.append("%(table)s.drop()" % {'table': tableName})
+            upgradeCommands.append("%(table)s.drop()" % {'table': tableName})
+            downgradeCommands.append("%(table)s.create()" % {'table': tableName})
         for table in self.diff.tablesMissingInDatabase:
             tableName = table.name
-            cmds.append("%(table)s.create()" % {'table': tableName})
+            upgradeCommands.append("%(table)s.create()" % {'table': tableName})
+            downgradeCommands.append("%(table)s.drop()" % {'table': tableName})
             
-        return '\n'.join(decls), '\n'.join(['%s%s' % (indent, line) for line in cmds])
-    
-    def toDowngradePython(self, indent='    '):
-        return '    pass  #TODO DOWNGRADE'
+        return ('\n'.join(decls),
+                '\n'.join(['%s%s' % (indent, line) for line in upgradeCommands]),
+                '\n'.join(['%s%s' % (indent, line) for line in downgradeCommands])
+               )
     
     def applyModel(self):
         ''' Apply model to current database. '''

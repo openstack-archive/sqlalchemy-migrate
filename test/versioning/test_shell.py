@@ -542,7 +542,7 @@ class TestShellDatabase(Shell,fixture.DB):
 
             def downgrade():
                 # Operations to reverse the above upgrade go here.
-                pass
+                tmp_account_rundiffs.drop()
         """)
         
         # Commit the change.

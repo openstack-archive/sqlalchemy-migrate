@@ -11,8 +11,8 @@ __all__=[
 'help',
 'create',
 'script',
+'script_sql',
 'make_update_script_for_model',
-'commit',
 'version',
 'source',
 'version_control',
@@ -61,57 +61,42 @@ def create(repository,name,**opts):
     except exceptions.PathFoundError,e:
         raise exceptions.KnownError("The path %s already exists"%e.args[0])
 
-def script(path,**opts):
-    """%prog script PATH
+def script(description,repository=None,**opts):
+    """%prog script [--repository=REPOSITORY_PATH] DESCRIPTION
 
-    Create an empty change script at the specified path. 
+    Create an empty change script using the next unused version number appended with the given description.
+    For instance, manage.py script "Add initial tables" creates: repository/versions/001_Add_initial_tables.py
     """
     try:
-        cls_script_python.create(path,**opts)
+        if repository is None:
+            raise exceptions.UsageError("A repository must be specified")
+        repos = cls_repository(repository)
+        repos.create_script(description,**opts)
     except exceptions.PathFoundError,e:
         raise exceptions.KnownError("The path %s already exists"%e.args[0])
 
-def commit(script,repository,database=None,operation=None,version=None,**opts):
-    """%prog commit SCRIPT_PATH.py REPOSITORY_PATH [VERSION]
+def script_sql(database,repository=None,**opts):
+    """%prog script_sql [--repository=REPOSITORY_PATH] DATABASE
 
-    %prog commit SCRIPT_PATH.sql REPOSITORY_PATH DATABASE OPERATION [VERSION]
-
-    Commit a script to this repository. The committed script is added to the
-    repository, and the file disappears.
-
-    Once a script has been committed, you can use it to upgrade a database with
-    the 'upgrade' command.
-
-    If a version is given, that version will be replaced instead of creating a
-    new version.
-
-    Normally, when writing change scripts in Python, you'll use the first form
-    of this command (DATABASE and OPERATION aren't specified). If you write
-    change scripts as .sql files, you'll need to specify DATABASE ('postgres',
-    'mysql', 'oracle', 'sqlite'...) and OPERATION ('upgrade' or 'downgrade').
-    You may commit multiple .sql files under the same version to complete
-    functionality for a particular version::
-
-        %prog commit upgrade.postgres.sql /repository/path postgres upgrade 1
-        %prog commit downgrade.postgres.sql /repository/path postgres downgrade 1
-        %prog commit upgrade.sqlite.sql /repository/path sqlite upgrade 1
-        %prog commit downgrade.sqlite.sql /repository/path sqlite downgrade 1
-        [etc...]
+    Create empty change SQL scripts for given DATABASE, where DATABASE is either specific ('postgres', 'mysql',
+    'oracle', 'sqlite', etc.) or generic ('default').
+    For instance, manage.py script_sql postgres creates:
+    repository/versions/001_upgrade_postgres.py and repository/versions/001_downgrade_postgres.py
     """
-    if (database is not None) and (operation is None) and (version is None):
-        # Version was supplied as a positional
-        version = database
-        database = None
-    
-    repos = cls_repository(repository)
-    repos.commit(script,version,database=database,operation=operation)
+    try:
+        if repository is None:
+            raise exceptions.UsageError("A repository must be specified")
+        repos = cls_repository(repository)
+        repos.create_script_sql(database,**opts)
+    except exceptions.PathFoundError,e:
+        raise exceptions.KnownError("The path %s already exists"%e.args[0])
 
-def test(script,repository,url=None,**opts):
-    """%prog test SCRIPT_PATH REPOSITORY_PATH URL [VERSION]
+def test(repository,url=None,**opts):
+    """%prog test REPOSITORY_PATH URL [VERSION]
     """
     engine=create_engine(url)
-    schema = cls_schema(engine,repository)
-    script = cls_script_python(script)
+    repos=cls_repository(repository)
+    script = repos.version(None).script()
     # Upgrade
     print "Upgrading...",
     try:

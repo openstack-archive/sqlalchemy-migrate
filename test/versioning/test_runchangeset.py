@@ -8,7 +8,6 @@ class TestRunChangeset(fixture.Pathed,fixture.DB):
     def setUp(self):
         Repository.clear()
         self.path_repos=self.tmp_repos()
-        self.path_script=self.tmp_py()
         # Create repository, script
         Repository.create(self.path_repos,'repository_name')
 
@@ -17,8 +16,7 @@ class TestRunChangeset(fixture.Pathed,fixture.DB):
         """Running a changeset against a repository gives expected results"""
         repos=Repository(self.path_repos)
         for i in range(10):
-            script.PythonScript.create(self.path_script)
-            repos.commit(self.path_script)
+            repos.create_script('')
         try:
             ControlledSchema(self.engine,repos).drop()
         except:

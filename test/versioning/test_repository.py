@@ -53,28 +53,11 @@ class TestVersionedRepository(fixture.Pathed):
     def setUp(self):
         Repository.clear()
         self.path_repos=self.tmp_repos()
-        self.path_script=self.tmp_py()
         # Create repository, script
         Repository.create(self.path_repos,'repository_name')
 
-    def test_commit(self):
-        """Commit scripts to a repository and detect repository version"""
-        # Load repository; commit script by pathname; script should go away
-        self.script_cls.create(self.path_script)
-        repos=Repository(self.path_repos)
-        self.assert_(os.path.exists(self.path_script))
-        repos.commit(self.path_script)
-        self.assert_(not os.path.exists(self.path_script))
-        # .pyc file from the committed script shouldn't exist either
-        self.assert_(not os.path.exists(self.path_script+'c'))
-        version = repos.versions.version()
-        self.assert_(os.path.exists(os.path.join(version.path, 
-                     "%s.py" % version.version)))
-        self.assert_(os.path.exists(os.path.join(version.path,
-                     "__init__.py")))
     def test_version(self):
         """We should correctly detect the version of a repository"""
-        self.script_cls.create(self.path_script)
         repos=Repository(self.path_repos)
         # Get latest version, or detect if a specified version exists
         self.assertEquals(repos.latest,0)
@@ -82,15 +65,14 @@ class TestVersionedRepository(fixture.Pathed):
         # (so we can't just assume the following tests are correct)
         self.assert_(repos.latest>=0)
         self.assert_(repos.latest<1)
-        # Commit a script and test again
-        repos.commit(self.path_script)
+        # Create a script and test again
+        repos.create_script('')
         self.assertEquals(repos.latest,1)
         self.assert_(repos.latest>=0)
         self.assert_(repos.latest>=1)
         self.assert_(repos.latest<2)
-        # Commit a new script and test again
-        self.script_cls.create(self.path_script)
-        repos.commit(self.path_script)
+        # Create a new script and test again
+        repos.create_script('')
         self.assertEquals(repos.latest,2)
         self.assert_(repos.latest>=0)
         self.assert_(repos.latest>=1)
@@ -98,62 +80,27 @@ class TestVersionedRepository(fixture.Pathed):
         self.assert_(repos.latest<3)
     def test_source(self):
         """Get a script object by version number and view its source"""
-        self.script_cls.create(self.path_script)
         # Load repository and commit script
         repos=Repository(self.path_repos)
-        repos.commit(self.path_script)
+        repos.create_script('')
         # Get script object
         source=repos.version(1).script().source()
         # Source is valid: script must have an upgrade function
         # (not a very thorough test, but should be plenty)
         self.assert_(source.find('def upgrade')>=0)
     def test_latestversion(self):
-        self.script_cls.create(self.path_script)
         """Repository.version() (no params) returns the latest version"""
         repos=Repository(self.path_repos)
-        repos.commit(self.path_script)
+        repos.create_script('')
         self.assert_(repos.version(repos.latest) is repos.version())
         self.assert_(repos.version() is not None)
-    def xtest_commit_fail(self):
-        """Failed commits shouldn't corrupt the repository
-        Test disabled - logsql ran the script on commit; now that that's gone,
-        the content of the script is not checked before commit
-        """
-        repos=Repository(self.path_repos)
-        path_script=self.tmp_py()
-        text_script = """
-        from sqlalchemy import *
-        from migrate import *
-        
-        # Upgrade is not declared; commit should fail
-        #def upgrade():
-        #    raise Exception()
-        
-        def downgrade():
-            raise Exception()
-        """.replace("\n       ","\n")
-        fd=open(path_script,'w')
-        fd.write(text_script)
-        fd.close()
-
-        # Record current state, and commit
-        ver_pre = os.listdir(repos.versions.path)
-        repos_pre = os.listdir(repos.path)
-        self.assertRaises(Exception,repos.commit,path_script)
-        # Version is unchanged
-        self.assertEquals(repos.latest,0)
-        # No new files created; committed script not moved
-        self.assert_(os.path.exists(path_script))
-        self.assertEquals(os.listdir(repos.versions.path),ver_pre)
-        self.assertEquals(os.listdir(repos.path),repos_pre)
     
     def test_changeset(self):
         """Repositories can create changesets properly"""
         # Create a nonzero-version repository of empty scripts
         repos=Repository(self.path_repos)
         for i in range(10):
-            self.script_cls.create(self.path_script)
-            repos.commit(self.path_script)
+            repos.create_script('')
 
         def check_changeset(params,length):
             """Creates and verifies a changeset"""

@@ -1,5 +1,5 @@
 from migrate.versioning import exceptions,pathed,script
-import os,shutil
+import os,re,shutil
 
 
 
@@ -31,21 +31,38 @@ class VerNum(object):
         return int(self)-int(value)
 
 
+def strToFilename(s):
+    s = s.replace(' ', '_').replace('"', '_').replace("'", '_')
+    while '__' in s:
+        s = s.replace('__', '_')
+    return s
+        
+
 class Collection(pathed.Pathed):
     """A collection of versioning scripts in a repository"""
+    FILENAME_WITH_VERSION = re.compile(r'^(\d+).*')
     def __init__(self,path):
         super(Collection,self).__init__(path)
-        self.versions=dict()
+        
+        # Create temporary list of files, allowing skipped version numbers.
+        files = os.listdir(path)
+        if '1' in files:
+            raise Exception('It looks like you have a repository in the old format (with directories for each version). Please convert repository before proceeding.')
+        tempVersions = dict()
+        for filename in files:
+            match = self.FILENAME_WITH_VERSION.match(filename)
+            if match:
+                num = int(match.group(1))
+                tempVersions.setdefault(num, []).append(filename)
+            else:
+                pass  # Must be a helper file or something, let's ignore it.
 
-        ver=self.latest=VerNum(1)
-        vers=os.listdir(path)
-        # This runs up to the latest *complete* version; stops when one's missing
-        while str(ver) in vers:
-            verpath=self.version_path(ver)
-            self.versions[ver]=Version(verpath)
-            ver+=1
-        self.latest=ver-1
-    
+        # Create the versions member where the keys are VerNum's and the values are Version's.
+        self.versions=dict()
+        for num, files in tempVersions.items():
+            self.versions[VerNum(num)] = Version(num, path, files)
+        self.latest = max([VerNum(0)] + self.versions.keys())  # calculate latest version
+
     def version_path(self,ver):
         return os.path.join(self.path,str(ver))
     
@@ -54,47 +71,52 @@ class Collection(pathed.Pathed):
             vernum = self.latest
         return self.versions[VerNum(vernum)]
 
-    def commit(self,path,ver=None,*p,**k):
-        """Commit a script to this collection of scripts
-        """
-        maxver = self.latest+1
-        if ver is None:
-            ver = maxver
-        # Ver must be valid: can't upgrade past the next version
+    def getNewVersion(self):
+        ver = self.latest+1
         # No change scripts exist for 0 (even though it's a valid version)
-        if ver > maxver or ver == 0:
+        if ver <= 0:
             raise exceptions.InvalidVersionError()
-        verpath = self.version_path(ver)
-        tmpname = None
-        try:
-            # If replacing an old version, copy it in case it gets trashed
-            if os.path.exists(verpath):
-                tmpname = os.path.join(os.path.split(verpath)[0],"%s_tmp"%ver)
-                shutil.copytree(verpath,tmpname)
-                version = Version(verpath)
-            else:
-                # Create version folder
-                version = Version.create(verpath)
-            self.versions[ver] = version
-            # Commit the individual script
-            script = version.commit(path,*p,**k)
-        except:
-            # Rollback everything we did in the try before dying, and reraise
-            # Remove the created version folder
-            shutil.rmtree(verpath)
-            # Rollback if a version already existed above
-            if tmpname is not None:
-                shutil.move(tmpname,verpath)
-            raise
-        # Success: mark latest; delete old version
-        if tmpname is not None:
-            shutil.rmtree(tmpname)
         self.latest = ver
+        return ver
     
+    def createNewVersion(self, description, **k):
+        ver = self.getNewVersion()
+        extra = strToFilename(description)
+        if extra:
+            if extra == '_':
+                extra = ''
+            elif not extra.startswith('_'):
+                extra = '_%s' % extra
+        filename = '%03d%s.py' % (ver, extra)
+        filepath = self.version_path(filename)
+        if os.path.exists(filepath):
+            raise Exception('Script already exists: %s' % filepath)
+        else:
+            script.PythonScript.create(filepath)
+        self.versions[ver] = Version(ver, self.path, [filename])
+        
+    def createNewSQLVersion(self, database, **k):
+        # Determine version number to use.
+        if (not self.versions) or self.versions[self.latest].python:
+            # First version or current version already contains python script, so create a new version.
+            ver = self.getNewVersion()
+            self.versions[ver] = Version(ver, self.path, [])
+        else:
+            ver = self.latest
+
+        # Create new files.
+        for op in ('upgrade', 'downgrade'):
+            filename = '%03d_%s_%s.sql' % (ver, database, op)
+            filepath = self.version_path(filename)
+            if os.path.exists(filepath):
+                raise Exception('Script already exists: %s' % filepath)
+            else:
+                open(filepath, "w").close()
+            self.versions[ver]._add_script(filepath)
+        
     @classmethod
     def clear(cls):
         super(Collection,cls).clear()
-        Version.clear()
     
 
 class extensions:
@@ -103,28 +125,25 @@ class extensions:
     sql='sql'
 
 
-class Version(pathed.Pathed):
+class Version(object):  # formerly inherit from: (pathed.Pathed):
     """A single version in a repository
     """
-    def __init__(self,path):
-        super(Version,self).__init__(path)
+    def __init__(self,vernum,path,filelist):
         # Version must be numeric
         try:
-            self.version=VerNum(os.path.basename(path))
+            self.version=VerNum(vernum)
         except:
-            raise exceptions.InvalidVersionError(path)
+            raise exceptions.InvalidVersionError(vernum)
         # Collect scripts in this folder
         self.sql = dict()
         self.python = None
-        try:
-            for script in os.listdir(path):
-                # skip __init__.py, because we assume that it's
-                # just there to mark the package
-                if script == '__init__.py':
-                    continue
-                self._add_script(os.path.join(path,script))
-        except:
-            raise exceptions.InvalidVersionError(path)
+
+        for script in filelist:
+            # skip __init__.py, because we assume that it's
+            # just there to mark the package
+            if script == '__init__.py':
+                continue
+            self._add_script(os.path.join(path,script))
     
     def script(self,database=None,operation=None):
         #if database is None and operation is None:
@@ -163,10 +182,13 @@ class Version(pathed.Pathed):
             self._add_script_py(path)
         elif path.endswith(extensions.sql):
             self._add_script_sql(path)
+
+    SQL_FILENAME = re.compile(r'^(\d+)_([^_]+)_([^_]+).sql')
     def _add_script_sql(self,path):
-        try:
-            version,dbms,op,ext=os.path.basename(path).split('.',3)
-        except:
+        match = self.SQL_FILENAME.match(os.path.basename(path))
+        if match:
+            version, dbms, op = match.group(1), match.group(2), match.group(3)
+        else:
             raise exceptions.ScriptError("Invalid sql script name %s"%path)
 
         # File the script into a dictionary
@@ -176,6 +198,8 @@ class Version(pathed.Pathed):
         ops = dbmses[dbms]
         ops[op] = script.SqlScript(path)
     def _add_script_py(self,path):
+        if self.python is not None:
+            raise Exception('You can only have one Python script per version, but you have: %s and %s' % (self.python, path))
         self.python = script.PythonScript(path)
 
     def _rm_ignore(self,path):
@@ -185,29 +209,3 @@ class Version(pathed.Pathed):
         except OSError:
             pass
 
-    def commit(self,path,database=None,operation=None,required=None):
-        if (database is not None) and (operation is not None):
-            return self._commit_sql(path,database,operation)
-        return self._commit_py(path,required)
-    def _commit_sql(self,path,database,operation):
-        if not path.endswith(extensions.sql):
-            msg = "Bad file extension: should end with %s"%extensions.sql
-            raise exceptions.ScriptError(msg)
-        dest=os.path.join(self.path,'%s.%s.%s.%s'%(
-            str(self.version),str(database),str(operation),extensions.sql))
-        # Move the committed py script to this version's folder
-        shutil.move(path,dest)
-        self._add_script(dest)
-        
-    def _commit_py(self,path_py,required=None):
-        if (not os.path.exists(path_py)) or (not os.path.isfile(path_py)):
-            raise exceptions.InvalidVersionError(path_py)
-        dest = os.path.join(self.path,'%s.%s'%(str(self.version),extensions.py))
-
-        # Move the committed py script to this version's folder
-        shutil.move(path_py,dest)
-        self._add_script(dest)
-        # Also delete the .pyc file, if it exists
-        path_pyc = path_py+'c'
-        if os.path.exists(path_pyc):
-            self._rm_ignore(path_pyc)

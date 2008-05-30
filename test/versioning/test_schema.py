@@ -58,11 +58,9 @@ class TestControlledSchema(fixture.Pathed,fixture.DB):
         dbcontrol.drop()
 
         # Now try it with a nonzero value
-        script_path = self.tmp_py()
         version=10
         for i in range(version):
-            script.PythonScript.create(script_path)
-            self.repos.commit(script_path)
+            self.repos.create_script('')
         self.assertEquals(self.repos.latest,version)
 
         # Test with some mid-range value

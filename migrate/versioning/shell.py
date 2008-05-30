@@ -8,7 +8,6 @@ import inspect
 
 alias = dict(
     s=api.script,
-    ci=api.commit,
     vc=api.version_control,
     dbv=api.db_version,
     v=api.version,

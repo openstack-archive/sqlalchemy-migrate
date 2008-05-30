@@ -126,9 +126,6 @@ class ModelGenerator(object):
         for modelTable in self.diff.tablesWithDiff:
             modelTable = modelTable.tometadata(meta)
             dbTable = self.diff.reflected_model.tables[modelTable.name]
-            #print 'TODO DEBUG.cols1', [x.name for x in dbTable.columns]
-            #dbTable = dbTable.tometadata(meta)
-            #print 'TODO DEBUG.cols2', [x.name for x in dbTable.columns]
             tableName = modelTable.name
             missingInDatabase, missingInModel, diffDecl = self.diff.colDiffs[tableName]
             if dbCanHandleThisChange(missingInDatabase, missingInModel, diffDecl):

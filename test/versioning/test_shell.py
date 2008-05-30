@@ -120,17 +120,24 @@ class TestShellCommands(Shell):
     
     def test_script(self):
         """We can create a migration script via the command line"""
-        script=self.tmp_py()
-        # Creating a file that doesn't exist should succeed
-        self.assertSuccess(self.cmd('script',script))
-        self.assert_(os.path.exists(script))
+        repos=self.tmp_repos()
+        self.assertSuccess(self.cmd('create',repos,'repository_name'))
+        self.assertSuccess(self.cmd('script', '--repository=%s' % repos, 'Desc'))
+        self.assert_(os.path.exists('%s/versions/001_Desc.py' % repos))
         # 's' instead of 'script' should work too
-        os.remove(script)
-        self.assert_(not os.path.exists(script))
-        self.assertSuccess(self.cmd('s',script))
-        self.assert_(os.path.exists(script))
+        self.assertSuccess(self.cmd('script', '--repository=%s' % repos, 'More'))
+        self.assert_(os.path.exists('%s/versions/002_More.py' % repos))
+
+    def test_script_sql(self):
+        """We can create a migration sql script via the command line"""
+        repos=self.tmp_repos()
+        self.assertSuccess(self.cmd('create',repos,'repository_name'))
+        self.assertSuccess(self.cmd('script_sql', '--repository=%s' % repos, 'mydb'))
+        self.assert_(os.path.exists('%s/versions/001_mydb_upgrade.sql' % repos))
+        self.assert_(os.path.exists('%s/versions/001_mydb_downgrade.sql' % repos))
+        
         # Can't create it again: it already exists
-        self.assertFailure(self.cmd('script',script))
+        self.assertFailure(self.cmd('script_sql', '--repository=%s' % repos, 'mydb'))
 
     def test_manage(self):
         """Create a project management script"""
@@ -145,20 +152,8 @@ class TestShellRepository(Shell):
     def setUp(self):
         """Create repository, python change script"""
         self.path_repos=repos=self.tmp_repos()
-        self.path_script=script=self.tmp_py()
         self.assertSuccess(self.cmd('create',repos,'repository_name'))
-        self.assertSuccess(self.cmd('script',script))
     
-    def test_commit_1(self):
-        """Commits should work correctly; script should vanish after commit"""
-        self.assert_(os.path.exists(self.path_script))
-        self.assertSuccess(self.cmd('commit',self.path_script,self.path_repos))
-        self.assert_(not os.path.exists(self.path_script))
-    def test_commit_2(self):
-        """Commits should work correctly with repository as a keyword param"""
-        self.assert_(os.path.exists(self.path_script))
-        self.assertSuccess(self.cmd('commit',self.path_script,'--repository=%s'%self.path_repos))
-        self.assert_(not os.path.exists(self.path_script))
     def test_version(self):
         """Correctly detect repository version"""
         # Version: 0 (no scripts yet); successful execution
@@ -169,17 +164,17 @@ class TestShellRepository(Shell):
         fd=self.execute(self.cmd('version',self.path_repos))
         self.assertEquals(fd.read().strip(),"0")
         self.assertSuccess(fd)
-        # Commit a script and version should increment
-        self.assertSuccess(self.cmd('commit',self.path_script,'--repository=%s'%self.path_repos))
+        # Create a script and version should increment
+        self.assertSuccess(self.cmd('script', '--repository=%s' % self.path_repos, 'Desc'))
         fd=self.execute(self.cmd('version',self.path_repos))
         self.assertEquals(fd.read().strip(),"1")
         self.assertSuccess(fd)
     def test_source(self):
         """Correctly fetch a script's source"""
-        source=open(self.path_script).read()
+        self.assertSuccess(self.cmd('script', '--repository=%s' % self.path_repos, 'Desc'))
+        filename='%s/versions/001_Desc.py' % self.path_repos
+        source=open(filename).read()
         self.assert_(source.find('def upgrade')>=0)
-        self.assertSuccess(self.cmd('commit',self.path_script,'--repository=%s'%self.path_repos))
-        # Later, we'll want to make repos optional somehow
         # Version is now 1
         fd=self.execute(self.cmd('version',self.path_repos))
         self.assert_(fd.read().strip()=="1")
@@ -190,50 +185,11 @@ class TestShellRepository(Shell):
         self.assertSuccess(fd)
         self.assert_(result.strip()==source.strip())
         # We can also send the source to a file... test that too
-        self.assertSuccess(self.cmd('source',1,self.path_script,'--repository=%s'%self.path_repos))
-        self.assert_(os.path.exists(self.path_script))
-        fd=open(self.path_script)
+        self.assertSuccess(self.cmd('source',1,filename,'--repository=%s'%self.path_repos))
+        self.assert_(os.path.exists(filename))
+        fd=open(filename)
         result=fd.read()
         self.assert_(result.strip()==source.strip())
-    def test_commit_replace(self):
-        """Commit can replace a specified version"""
-        # Commit the default script
-        self.assertSuccess(self.cmd('commit',self.path_script,self.path_repos))
-        self.assertEquals(self.cmd_version(self.path_repos),1)
-        # Read the default script's text
-        fd=self.execute(self.cmd('source',1,'--repository=%s'%self.path_repos))
-        script_src_1 = fd.read()
-        self.assertSuccess(fd)
-
-        # Commit a new script
-        script_text="""
-        from sqlalchemy import *
-        from migrate import *
-        
-        # Our test is just that the source is different; so we don't have to 
-        # do anything useful in here.
-        
-        def upgrade():
-            pass
-        
-        def downgrade():
-            pass
-        """.replace('\n        ','\n')
-        fd=open(self.path_script,'w')
-        fd.write(script_text)
-        fd.close()
-        self.assertSuccess(self.cmd('commit',self.path_script,self.path_repos,1))
-        # We specified a version above - it should replace that, not create new
-        self.assertEquals(self.cmd_version(self.path_repos),1)
-        # Source should change
-        fd=self.execute(self.cmd('source',1,'--repository=%s'%self.path_repos))
-        script_src_2 = fd.read()
-        self.assertSuccess(fd)
-        self.assertNotEquals(script_src_1,script_src_2)
-        # source should be reasonable
-        self.assertEquals(script_src_2.strip(),script_text.strip())
-        self.assert_(script_src_1.count('from migrate import'))
-        self.assert_(script_src_1.count('from sqlalchemy import'))
 
 class TestShellDatabase(Shell,fixture.DB):
     """Commands associated with a particular database"""
@@ -263,8 +219,7 @@ class TestShellDatabase(Shell,fixture.DB):
         path_script = self.tmp_py()
         version=1
         for i in range(version):
-            self.assertSuccess(self.cmd('script',path_script))
-            self.assertSuccess(self.cmd('commit',path_script,path_repos))
+            self.assertSuccess(self.cmd('script', '--repository=%s' % path_repos, 'Desc'))
         # Repository version is correct
         fd=self.execute(self.cmd('version',path_repos))
         self.assertEquals(fd.read().strip(),str(version))
@@ -284,7 +239,6 @@ class TestShellDatabase(Shell,fixture.DB):
         # Create a repository
         repos_name = 'repos_name'
         repos_path = self.tmp()
-        script_path = self.tmp_py()
         self.assertSuccess(self.cmd('create',repos_path,repos_name))
         self.assertEquals(self.cmd_version(repos_path),0)
         # Version the DB
@@ -301,8 +255,7 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertFailure(self.cmd('upgrade',self.url,repos_path,-1))
 
         # Add a script to the repository; upgrade the db
-        self.assertSuccess(self.cmd('script',script_path))
-        self.assertSuccess(self.cmd('commit',script_path,repos_path))
+        self.assertSuccess(self.cmd('script', '--repository=%s' % repos_path, 'Desc'))
         self.assertEquals(self.cmd_version(repos_path),1)
 
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
@@ -321,14 +274,6 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertSuccess(self.cmd('drop_version_control',self.url,repos_path))
     
     def _run_test_sqlfile(self,upgrade_script,downgrade_script):
-        upgrade_path = self.tmp_sql()
-        downgrade_path = self.tmp_sql()
-        upgrade = (upgrade_path,upgrade_script)
-        downgrade = (downgrade_path,downgrade_script)
-        for file_path,file_text in (upgrade,downgrade):
-            fd = open(file_path,'w')
-            fd.write(file_text)
-            fd.close()
 
         repos_path = self.tmp()
         repos_name = 'repos'
@@ -338,15 +283,12 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertEquals(self.cmd_version(repos_path),0)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
 
-        self.assertSuccess(self.cmd('commit',upgrade_path,repos_path,'postgres','upgrade'))
+        beforeCount = len(os.listdir(os.path.join(repos_path,'versions')))  # hmm, this number changes sometimes based on running from svn
+        self.assertSuccess(self.cmd('script_sql', '--repository=%s' % repos_path, 'postgres'))
         self.assertEquals(self.cmd_version(repos_path),1)
-        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions','1'))),2)
-
-        # Add, not replace
-        self.assertSuccess(self.cmd('commit',downgrade_path,repos_path,'postgres','downgrade','--version=1'))
-        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions','1'))),3)
-        self.assertEquals(self.cmd_version(repos_path),1)
-
+        self.assertEquals(len(os.listdir(os.path.join(repos_path,'versions'))), beforeCount + 2)
+        open('%s/versions/001_postgres_upgrade.sql' % repos_path, 'a').write(upgrade_script)
+        open('%s/versions/001_postgres_downgrade.sql' % repos_path, 'a').write(downgrade_script)
 
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
         self.assertRaises(Exception,self.engine.text('select * from t_table').execute)
@@ -392,7 +334,6 @@ class TestShellDatabase(Shell,fixture.DB):
     def test_test(self):
         repos_name = 'repos_name'
         repos_path = self.tmp()
-        script_path = self.tmp_py()
 
         self.assertSuccess(self.cmd('create',repos_path,repos_name))
         self.exitcode(self.cmd('drop_version_control',self.url,repos_path))
@@ -401,9 +342,9 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
 
         # Empty script should succeed
-        self.assertSuccess(self.cmd('script',script_path))
-        self.assertSuccess(self.cmd('test',script_path,repos_path,self.url))
-        self.assertEquals(self.cmd_version(repos_path),0)
+        self.assertSuccess(self.cmd('script', '--repository=%s' % repos_path, 'Desc'))
+        self.assertSuccess(self.cmd('test',repos_path,self.url))
+        self.assertEquals(self.cmd_version(repos_path),1)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
 
         # Error script should fail
@@ -423,8 +364,8 @@ class TestShellDatabase(Shell,fixture.DB):
         file=open(script_path,'w')
         file.write(script_text)
         file.close()
-        self.assertFailure(self.cmd('test',script_path,repos_path,self.url))
-        self.assertEquals(self.cmd_version(repos_path),0)
+        self.assertFailure(self.cmd('test',repos_path,self.url,'blah blah'))
+        self.assertEquals(self.cmd_version(repos_path),1)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
 
         # Nonempty script using migrate_engine should succeed
@@ -451,8 +392,8 @@ class TestShellDatabase(Shell,fixture.DB):
         file=open(script_path,'w')
         file.write(script_text)
         file.close()
-        self.assertSuccess(self.cmd('test',script_path,repos_path,self.url))
-        self.assertEquals(self.cmd_version(repos_path),0)
+        self.assertSuccess(self.cmd('test',repos_path,self.url))
+        self.assertEquals(self.cmd_version(repos_path),1)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
         
     @fixture.usedb()
@@ -507,7 +448,7 @@ class TestShellDatabase(Shell,fixture.DB):
         output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)
         self.assertEquals(output, "")
         self.assertEquals(self.cmd_version(repos_path),0)
-        self.assertEquals(self.cmd_db_version(self.url,repos_path),0)  # version did not get bumped yet because new version not yet committed
+        self.assertEquals(self.cmd_db_version(self.url,repos_path),0)  # version did not get bumped yet because new version not yet created
         output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
         self.assertEquals(output, "No schema diffs")
         output, exitcode = self.output_and_exitcode('python %s create_model' % script_path)
@@ -545,13 +486,12 @@ class TestShellDatabase(Shell,fixture.DB):
                 tmp_account_rundiffs.drop()
         """)
         
-        # Commit the change.
-        upgrade_script_path = self.tmp_named('upgrade_script.py')
+        # Save the upgrade script.
+        self.assertSuccess(self.cmd('script', '--repository=%s' % repos_path, 'Desc'))
+        upgrade_script_path = '%s/versions/001_Desc.py' % repos_path
         open(upgrade_script_path, 'w').write(output)
         #output, exitcode = self.output_and_exitcode('python %s test %s' % (script_path, upgrade_script_path))  # no, we already upgraded the db above
         #self.assertEquals(output, "")
-        output, exitcode = self.output_and_exitcode('python %s commit %s' % (script_path, upgrade_script_path))
-        self.assertEquals(output, "")
         output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)  # bump the db_version
         self.assertEquals(output, "")
         self.assertEquals(self.cmd_version(repos_path),1)

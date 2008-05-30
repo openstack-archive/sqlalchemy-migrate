@@ -113,9 +113,11 @@ class Repository(pathed.Pathed):
             log.error("There was an error creating your repository")
         return cls(path)
     
-    def commit(self,*p,**k):
-        reqd = self.config.get('db_settings','required_dbs')
-        return self.versions.commit(required=reqd,*p,**k)
+    def create_script(self,description,**k):
+        self.versions.createNewVersion(description,**k)
+    
+    def create_script_sql(self,database,**k):
+        self.versions.createNewSQLVersion(database,**k)
     
     latest=property(lambda self: self.versions.latest)
     version_table=property(lambda self: self.config.get('db_settings','version_table'))

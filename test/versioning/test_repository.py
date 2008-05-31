@@ -154,3 +154,12 @@ class TestVersionedRepository(fixture.Pathed):
         self.assertEquals(cs.end,0)
         check_changeset((10,5),5)
         check_changeset((5,0),5)
+        
+    def test_many_versions(self):
+        """Test what happens when lots of versions are created"""
+        repos=Repository(self.path_repos)
+        for i in range(1001):  # since we normally create 3 digit ones, let's see if we blow up
+            repos.create_script('')
+        self.assert_(os.path.exists('%s/versions/1000.py' % self.path_repos))
+        self.assert_(os.path.exists('%s/versions/1001.py' % self.path_repos))
+        

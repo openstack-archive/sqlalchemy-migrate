@@ -149,12 +149,21 @@ class Version(object):  # formerly inherit from: (pathed.Pathed):
         #if database is None and operation is None:
         #    return self._script_py()
         #print database,operation,self.sql
+        
         try:
             # Try to return a .sql script first
-            ret = self._script_sql(database,operation)
+            return self._script_sql(database,operation)
         except KeyError:
-            # No .sql script exists; return a python script
-            ret = self._script_py()
+            pass  # No .sql script exists
+            
+        try:
+            # Try to return the default .sql script
+            return self._script_sql('default',operation)
+        except KeyError:
+            pass  # No .sql script exists
+
+        ret = self._script_py()
+
         assert ret is not None
         return ret
     def _script_py(self):

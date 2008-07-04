@@ -12,7 +12,15 @@ class Shell(Pathed):
             return command
         # Redirect stderr to stdout
         # This is a bit of a hack, but I've not found a better way
+        py_path = os.environ.get('PYTHONPATH', '')
+        py_path_list = py_path.split(':')
+        py_path_list.append(os.path.abspath('.'))
+        os.environ['PYTHONPATH'] = ':'.join(py_path_list)
         fd=os.popen(command+' 2>&1',*p,**k)
+        if py_path:
+            py_path = os.environ['PYTHONPATH'] = py_path
+        else:
+            del os.environ['PYTHONPATH']
         return fd
     def output_and_exitcode(self,*p,**k):
         fd=self.execute(*p,**k)

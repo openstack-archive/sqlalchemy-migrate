@@ -1,5 +1,10 @@
-0.4.x
+0.4.5
 - work by Christian Simms to compare metadata against databases
+- new repository format
+- a repository format migration tool is in
+  migrate/versioning/migrate_repository.py
+- support for default SQL scripts
+- EXPERIMENTAL support for dumping database to model
 
 0.4.4
 - patch by pwannygoodness for Issue #15

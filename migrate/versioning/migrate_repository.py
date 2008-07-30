@@ -1,10 +1,11 @@
-''' Script to migrate repository. This shouldn't use any other migrate modules, so that it can work in any version. '''
+""" Script to migrate repository. This shouldn't use any other migrate
+modules, so that it can work in any version. """
 
 import os, os.path, sys
 
 
 def usage():
-    
+    """Gives usage information."""
     print '''Usage: %(prog)s repository-to-migrate
 
 Upgrade your repository to the new flat format.
@@ -12,67 +13,82 @@ Upgrade your repository to the new flat format.
 NOTE: You should probably make a backup before running this.
 ''' % {'prog': sys.argv[0]}
 
-    raise SystemExit(1)
+    sys.exit(1)
 
 
-def deleteFile(filepath):
+def delete_file(filepath):
+    """Deletes a file and prints a message."""
     print '    Deleting file: %s' % filepath
     os.remove(filepath)
 
-def moveFile(src, tgt):
+
+def move_file(src, tgt):
+    """Moves a file and prints a message."""
     print '    Moving file %s to %s' % (src, tgt)
     if os.path.exists(tgt):
-        raise Exception('Cannot move file %s because target %s already exists' % (src, tgt))
+        raise Exception(
+            'Cannot move file %s because target %s already exists' % (src, tgt))
     os.rename(src, tgt)
 
-def deleteDirectory(dirpath):
+
+def delete_directory(dirpath):
+    """Delete a directory and print a message."""
     print '    Deleting directory: %s' % dirpath
     os.rmdir(dirpath)
     
 
 def migrate_repository(repos):
+    """Does the actual migration to the new repository format."""
     print 'Migrating repository at: %s to new format' % repos
     versions = '%s/versions' % repos
     dirs = os.listdir(versions)
-    numdirs = [ int(dir) for dir in dirs if dir.isdigit() ]  # Only use int's in list.
+    # Only use int's in list.
+    numdirs = [ int(dirname) for dirname in dirs if dirname.isdigit() ]
     numdirs.sort()  # Sort list.
-    for dir in numdirs:
-        origdir = '%s/%s' % (versions, dir)
+    for dirname in numdirs:
+        origdir = '%s/%s' % (versions, dirname)
         print '  Working on directory: %s' % origdir
         files = os.listdir(origdir)
         files.sort()
-        for file in files:
+        for filename in files:
             
             # Delete compiled Python files.
-            if file.endswith('.pyc') or file.endswith('.pyo'):
-                deleteFile('%s/%s' % (origdir, file))
-                
+            if filename.endswith('.pyc') or filename.endswith('.pyo'):
+                delete_file('%s/%s' % (origdir, filename))
+
             # Delete empty __init__.py files.
             origfile = '%s/__init__.py' % origdir
             if os.path.exists(origfile) and len(open(origfile).read()) == 0:
-                deleteFile(origfile)
+                delete_file(origfile)
 
             # Move sql upgrade scripts.
-            if file.endswith('.sql'):
-                version, dbms, op, ext = file.split('.', 3)
-                origfile = '%s/%s' % (origdir, file)
-                # For instance:  2.postgres.upgrade.sql -> 002_postgres_upgrade.sql
-                tgtfile = '%s/%03d_%s_%s.sql' % (versions, int(version), dbms, op)
-                moveFile(origfile, tgtfile)
+            if filename.endswith('.sql'):
+                version, dbms, operation = filename.split('.', 3)[0:3]
+                origfile = '%s/%s' % (origdir, filename)
+                # For instance:  2.postgres.upgrade.sql ->
+                #  002_postgres_upgrade.sql
+                tgtfile = '%s/%03d_%s_%s.sql' % (
+                    versions, int(version), dbms, operation)
+                move_file(origfile, tgtfile)
 
         # Move Python upgrade script.
-        pyfile = '%s.py' % dir
+        pyfile = '%s.py' % dirname
         pyfilepath = '%s/%s' % (origdir, pyfile)
         if os.path.exists(pyfilepath):
-            tgtfile = '%s/%03d.py' % (versions, int(dir))
-            moveFile(pyfilepath, tgtfile)
+            tgtfile = '%s/%03d.py' % (versions, int(dirname))
+            move_file(pyfilepath, tgtfile)
 
         # Try to remove directory. Will fail if it's not empty.
-        deleteDirectory(origdir)
-    
+        delete_directory(origdir)
 
-if __name__ == '__main__':
+
+def main():
+    """Main function to be called when using this script."""
     if len(sys.argv) != 2:
         usage()
     migrate_repository(sys.argv[1])
+
+
+if __name__ == '__main__':
+    main()
 

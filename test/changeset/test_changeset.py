@@ -282,7 +282,7 @@ class TestColumnChange(fixture.DB):
         self.meta = MetaData(self.engine)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer,primary_key=True),
-            Column('data',String(40),PassiveDefault("tluafed"),nullable=True),
+            Column('data',String(40),server_default=PassiveDefault("tluafed"),nullable=True),
         )
         if self.table.exists():
             self.table.drop()
@@ -341,7 +341,7 @@ class TestColumnChange(fixture.DB):
         self.assertEquals(num_rows(self.table.c.data,content),1)
 
         # ...as a function, given a new object
-        col = Column('atad',String(40),default=self.table.c.data.default)
+        col = Column('atad',String(40),server_default=self.table.c.data.server_default)
         alter_column(self.table.c.data, col)
         self.refresh_table(self.table.name)
         self.assert_('data' not in self.table.c.keys())
@@ -349,7 +349,7 @@ class TestColumnChange(fixture.DB):
         self.assertEquals(num_rows(self.table.c.atad,content),1)
 
         # ...as a method, given a new object
-        col = Column('data',String(40),default=self.table.c.atad.default)
+        col = Column('data',String(40),server_default=self.table.c.atad.server_default)
         self.table.c.atad.alter(col)
         self.refresh_table(self.table.name)
         self.assert_('atad' not in self.table.c.keys())

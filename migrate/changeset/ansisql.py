@@ -124,7 +124,8 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
             self._run_subvisit(delta,self._visit_column_type)
         if 'nullable' in keys:
             self._run_subvisit(delta,self._visit_column_nullable)
-        if 'default' in keys:
+        if 'server_default' in keys:
+            # Skip 'default': only handle server-side defaults, others are managed by the app, not the db.
             self._run_subvisit(delta,self._visit_column_default)
         #if 'primary_key' in keys:
         #    #self._run_subvisit(delta,self._visit_column_primary_key)
@@ -172,14 +173,9 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
         else:
             self.append("SET NOT NULL")
     def _visit_column_default(self,table_name,col_name,delta):
-        default = delta['default']
-        # Default must be a PassiveDefault; else, ignore
-        # (Non-PassiveDefaults are managed by the app, not the db)
-        if default is not None:
-            if not isinstance(default,sa.PassiveDefault):
-                return
+        server_default = delta['server_default']
         # Dummy column: get_col_default_string needs a column for some reason
-        dummy = sa.Column(None,None,default=default)
+        dummy = sa.Column(None,None,server_default=server_default)
         default_text = self.get_column_default_string(dummy)
         self.start_alter_table(table_name)
         self.append("ALTER COLUMN %s "%col_name)

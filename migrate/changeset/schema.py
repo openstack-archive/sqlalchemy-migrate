@@ -158,7 +158,7 @@ class _ColumnDelta(dict):
         diffs = func(*p,**k)
         self._set_diffs(diffs)
     # Column attributes that can be altered
-    diff_keys = ('name','type','nullable','default','primary_key','foreign_key')
+    diff_keys = ('name','type','nullable','default','server_default','primary_key','foreign_key')
 
     def _get_table_name(self):
         if isinstance(self._table,basestring):
@@ -198,7 +198,7 @@ class _ColumnDelta(dict):
         self.result_column = start_col.copy()
         self._table = k.pop('table',None) or start_col.table or end_col.table
         self.current_name = start_col.name
-        for key in ('name','nullable','default','primary_key','foreign_key'):
+        for key in ('name','nullable','default','server_default','primary_key','foreign_key'):
             val = getattr(end_col,key,None)
             if getattr(start_col,key,None) != val:
                 k.setdefault(key,val)

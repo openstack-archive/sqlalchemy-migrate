@@ -57,7 +57,7 @@ class TestAddDropColumn(fixture.DB):
             _assert_numcols(expected,'database')
         assert_numcols(1)
         if len(col_p) == 0:
-            col_p = [String]
+            col_p = [String(40)]
         col = Column(col_name,*col_p,**col_k)
         create_column_func(col)
         #create_column(col,self.table)
@@ -306,7 +306,7 @@ class TestColumnChange(fixture.DB):
     @fixture.usedb(supported='sqlite')
     def test_sqlite_not_supported(self):
         self.assertRaises(changeset.exceptions.NotSupportedError,
-            self.table.c.data.alter,default=PassiveDefault('tluafed'))
+            self.table.c.data.alter,server_default=PassiveDefault('tluafed'))
         self.assertRaises(changeset.exceptions.NotSupportedError,
             self.table.c.data.alter,nullable=True)
         self.assertRaises(changeset.exceptions.NotSupportedError,
@@ -398,32 +398,32 @@ class TestColumnChange(fixture.DB):
 
     @fixture.usedb(not_supported='sqlite')
     def test_default(self):
-        """Can change a column's default value (PassiveDefaults only)
+        """Can change a column's server_default value (PassiveDefaults only)
         Only PassiveDefaults are changed here: others are managed by the 
         application / by SA
         """
         #self.engine.echo=True
-        self.assertEquals(self.table.c.data.default.arg,'tluafed')
+        self.assertEquals(self.table.c.data.server_default.arg,'tluafed')
 
         # Just the new default
         default = 'my_default'
-        self.table.c.data.alter(default=PassiveDefault(default))
+        self.table.c.data.alter(server_default=PassiveDefault(default))
         self.refresh_table(self.table.name)
-        #self.assertEquals(self.table.c.data.default.arg,default)
+        #self.assertEquals(self.table.c.data.server_default.arg,default)
         # TextClause returned by autoload
-        self.assert_(default in str(self.table.c.data.default.arg))
+        self.assert_(default in str(self.table.c.data.server_default.arg))
 
         # Column object
         default = 'your_default'
-        self.table.c.data.alter(Column('data',String(40),default=PassiveDefault(default)))
+        self.table.c.data.alter(Column('data',String(40),server_default=PassiveDefault(default)))
         self.refresh_table(self.table.name)
-        self.assert_(default in str(self.table.c.data.default.arg))
+        self.assert_(default in str(self.table.c.data.server_default.arg))
 
         # Remove default
-        self.table.c.data.alter(default=None)
+        self.table.c.data.alter(server_default=None)
         self.refresh_table(self.table.name)
-        # default isn't necessarily None for Oracle
-        #self.assert_(self.table.c.data.default is None,self.table.c.data.default)
+        # server_default isn't necessarily None for Oracle
+        #self.assert_(self.table.c.data.server_default is None,self.table.c.data.server_default)
         self.engine.execute(self.table.insert(),id=11)
         row = self.table.select().execute().fetchone()
         self.assert_(row['data'] is None,row['data'])

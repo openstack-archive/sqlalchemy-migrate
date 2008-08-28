@@ -22,7 +22,7 @@ class OracleSchemaChanger(OracleSchemaGenerator,ansisql.ANSISchemaChanger):
             
     def visit_column(self,delta):
         keys = delta.keys()
-        if 'type' in keys or 'nullable' in keys or 'default' in keys:
+        if 'type' in keys or 'nullable' in keys or 'default' in keys or 'server_default' in keys:
             self._run_subvisit(delta,self._visit_column_change)
         if 'name' in keys:
             self._run_subvisit(delta,self._visit_column_name)
@@ -36,7 +36,7 @@ class OracleSchemaChanger(OracleSchemaGenerator,ansisql.ANSISchemaChanger):
         # Oracle cannot drop a default once created, but it can set it to null. 
         # We'll do that if default=None
         # http://forums.oracle.com/forums/message.jspa?messageID=1273234#1273234
-        dropdefault_hack = (column.default is None and 'default' in delta.keys())
+        dropdefault_hack = (column.server_default is None and 'server_default' in delta.keys())
         # Oracle apparently doesn't like it when we say "not null" if the
         # column's already not null. Fudge it, so we don't need a new function
         notnull_hack = ((not column.nullable) and ('nullable' not in delta.keys()))
@@ -45,7 +45,7 @@ class OracleSchemaChanger(OracleSchemaGenerator,ansisql.ANSISchemaChanger):
         
                 
         if dropdefault_hack: 
-            column.default = sa.PassiveDefault(sa.sql.null())
+            column.server_default = sa.PassiveDefault(sa.sql.null())
         if notnull_hack:
             column.nullable = True
         colspec=self.get_column_specification(column,override_nullable=null_hack)
@@ -54,7 +54,7 @@ class OracleSchemaChanger(OracleSchemaGenerator,ansisql.ANSISchemaChanger):
         if notnull_hack:
             column.nullable = False
         if dropdefault_hack:
-            column.default = None
+            column.server_default = None
 
         self.start_alter_table(table_name)
         self.append("MODIFY ")

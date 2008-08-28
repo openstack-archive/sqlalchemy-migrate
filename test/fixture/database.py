@@ -105,7 +105,7 @@ class DB(Base):
         self.session = create_session(bind=self.engine)
         if self.level < self.TXN: 
             return
-        self.txn = self.session.create_transaction()
+        self.txn = self.session.begin()
         #self.txn.add(self.engine)
 
     def _disconnect(self):

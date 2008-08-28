@@ -13,7 +13,7 @@ class MySQLSchemaChanger(MySQLSchemaGenerator,ansisql.ANSISchemaChanger):
         keys = delta.keys()
         if 'type' in keys or 'nullable' in keys or 'name' in keys:
             self._run_subvisit(delta,self._visit_column_change)
-        if 'default' in keys:
+        if 'server_default' in keys:
             # Column name might have changed above
             col_name = delta.get('name',delta.current_name)
             self._run_subvisit(delta,self._visit_column_default,col_name=col_name)

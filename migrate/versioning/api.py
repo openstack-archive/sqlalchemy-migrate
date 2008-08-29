@@ -284,7 +284,8 @@ def create_model(url,repository,**opts):
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine=create_engine(url)
-    print cls_schema.create_model(engine,repository)
+    declarative = opts.get('declarative', False)
+    print cls_schema.create_model(engine,repository,declarative)
 
 def make_update_script_for_model(url,oldmodel,model,repository,**opts):
     """%prog make_update_script_for_model URL OLDMODEL MODEL REPOSITORY_PATH

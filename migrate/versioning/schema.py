@@ -112,13 +112,13 @@ class ControlledSchema(object):
         return diff
 
     @classmethod
-    def create_model(cls,engine,repository):
+    def create_model(cls,engine,repository,declarative=False):
         """Dump the current database as a Python model."""
 
         if isinstance(repository, basestring):
             repository=Repository(repository)
         diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), engine, excludeTables=[repository.version_table])
-        return genmodel.ModelGenerator(diff).toPython()
+        return genmodel.ModelGenerator(diff, declarative).toPython()
     
     def update_db_from_model(self,model):
         """Modify the database to match the structure of the current Python model."""

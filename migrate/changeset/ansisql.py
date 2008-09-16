@@ -26,7 +26,7 @@ class RawAlterTableVisitor(object):
     def start_alter_table(self,param):
         table = self._to_table(param)
         table_name = self._to_table_name(table)
-        self.append("\nALTER TABLE %s "%table_name)
+        self.append('\nALTER TABLE "%s" ' % table_name)
         return table
 
     def _pk_constraint(self,table,column,status):

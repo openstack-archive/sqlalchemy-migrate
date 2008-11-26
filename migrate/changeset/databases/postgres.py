@@ -5,13 +5,22 @@ from sqlalchemy.databases import postgres as sa_base
 PGSchemaGenerator = sa_base.PGSchemaGenerator
 
 class PGColumnGenerator(PGSchemaGenerator,ansisql.ANSIColumnGenerator):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+
 class PGColumnDropper(ansisql.ANSIColumnDropper):
     pass
+
 class PGSchemaChanger(ansisql.ANSISchemaChanger):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
+
+
 class PGConstraintGenerator(ansisql.ANSIConstraintGenerator):
     pass
+
 class PGConstraintDropper(ansisql.ANSIConstraintDropper):
     pass
 

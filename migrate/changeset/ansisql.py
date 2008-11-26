@@ -23,10 +23,15 @@ class RawAlterTableVisitor(object):
             ret = ret.fullname
         return ret
 
+    def _do_quote_table_identifier(self, identifier):
+        return '"%s"'%identifier
+    
     def start_alter_table(self,param):
         table = self._to_table(param)
         table_name = self._to_table_name(table)
-        self.append('\nALTER TABLE "%s" ' % table_name)
+        print '*'*80
+        print self
+        self.append('\nALTER TABLE %s ' % self._do_quote_table_identifier(table_name))
         return table
 
     def _pk_constraint(self,table,column,status):
@@ -90,7 +95,7 @@ class ANSIColumnDropper(AlterTableVisitor):
     def visit_column(self,column):
         """Drop a column; #33"""
         table = self.start_alter_table(column)
-        self.append(" DROP COLUMN %s"%column.name)
+        self.append(' DROP COLUMN "%s"'%column.name)
         self.execute()
         #if column.primary_key:
         #    cons = self._pk_constraint(table,column,False)
@@ -109,6 +114,13 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
     visit_table) and name is the object's new name. NONE means the name is
     unchanged.
     """
+    
+    def _do_quote_column_identifier(self, identifier):
+        """override this function to define how identifiers (table and column names) should be written in the sql.
+        for instance, in postgres, double quotes should surround the identifier
+        """
+        return identifier
+
     def visit_table(self,param):
         """Rename a table; #38. Other ops aren't supported."""
         table,newname = param
@@ -136,7 +148,7 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
             self._run_subvisit(delta,self._visit_column_name)
     def _run_subvisit(self,delta,func,col_name=None,table_name=None):
         if table_name is None:
-            table_name = delta.table_name
+            table_name = self._to_table(delta.table)
         if col_name is None:
             col_name = delta.current_name
         ret = func(table_name,col_name,delta)
@@ -195,7 +207,7 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
     def _visit_column_name(self,table_name,col_name,delta):
         new_name = delta['name']
         self.start_alter_table(table_name)
-        self.append("RENAME COLUMN %s TO %s"%(col_name,new_name))
+        self.append('RENAME COLUMN %s TO %s'%(self._do_quote_column_identifier(col_name),new_name))
 
     def visit_index(self,param):
         """Rename an index; #36"""

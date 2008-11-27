@@ -177,7 +177,7 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
         nullable = delta['nullable']
         table = self._to_table(delta)
         self.start_alter_table(table_name)
-        self.append("ALTER COLUMN %s "%col_name)
+        self.append("ALTER COLUMN %s "%self._do_quote_column_identifier(col_name))
         if nullable:
             self.append("DROP NOT NULL")
         else:
@@ -188,7 +188,7 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
         dummy = sa.Column(None,None,server_default=server_default)
         default_text = self.get_column_default_string(dummy)
         self.start_alter_table(table_name)
-        self.append("ALTER COLUMN %s "%col_name)
+        self.append("ALTER COLUMN %s "%self._do_quote_column_identifier(col_name))
         if default_text is not None:
             self.append("SET DEFAULT %s"%default_text)
         else:
@@ -201,7 +201,7 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
         #type_text = type.engine_impl(self.engine).get_col_spec()
         type_text = type.dialect_impl(self.dialect).get_col_spec()
         self.start_alter_table(table_name)
-        self.append("ALTER COLUMN %s TYPE %s"%(col_name,type_text))
+        self.append("ALTER COLUMN %s TYPE %s"%(self._do_quote_column_identifier(col_name),type_text))
     def _visit_column_name(self,table_name, col_name, delta):
         new_name = delta['name']
         self.start_alter_table(table_name)

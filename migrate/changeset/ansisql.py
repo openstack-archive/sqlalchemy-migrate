@@ -29,8 +29,6 @@ class RawAlterTableVisitor(object):
     def start_alter_table(self,param):
         table = self._to_table(param)
         table_name = self._to_table_name(table)
-        print '*'*80
-        print self
         self.append('\nALTER TABLE %s ' % self._do_quote_table_identifier(table_name))
         return table
 
@@ -204,11 +202,11 @@ class ANSISchemaChanger(AlterTableVisitor,SchemaGenerator):
         type_text = type.dialect_impl(self.dialect).get_col_spec()
         self.start_alter_table(table_name)
         self.append("ALTER COLUMN %s TYPE %s"%(col_name,type_text))
-    def _visit_column_name(self,table_name,col_name,delta):
+    def _visit_column_name(self,table_name, col_name, delta):
         new_name = delta['name']
         self.start_alter_table(table_name)
-        self.append('RENAME COLUMN %s TO %s'%(self._do_quote_column_identifier(col_name),new_name))
-
+        self.append('RENAME COLUMN %s TO %s'%(self._do_quote_column_identifier(col_name), self._do_quote_column_identifier(new_name)))
+        
     def visit_index(self,param):
         """Rename an index; #36"""
         index,newname = param

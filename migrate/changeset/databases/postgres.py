@@ -9,7 +9,8 @@ class PGColumnGenerator(PGSchemaGenerator,ansisql.ANSIColumnGenerator):
         return identifier
 
 class PGColumnDropper(ansisql.ANSIColumnDropper):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
 
 class PGSchemaChanger(ansisql.ANSISchemaChanger):
     def _do_quote_table_identifier(self, identifier):

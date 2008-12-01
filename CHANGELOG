@@ -1,6 +1,7 @@
 0.5.0
 - SA 0.5.x support.
 - TODO:py.test is no longer used for testing.  (use nose)
+- Added --echo=True option for all commands, which will make the sqlalchemy connection echo SQL statements.
 - Better Postgres support, especially for schemas.
 - modification to the downgrade command to simplify the calling (old way still works just fine)
 

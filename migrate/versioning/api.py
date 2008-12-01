@@ -156,7 +156,8 @@ def version_control(url,repository,version=None,**opts):
     database schema is expected to be identical to what it would be if the
     database were created from scratch. 
     """
-    engine=create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     cls_schema.create(engine,repository,version)
 
 def db_version(url,repository,**opts):
@@ -167,7 +168,8 @@ def db_version(url,repository,**opts):
 
     The url should be any valid SQLAlchemy connection string.
     """
-    engine = create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     schema = cls_schema(engine,repository)
     return schema.version
 
@@ -202,7 +204,8 @@ def downgrade(url,repository,version,**opts):
     return _migrate(url,repository,version,upgrade=False,err=err,**opts)
 
 def _migrate(url,repository,version,upgrade,err,**opts):
-    engine = create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     schema = cls_schema(engine,repository)
     version = _migrate_version(schema,version,upgrade,err)
 
@@ -245,7 +248,8 @@ def drop_version_control(url,repository,**opts):
 
     Removes version control from a database.
     """
-    engine=create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     schema=cls_schema(engine,repository)
     schema.drop()
 
@@ -273,7 +277,8 @@ def compare_model_to_db(url,model,repository,**opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine=create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     print cls_schema.compare_model_to_db(engine,model,repository)
 
 def create_model(url,repository,**opts):
@@ -283,7 +288,8 @@ def create_model(url,repository,**opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine=create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     declarative = opts.get('declarative', False)
     print cls_schema.create_model(engine,repository,declarative)
 
@@ -294,7 +300,8 @@ def make_update_script_for_model(url,oldmodel,model,repository,**opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine=create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     try:
         print cls_script_python.make_update_script_for_model(engine,oldmodel,model,repository,**opts)
     except exceptions.PathFoundError,e:
@@ -308,7 +315,8 @@ def update_db_from_model(url,model,repository,**opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine=create_engine(url)
+    echo = 'True' == opts.get('echo', False)
+    engine = create_engine(url, echo=echo)
     schema = cls_schema(engine,repository)
     schema.update_db_from_model(model)
 

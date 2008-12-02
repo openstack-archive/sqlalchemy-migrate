@@ -1,4 +1,4 @@
-from sqlalchemy import *
+from sqlalchemy import select
 from test import fixture
 
 class TestConnect(fixture.DB):

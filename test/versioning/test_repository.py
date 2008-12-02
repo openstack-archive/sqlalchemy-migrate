@@ -31,6 +31,7 @@ class TestRepository(fixture.Pathed):
         self.assert_(repos.config.get('db_settings','version_table'))
         # version_table's default isn't none
         self.assertNotEquals(repos.config.get('db_settings','version_table'),'None')
+    from nose.tools import raises
     
     def test_load_notfound(self):
         """Nonexistant repositories shouldn't be loaded"""
@@ -50,7 +51,7 @@ class TestRepository(fixture.Pathed):
 class TestVersionedRepository(fixture.Pathed):
     """Tests on an existing repository with a single python script"""
     script_cls = script.PythonScript
-    def setUp(self):
+    def setup(self):
         Repository.clear()
         self.path_repos=self.tmp_repos()
         # Create repository, script

@@ -1,5 +1,6 @@
 #import unittest
-from py.test import raises
+#from py.test import raises
+from nose.tools import raises
 
 class FakeTestCase(object):
     """Mimics unittest.testcase methods
@@ -21,8 +22,23 @@ class FakeTestCase(object):
         assert x == y
     def assertNotEquals(self,x,y,doc=None):
         assert x != y
-    def assertRaises(self,error,func,*p,**k):
-        assert raises(error,func,*p,**k)
+    
+    def assertRaises(self, exceptions, func, *arg, **kw):
+        if not hasattr(exceptions, '__iter__'):
+            exceptions = (exceptions, )
+        valid = ' or '.join([e.__name__ for e in exceptions])
+        try:
+            func(*arg, **kw)
+        except exceptions:
+            pass
+        except:
+            raise
+        else:
+            message = "%s() did not raise %s" % (func.__name__, valid)
+            raise AssertionError(message)
+           
+    #def assertRaises(self,error,func,*p,**k):
+    #    assert raises(error,func,*p,**k)
         
     def assertEqualsIgnoreWhitespace(self, v1, v2):
         def createLines(s):

@@ -57,20 +57,25 @@ def usedb(supported=None,not_supported=None):
 
     urls = DB.urls
     urls = [url for url in urls if is_supported(url,supported,not_supported)]
-    def entangle(func):
-        def run(self,*p,**k):
+    def dec(func):
+        def entangle(self):
             for url in urls:
-                def run_one():
-                    self._connect(url)
-                    self.setup_method(func)
-                    try:
-                        func(self,*p,**k)
-                    finally:
-                        self.teardown_method(func)
-                        self._disconnect()
-                yield run_one
-        return run
-    return entangle
+                self._connect(url)
+                self.setup_method(func)
+                yield func, self
+                self._disconnect()
+                self.teardown_method(func)
+                
+                #[self.setup_method(func)
+                #try:
+                 #   r = func(self)
+                #finally:
+                #    self.teardown_method(func)
+                #    self._disconnect()
+            #yield r
+        entangle.__name__ = func.__name__
+        return entangle
+    return dec
 
 class DB(Base):
     # Constants: connection level

@@ -31,7 +31,10 @@ class TestAddDropColumn(fixture.DB):
     def tearDown(self):
         super(TestAddDropColumn,self).tearDown()
         if self.engine.has_table(self.table.name):
-            self.table.drop()
+            try:
+                self.table.drop()
+            except:
+                pass
         self.meta.clear()
 
     def run_(self,create_column_func,drop_column_func,*col_p,**col_k):

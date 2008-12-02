@@ -1,6 +1,6 @@
 from base import Base
 from pathed import Pathed
-from sqlalchemy import create_engine,Table
+from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import create_session
 from pkg_resources import resource_stream
 import os
@@ -99,10 +99,9 @@ class DB(Base):
         self._disconnect()
     
     def _connect(self,url):
-        print 'connecting to', url
-        print self
         self.url = url
         self.engine = self.engines[url]
+        self.meta = MetaData(bind=self.engine)
         if self.level < self.CONNECT: 
             return
         #self.conn = self.engine.connect()
@@ -110,6 +109,7 @@ class DB(Base):
         if self.level < self.TXN: 
             return
         self.txn = self.session.begin()
+
         #self.txn.add(self.engine)
 
     def _disconnect(self):

@@ -82,7 +82,7 @@ class Shell(fixture.Shell):
         self.assertSuccess(fd)
         return ret
 
-class _TestShellCommands(Shell):
+class TestShellCommands(Shell):
     """Tests migrate.py commands"""
 
     def test_run(self):
@@ -147,7 +147,7 @@ class _TestShellCommands(Shell):
         self.assertSuccess(self.cmd('manage',script,'--repository=/path/to/repository'))
         self.assert_(os.path.exists(script))
 
-class _TestShellRepository(Shell):
+class TestShellRepository(Shell):
     """Shell commands on an existing repository/python script"""
     def setUp(self):
         """Create repository, python change script"""
@@ -198,7 +198,7 @@ class TestShellDatabase(Shell,fixture.DB):
     level=fixture.DB.CONNECT
         
     @fixture.usedb()
-    def _test_version_control(self):
+    def test_version_control(self):
         """Ensure we can set version control on a database"""
         path_repos=repos=self.tmp_repos()
         self.assertSuccess(self.cmd('create',path_repos,'repository_name'))
@@ -210,7 +210,7 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertFailure(self.cmd('drop_version_control',self.url,path_repos))
 
     @fixture.usedb()
-    def _test_version_control_specified(self):
+    def test_version_control_specified(self):
         """Ensure we can set version control to a particular version"""
         path_repos=self.tmp_repos()
         self.assertSuccess(self.cmd('create',path_repos,'repository_name'))
@@ -294,7 +294,7 @@ class TestShellDatabase(Shell,fixture.DB):
         open('%s/versions/001_postgres_downgrade.sql' % repos_path, 'a').write(downgrade_script)
 
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
-        self.assertRaises(Exception,self.engine.text('select * from t_table').execute)
+        self.assertRaises(Exception, self.engine.text('select * from t_table').execute)
 
         self.assertSuccess(self.cmd('upgrade',self.url,repos_path))
         self.assertEquals(self.cmd_db_version(self.url,repos_path),1)
@@ -302,7 +302,7 @@ class TestShellDatabase(Shell,fixture.DB):
 
         self.assertSuccess(self.cmd('downgrade',self.url,repos_path,0))
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
-        self.assertRaises(Exception,self.engine.text('select * from t_table').execute)
+        self.assertRaises(Exception, self.engine.text('select * from t_table').execute)
 
     # The tests below are written with some postgres syntax, but the stuff
     # being tested (.sql files) ought to work with any db. 
@@ -317,7 +317,10 @@ class TestShellDatabase(Shell,fixture.DB):
         downgrade_script = """
         drop table t_table;
         """
+        self.meta.drop_all()
         self._run_test_sqlfile(upgrade_script,downgrade_script)
+        
+        
     @fixture.usedb(supported='postgres')
     def test_sqlfile_comment(self):
         upgrade_script = """

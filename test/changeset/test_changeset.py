@@ -284,7 +284,7 @@ class TestColumnChange(fixture.DB):
         self.meta = MetaData(self.engine)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer,primary_key=True),
-            Column('data',String(40),server_default=PassiveDefault("tluafed"),nullable=True),
+            Column('data',String(40),server_default=DefaultClause("tluafed"),nullable=True),
         )
         if self.table.exists():
             self.table.drop()
@@ -308,7 +308,7 @@ class TestColumnChange(fixture.DB):
     @fixture.usedb(supported='sqlite')
     def test_sqlite_not_supported(self):
         self.assertRaises(changeset.exceptions.NotSupportedError,
-            self.table.c.data.alter,server_default=PassiveDefault('tluafed'))
+            self.table.c.data.alter,server_default=DefaultClause('tluafed'))
         self.assertRaises(changeset.exceptions.NotSupportedError,
             self.table.c.data.alter,nullable=True)
         self.assertRaises(changeset.exceptions.NotSupportedError,
@@ -398,18 +398,18 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.id.type,String))
 
-    @fixture.usedb(not_supported='sqlite')
+    @fixture.usedb(not_supported=('sqlite', 'mysql'))
     def test_default(self):
-        """Can change a column's server_default value (PassiveDefaults only)
-        Only PassiveDefaults are changed here: others are managed by the 
+        """Can change a column's server_default value (DefaultClauses only)
+        Only DefaultClauses are changed here: others are managed by the 
         application / by SA
         """
         #self.engine.echo=True
         self.assertEquals(self.table.c.data.server_default.arg,'tluafed')
 
-        # Just the new default
+        # Just the new default 
         default = 'my_default'
-        self.table.c.data.alter(server_default=PassiveDefault(default))
+        self.table.c.data.alter(server_default=DefaultClause(default))
         self.refresh_table(self.table.name)
         #self.assertEquals(self.table.c.data.server_default.arg,default)
         # TextClause returned by autoload
@@ -417,7 +417,7 @@ class TestColumnChange(fixture.DB):
 
         # Column object
         default = 'your_default'
-        self.table.c.data.alter(Column('data',String(40),server_default=PassiveDefault(default)))
+        self.table.c.data.alter(Column('data',String(40),server_default=DefaultClause(default)))
         self.refresh_table(self.table.name)
         self.assert_(default in str(self.table.c.data.server_default.arg))
 

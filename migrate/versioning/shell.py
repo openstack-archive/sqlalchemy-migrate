@@ -91,8 +91,11 @@ def parse_args(*args,**kwargs):
         cmdname = args.pop(0)
         if cmdname == 'downgrade':
             if not args[-1].startswith('--'):
-                kwargs['version'] = args[-1]
-                args = args[:-1]
+                try:
+                    kwargs['version'] = str(int(args[-1]))
+                    args = args[:-1]
+                except:
+                    pass
                 
     except IndexError:
         # No command specified: no error message; just show usage

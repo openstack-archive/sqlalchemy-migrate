@@ -15,6 +15,7 @@ class Shell(fixture.Shell):
     def cmd(cls,*p):
         p = map(lambda s: str(s),p)
         ret = ' '.join([cls._cmd]+p)
+        print ret
         return ret
     def execute(self,shell_cmd,runshell=None):
         """A crude simulation of a shell command, to speed things up"""
@@ -264,8 +265,8 @@ class TestShellDatabase(Shell,fixture.DB):
         
         # Downgrade must have a valid version specified
         self.assertFailure(self.cmd('downgrade',self.url, repos_path))
-        self.assertFailure(self.cmd('downgrade',self.url, repos_path, '0', 2))
-        self.assertFailure(self.cmd('downgrade',self.url, repos_path, '0', -1))
+        self.assertFailure(self.cmd('downgrade',self.url, repos_path, '-1', 2))
+        #self.assertFailure(self.cmd('downgrade',self.url, repos_path, '1', 2))
         self.assertEquals(self.cmd_db_version(self.url, repos_path),1)
         
         self.assertSuccess(self.cmd('downgrade', self.url, repos_path, 0))

@@ -11,19 +11,34 @@ class PGSchemaGeneratorMixin(object):
         return '"%s"'%identifier
 
 class PGColumnGenerator(PGSchemaGenerator,ansisql.ANSIColumnGenerator, PGSchemaGeneratorMixin):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
 
 class PGColumnDropper(ansisql.ANSIColumnDropper, PGSchemaGeneratorMixin):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
 
 class PGSchemaChanger(ansisql.ANSISchemaChanger, PGSchemaGeneratorMixin):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
 
 class PGConstraintGenerator(ansisql.ANSIConstraintGenerator, PGSchemaGeneratorMixin):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
 
 class PGConstraintDropper(ansisql.ANSIConstraintDropper, PGSchemaGeneratorMixin):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
 
 class PGDialect(ansisql.ANSIDialect):
     columngenerator = PGColumnGenerator

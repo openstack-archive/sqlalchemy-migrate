@@ -6,7 +6,9 @@ import os,shutil
 class TestControlledSchema(fixture.Pathed,fixture.DB):
     # Transactions break postgres in this test; we'll clean up after ourselves
     level=fixture.DB.CONNECT
-    def setUp(self):
+    
+    def _setup(self, url):
+        super(TestControlledSchema, self)._setup(url)
         path_repos=self.tmp_repos()
         self.repos=Repository.create(path_repos,'repository_name')
         # drop existing version table if necessary

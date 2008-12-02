@@ -58,22 +58,13 @@ def usedb(supported=None,not_supported=None):
     urls = DB.urls
     urls = [url for url in urls if is_supported(url,supported,not_supported)]
     def dec(func):
-        def entangle(self):
-            for url in urls:
-                self._connect(url)
-                self.setup_method(func)
+        for url in urls:
+            def entangle(self):
+                self._setup(url)
                 yield func, self
-                self._disconnect()
-                self.teardown_method(func)
+                self._teardown()
                 
-                #[self.setup_method(func)
-                #try:
-                 #   r = func(self)
-                #finally:
-                #    self.teardown_method(func)
-                #    self._disconnect()
-            #yield r
-        entangle.__name__ = func.__name__
+            entangle.__name__ = func.__name__
         return entangle
     return dec
 
@@ -101,7 +92,15 @@ class DB(Base):
             url=self.url
         return url
 
+    def _setup(self, url):
+        self._connect(url)
+
+    def _teardown(self):
+        self._disconnect()
+    
     def _connect(self,url):
+        print 'connecting to', url
+        print self
         self.url = url
         self.engine = self.engines[url]
         if self.level < self.CONNECT: 
@@ -121,7 +120,7 @@ class DB(Base):
         #if hasattr(self,'conn'):
         #    self.conn.close()
 
-    def run(self,*p,**k):
+    def ___run(self,*p,**k):
         """Run one test for each connection string"""
         for url in self.urls:
             self._run_one(url,*p,**k)

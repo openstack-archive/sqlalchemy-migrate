@@ -5,13 +5,13 @@ from migrate.changeset import *
 
 class TestConstraint(fixture.DB):
     level=fixture.DB.CONNECT
-    def setUp(self):
-        fixture.DB.setUp(self)
+    def _setup(self, url):
+        super(TestConstraint, self)._setup(url)
         self._create_table()
-    def tearDown(self):
+    def _teardown(self):
         if hasattr(self,'table') and self.engine.has_table(self.table.name):
             self.table.drop()
-        fixture.DB.tearDown(self)
+        super(TestConstraint, self)._teardown()
 
     def _create_table(self):
         self._connect(self.url)
@@ -105,8 +105,8 @@ class TestConstraint(fixture.DB):
 class TestAutoname(fixture.DB):
     level=fixture.DB.CONNECT
 
-    def setUp(self):
-        fixture.DB.setUp(self)
+    def _setup(self, url):
+        super(TestAutoname, self)._setup(url)
         self._connect(self.url)
         self.meta = MetaData(self.engine)
         self.table = Table('mytable',self.meta,
@@ -116,10 +116,11 @@ class TestAutoname(fixture.DB):
         if self.engine.has_table(self.table.name):
             self.table.drop()
         self.table.create()
-    def tearDown(self):
+        
+    def _teardown(self):
         if hasattr(self,'table') and self.engine.has_table(self.table.name):
             self.table.drop()
-        fixture.DB.tearDown(self)
+        super(TestAutoname, self)._teardown()
         
     @fixture.usedb(not_supported='oracle')
     def test_autoname(self):

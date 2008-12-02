@@ -82,7 +82,7 @@ class Shell(fixture.Shell):
         self.assertSuccess(fd)
         return ret
 
-class TestShellCommands(Shell):
+class _TestShellCommands(Shell):
     """Tests migrate.py commands"""
 
     def test_run(self):
@@ -147,7 +147,7 @@ class TestShellCommands(Shell):
         self.assertSuccess(self.cmd('manage',script,'--repository=/path/to/repository'))
         self.assert_(os.path.exists(script))
 
-class TestShellRepository(Shell):
+class _TestShellRepository(Shell):
     """Shell commands on an existing repository/python script"""
     def setUp(self):
         """Create repository, python change script"""
@@ -198,7 +198,7 @@ class TestShellDatabase(Shell,fixture.DB):
     level=fixture.DB.CONNECT
         
     @fixture.usedb()
-    def test_version_control(self):
+    def _test_version_control(self):
         """Ensure we can set version control on a database"""
         path_repos=repos=self.tmp_repos()
         self.assertSuccess(self.cmd('create',path_repos,'repository_name'))
@@ -210,7 +210,7 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertFailure(self.cmd('drop_version_control',self.url,path_repos))
 
     @fixture.usedb()
-    def test_version_control_specified(self):
+    def _test_version_control_specified(self):
         """Ensure we can set version control to a particular version"""
         path_repos=self.tmp_repos()
         self.assertSuccess(self.cmd('create',path_repos,'repository_name'))
@@ -261,13 +261,16 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
         self.assertSuccess(self.cmd('upgrade',self.url,repos_path))
         self.assertEquals(self.cmd_db_version(self.url,repos_path),1)
+        
         # Downgrade must have a valid version specified
-        self.assertFailure(self.cmd('downgrade',self.url,repos_path))
-        self.assertFailure(self.cmd('downgrade',self.url,repos_path,2))
-        self.assertFailure(self.cmd('downgrade',self.url,repos_path,-1))
-        self.assertEquals(self.cmd_db_version(self.url,repos_path),1)
-        self.assertSuccess(self.cmd('downgrade',self.url,repos_path,0))
+        self.assertFailure(self.cmd('downgrade',self.url, repos_path))
+        self.assertFailure(self.cmd('downgrade',self.url, repos_path, '0', 2))
+        self.assertFailure(self.cmd('downgrade',self.url, repos_path, '0', -1))
+        self.assertEquals(self.cmd_db_version(self.url, repos_path),1)
+        
+        self.assertSuccess(self.cmd('downgrade', self.url, repos_path, 0))
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
+        
         self.assertFailure(self.cmd('downgrade',self.url,repos_path,1))
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
 

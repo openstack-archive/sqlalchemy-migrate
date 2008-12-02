@@ -5,9 +5,15 @@ from sqlalchemy.databases import mysql as sa_base
 MySQLSchemaGenerator = sa_base.MySQLSchemaGenerator
 
 class MySQLColumnGenerator(MySQLSchemaGenerator,ansisql.ANSIColumnGenerator):
+    def _do_quote_table_identifier(self, identifier):
+        return '%s'%identifier
     pass
 class MySQLColumnDropper(ansisql.ANSIColumnDropper):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return '%s'%identifier
+    def _do_quote_column_identifier(self, identifier):
+        return '%s'%identifier
+
 class MySQLSchemaChanger(MySQLSchemaGenerator,ansisql.ANSISchemaChanger):
     def visit_column(self,delta):
         keys = delta.keys()
@@ -34,8 +40,13 @@ class MySQLSchemaChanger(MySQLSchemaGenerator,ansisql.ANSISchemaChanger):
     def visit_index(self,param):
         # If MySQL can do this, I can't find how
         raise exceptions.NotSupportedError("MySQL cannot rename indexes")
+    def _do_quote_table_identifier(self, identifier):
+        return '%s'%identifier
+
 class MySQLConstraintGenerator(ansisql.ANSIConstraintGenerator):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return '%s'%identifier
+    
 class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
     #def visit_constraint(self,constraint):
     #    if isinstance(constraint,sqlalchemy.schema.PrimaryKeyConstraint):
@@ -53,6 +64,9 @@ class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
         self.append("DROP FOREIGN KEY ")
         self.append(constraint.name)
         self.execute()
+
+    def _do_quote_table_identifier(self, identifier):
+        return '%s'%identifier
 
 class MySQLDialect(ansisql.ANSIDialect):
     columngenerator = MySQLColumnGenerator

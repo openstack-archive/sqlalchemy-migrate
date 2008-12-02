@@ -24,6 +24,9 @@ class SQLiteSchemaChanger(ansisql.ANSISchemaChanger):
         return self._not_supported('ALTER TABLE')
     def visit_index(self,param):
         self._not_supported('ALTER INDEX')
+    def _do_quote_column_identifier(self, identifier):
+        return '"%s"'%identifier
+
 class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
     def visit_migrate_primary_key_constraint(self,constraint):
         tmpl = "CREATE UNIQUE INDEX %s ON %s ( %s )"

@@ -5,7 +5,8 @@ import os,shutil
 
 class TestRunChangeset(fixture.Pathed,fixture.DB):
     level=fixture.DB.CONNECT
-    def setUp(self):
+    def _setup(self, url):
+        super(TestRunChangeset, self)._setup(url)
         Repository.clear()
         self.path_repos=self.tmp_repos()
         # Create repository, script

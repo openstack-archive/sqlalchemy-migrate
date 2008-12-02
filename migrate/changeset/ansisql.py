@@ -29,6 +29,8 @@ class RawAlterTableVisitor(object):
     def start_alter_table(self,param):
         table = self._to_table(param)
         table_name = self._to_table_name(table)
+        print self
+        print self._do_quote_table_identifier(table_name)
         self.append('\nALTER TABLE %s ' % self._do_quote_table_identifier(table_name))
         return table
 
@@ -93,7 +95,7 @@ class ANSIColumnDropper(AlterTableVisitor):
     def visit_column(self,column):
         """Drop a column; #33"""
         table = self.start_alter_table(column)
-        self.append(' DROP COLUMN "%s"'%column.name)
+        self.append(' DROP COLUMN %s'%self._do_quote_column_identifier(column.name))
         self.execute()
         #if column.primary_key:
         #    cons = self._pk_constraint(table,column,False)

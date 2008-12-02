@@ -20,7 +20,8 @@ class PGSchemaChanger(ansisql.ANSISchemaChanger):
 
 
 class PGConstraintGenerator(ansisql.ANSIConstraintGenerator):
-    pass
+    def _do_quote_table_identifier(self, identifier):
+        return identifier
 
 class PGConstraintDropper(ansisql.ANSIConstraintDropper):
     pass

@@ -16,26 +16,25 @@ class TestAddDropColumn(fixture.DB):
     table_name = 'tmp_adddropcol'
     table_int = 0
 
-    def setUp(self):
-        fixture.DB.setUp(self)
-        self._connect(self.url)
+    def _setup(self, url):
+        super(TestAddDropColumn, self)._setup(url)
         self.meta.clear()
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer,primary_key=True),
         )
-        super(TestAddDropColumn,self).setUp()
         self.meta.bind = self.engine
         if self.engine.has_table(self.table.name):
             self.table.drop()
         self.table.create()
-    def tearDown(self):
-        super(TestAddDropColumn,self).tearDown()
+
+    def _teardown(self):
         if self.engine.has_table(self.table.name):
             try:
                 self.table.drop()
             except:
                 pass
         self.meta.clear()
+        super(TestAddDropColumn,self)._teardown()
 
     def run_(self,create_column_func,drop_column_func,*col_p,**col_k):
         col_name = 'data'
@@ -68,6 +67,7 @@ class TestAddDropColumn(fixture.DB):
         self.assertEquals(getattr(self.table.c,col_name),col)
         #drop_column(col,self.table)
         col = getattr(self.table.c,col_name)
+        print 'inside fxn', self.url
         # SQLite can't do drop column: stop here
         if self.url.startswith('sqlite://'):
             self.assertRaises(changeset.exceptions.NotSupportedError,drop_column_func,col)
@@ -146,6 +146,8 @@ class TestAddDropColumn(fixture.DB):
     @fixture.usedb()
     def test_byname(self):
         """Add/drop columns via functions; by table object and column name"""
+        print 'vyname', self.url
+        print self
         def add_func(col):
             self.table.append_column(col)
             return create_column(col.name,self.table)
@@ -189,9 +191,8 @@ class TestRename(fixture.DB):
     level=fixture.DB.CONNECT
     meta = MetaData()
 
-    def setUp(self):
-        fixture.DB.setUp(self)
-        self._connect(self.url)
+    def _setup(self, url):
+        super(TestRename, self)._setup(url)
         self.meta.bind = self.engine #self.meta.connect(self.engine)
 
     @fixture.usedb()
@@ -278,10 +279,8 @@ class TestColumnChange(fixture.DB):
     level=fixture.DB.CONNECT
     table_name = 'tmp_colchange'
 
-    def setUp(self):
-        fixture.DB.setUp(self)
-        self._connect(self.url)
-        #self.engine.echo=True
+    def _setup(self, url):
+        super(TestColumnChange, self)._setup(url)
         self.meta = MetaData(self.engine)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer,primary_key=True),
@@ -295,7 +294,7 @@ class TestColumnChange(fixture.DB):
             # SQLite: database schema has changed
             if not self.url.startswith('sqlite://'):
                 raise
-    def tearDown(self):
+    def _teardown(self):
         if self.table.exists():
             try:
                 self.table.drop(self.engine)
@@ -304,7 +303,7 @@ class TestColumnChange(fixture.DB):
                 if not self.url.startswith('sqlite://'):
                     raise
         #self.engine.echo=False
-        fixture.DB.tearDown(self)
+        super(TestColumnChange, self)._teardown()
 
     @fixture.usedb(supported='sqlite')
     def test_sqlite_not_supported(self):

@@ -3,15 +3,16 @@ import sqlalchemy
 from sqlalchemy import *
 from test import fixture
 from migrate.versioning import genmodel, schemadiff
+from nose.tools import eq_
 
 
 class TestSchemaDiff(fixture.DB):
     level=fixture.DB.CONNECT
     table_name = 'tmp_schemadiff'
 
-    def setUp(self):
-        fixture.DB.setUp(self)
-        self._connect(self.url)
+    def _setup(self, url):
+        
+        super(TestSchemaDiff, self)._setup(url)
         self.meta = MetaData(self.engine, reflect=True)
         self.meta.drop_all()  # in case junk tables are lying around in the test database
         self.meta = MetaData(self.engine, reflect=True)  # needed if we just deleted some tables
@@ -24,12 +25,12 @@ class TestSchemaDiff(fixture.DB):
         if WANT_ENGINE_ECHO == 'T':
             self.engine.echo = True
     
-    def tearDown(self):
+    def _teardown(self):
         if self.table.exists():
             #self.table.drop()  # bummer, this doesn't work because the list of tables is out of date, but calling reflect didn't work
             self.meta = MetaData(self.engine, reflect=True)
             self.meta.drop_all()
-        fixture.DB.tearDown(self)
+        super(TestSchemaDiff, self)._teardown()
         
     def _applyLatestModel(self):
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
@@ -43,8 +44,8 @@ class TestSchemaDiff(fixture.DB):
         
         def assertDiff(isDiff, tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff):
             diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
-            self.assertEquals(bool(diff), isDiff)
-            self.assertEquals( ([t.name for t in diff.tablesMissingInDatabase], [t.name for t in diff.tablesMissingInModel], [t.name for t in diff.tablesWithDiff]),
+            eq_(bool(diff), isDiff)
+            eq_( ([t.name for t in diff.tablesMissingInDatabase], [t.name for t in diff.tablesMissingInModel], [t.name for t in diff.tablesWithDiff]),
                            (tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff) )
                 
         # Model is defined but database is empty.
@@ -100,8 +101,8 @@ class TestSchemaDiff(fixture.DB):
         # Make sure data is still present.
         result = self.engine.execute(self.table.select(self.table.c.id==dataId))
         rows = result.fetchall()
-        self.assertEquals(len(rows), 1)
-        self.assertEquals(rows[0].name, 'mydata')
+        eq_(len(rows), 1)
+        eq_(rows[0].name, 'mydata')
         
         # Add data, later we'll make sure it's still present.
         result = self.engine.execute(self.table.insert(), id=2, name=u'mydata2', data2=123)

@@ -1,5 +1,5 @@
 import shutil
-import migrate.run
+#import migrate.run
 from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.base import operations
 from migrate.versioning.template import template
@@ -80,7 +80,7 @@ class PythonScript(base.BaseScript):
             raise exceptions.ScriptError("%d is not a valid step"%step)
         funcname = base.operations[op]
 
-        migrate.run.migrate_engine = migrate.migrate_engine = engine
+        #migrate.run.migrate_engine = migrate.migrate_engine = engine
         func = self._func(funcname)
         func()
-        migrate.run.migrate_engine = migrate.migrate_engine = None
+        #migrate.run.migrate_engine = migrate.migrate_engine = None

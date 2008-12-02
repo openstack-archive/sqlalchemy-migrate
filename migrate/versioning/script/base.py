@@ -1,6 +1,6 @@
 from migrate.versioning.base import log,operations
 from migrate.versioning import pathed,exceptions
-import migrate.run
+#        import migrate.run
 
 class BaseScript(pathed.Pathed):
     """Base class for other types of scripts

@@ -29,8 +29,6 @@ class RawAlterTableVisitor(object):
     def start_alter_table(self,param):
         table = self._to_table(param)
         table_name = self._to_table_name(table)
-        print self
-        print self._do_quote_table_identifier(table_name)
         self.append('\nALTER TABLE %s ' % self._do_quote_table_identifier(table_name))
         return table
 

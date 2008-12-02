@@ -66,7 +66,6 @@ class TestAddDropColumn(fixture.DB):
         self.assertEquals(getattr(self.table.c,col_name),col)
         #drop_column(col,self.table)
         col = getattr(self.table.c,col_name)
-        print 'inside fxn', self.url
         # SQLite can't do drop column: stop here
         if self.url.startswith('sqlite://'):
             self.assertRaises(changeset.exceptions.NotSupportedError,drop_column_func,col)
@@ -145,8 +144,6 @@ class TestAddDropColumn(fixture.DB):
     @fixture.usedb()
     def test_byname(self):
         """Add/drop columns via functions; by table object and column name"""
-        print 'vyname', self.url
-        print self
         def add_func(col):
             self.table.append_column(col)
             return create_column(col.name,self.table)

@@ -21,6 +21,7 @@ class PGSchemaChanger(ansisql.ANSISchemaChanger, PGSchemaGeneratorMixin):
 
 class PGConstraintGenerator(ansisql.ANSIConstraintGenerator, PGSchemaGeneratorMixin):
     pass
+
 class PGConstraintDropper(ansisql.ANSIConstraintDropper, PGSchemaGeneratorMixin):
     pass
 

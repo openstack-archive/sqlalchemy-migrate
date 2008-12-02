@@ -61,13 +61,16 @@ def usedb(supported=None,not_supported=None):
 
     my_urls = [url for url in urls if is_supported(url,supported,not_supported)]
     def dec(func):
-        for url in my_urls:
-            def entangle(self):
+        def entangle(self):
+            for url in my_urls:
+                print '*'*80
+                print func.__name__
+                print url
                 self._setup(url)
                 yield func, self
                 self._teardown()
                 
-            entangle.__name__ = func.__name__
+        entangle.__name__ = func.__name__
         return entangle
     return dec
 

@@ -75,9 +75,9 @@ class TestConstraint(fixture.DB):
             # Oracle constraints need a name
             fk.name = 'fgsfds'
         print 'drop...'
-        self.engine.echo=True
+        #self.engine.echo=True
         fk.create()
-        self.engine.echo=False
+        #self.engine.echo=False
         print 'dropped'
         self.refresh_table()
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])

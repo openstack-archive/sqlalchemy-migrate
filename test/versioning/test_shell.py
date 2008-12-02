@@ -448,50 +448,45 @@ class TestShellDatabase(Shell,fixture.DB):
         
         # Model is defined but database is empty.
         output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
-        self.assertEquals(output, "Schema diffs:\n  tables missing in database: tmp_account_rundiffs")
+        assert "tables missing in database: tmp_account_rundiffs" in output, output
         
         # Update db to latest model.
         output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)
-        self.assertEquals(output, "")
+        self.assertEquals(exitcode, None)
         self.assertEquals(self.cmd_version(repos_path),0)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)  # version did not get bumped yet because new version not yet created
         output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
-        self.assertEquals(output, "No schema diffs")
+        assert "No schema diffs" in output, output
         output, exitcode = self.output_and_exitcode('python %s create_model' % script_path)
         output = output.replace(genmodel.HEADER.strip(), '')  # need strip b/c output_and_exitcode called strip
-        self.assertEqualsIgnoreWhitespace(output, """
-            tmp_account_rundiffs = Table('tmp_account_rundiffs',meta,
-                Column('id',Integer(),primary_key=True,nullable=False),
-                Column('login',String(length=None,convert_unicode=False,assert_unicode=None)),
-                Column('passwd',String(length=None,convert_unicode=False,assert_unicode=None)),
-            )
-        """)  # TODO: length shouldn't be None above
+        assert """tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
+  Column('id', Integer(),  primary_key=True, nullable=False),
+  Column('login', String(length=None, convert_unicode=False, assert_unicode=None)),
+  Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None)),""" in output.strip(), output
         
         # We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
         output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model' % script_path)  # intentionally omit a parameter
         self.assertEquals('Error: Too few arguments' in output, True)
         output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model --oldmodel=oldtestmodel.meta' % script_path)
-        self.assertEqualsIgnoreWhitespace(output, """
-            from sqlalchemy import *
-            from migrate import *
+        assert  """from sqlalchemy import *
+from migrate import *
 
-            meta = MetaData(migrate_engine)
-            tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
-              Column('id', Integer() ,  primary_key=True, nullable=False),
-              Column('login', String(length=40, convert_unicode=False, assert_unicode=None)   ),
-              Column('passwd', String(length=40, convert_unicode=False, assert_unicode=None)   ),
-            )
+meta = MetaData(migrate_engine)
+tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
+  Column('id', Integer(),  primary_key=True, nullable=False),
+  Column('login', String(length=40, convert_unicode=False, assert_unicode=None)),
+  Column('passwd', String(length=40, convert_unicode=False, assert_unicode=None)),
+)
 
-            def upgrade():
-                # Upgrade operations go here. Don't create your own engine; use the engine
-                # named 'migrate_engine' imported from migrate.
-                tmp_account_rundiffs.create()
+def upgrade():
+    # Upgrade operations go here. Don't create your own engine; use the engine
+    # named 'migrate_engine' imported from migrate.
+    tmp_account_rundiffs.create()
 
-            def downgrade():
-                # Operations to reverse the above upgrade go here.
-                tmp_account_rundiffs.drop()
-        """)
-        
+def downgrade():
+    # Operations to reverse the above upgrade go here.
+    tmp_account_rundiffs.drop()""" in output, output
+    
         # Save the upgrade script.
         self.assertSuccess(self.cmd('script', '--repository=%s' % repos_path, 'Desc'))
         upgrade_script_path = '%s/versions/001_Desc.py' % repos_path
@@ -499,7 +494,7 @@ class TestShellDatabase(Shell,fixture.DB):
         #output, exitcode = self.output_and_exitcode('python %s test %s' % (script_path, upgrade_script_path))  # no, we already upgraded the db above
         #self.assertEquals(output, "")
         output, exitcode = self.output_and_exitcode('python %s update_db_from_model' % script_path)  # bump the db_version
-        self.assertEquals(output, "")
+        self.assertEquals(exitcode, None)
         self.assertEquals(self.cmd_version(repos_path),1)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),1)
 

@@ -7,7 +7,6 @@ from migrate.changeset.schema import _ColumnDelta
 from sqlalchemy.databases import information_schema
 
 import migrate
-from migrate.run import driver
 
 class TestAddDropColumn(fixture.DB):
     level=fixture.DB.CONNECT
@@ -512,8 +511,3 @@ class TestColumnDelta(fixture.Base):
         verify(['default'],mkcol(default=None),mkcol(default='42'))
         verify([],mkcol(default=None),mkcol(default=None))
         verify([],mkcol(default='42'),mkcol(default='42'))
-
-class TestDriver(fixture.DB):
-    @fixture.usedb()
-    def test_driver(self):
-        self.assertEquals(self.url.split(':',1)[0],driver(self.engine))

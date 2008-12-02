@@ -83,9 +83,9 @@ class TestConstraint(fixture.DB):
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
 
         print 'drop...'
-        self.engine.echo=True
+        #self.engine.echo=True
         fk.drop()
-        self.engine.echo=False
+        #self.engine.echo=False
         print 'dropped'
         self.refresh_table()
         self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
@@ -98,7 +98,7 @@ class TestConstraint(fixture.DB):
     @fixture.usedb()
     def test_define_pk_multi(self):
         """Multicolumn PK constraints can be defined, created, and dropped"""
-        self.engine.echo=True
+        #self.engine.echo=True
         self._define_pk(self.table.c.id,self.table.c.fkey)
 
 

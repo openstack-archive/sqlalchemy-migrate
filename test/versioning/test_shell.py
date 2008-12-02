@@ -15,7 +15,6 @@ class Shell(fixture.Shell):
     def cmd(cls,*p):
         p = map(lambda s: str(s),p)
         ret = ' '.join([cls._cmd]+p)
-        print ret
         return ret
     def execute(self,shell_cmd,runshell=None):
         """A crude simulation of a shell command, to speed things up"""

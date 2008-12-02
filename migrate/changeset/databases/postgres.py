@@ -4,26 +4,24 @@ from sqlalchemy.databases import postgres as sa_base
 
 PGSchemaGenerator = sa_base.PGSchemaGenerator
 
-class PGColumnGenerator(PGSchemaGenerator,ansisql.ANSIColumnGenerator):
-    def _do_quote_table_identifier(self, identifier):
-        return identifier
-
-class PGColumnDropper(ansisql.ANSIColumnDropper):
-    def _do_quote_table_identifier(self, identifier):
-        return identifier
-
-class PGSchemaChanger(ansisql.ANSISchemaChanger):
+class PGSchemaGeneratorMixin(object):
     def _do_quote_table_identifier(self, identifier):
         return identifier
     def _do_quote_column_identifier(self, identifier):
         return '"%s"'%identifier
 
+class PGColumnGenerator(PGSchemaGenerator,ansisql.ANSIColumnGenerator, PGSchemaGeneratorMixin):
+    pass
 
-class PGConstraintGenerator(ansisql.ANSIConstraintGenerator):
-    def _do_quote_table_identifier(self, identifier):
-        return identifier
+class PGColumnDropper(ansisql.ANSIColumnDropper, PGSchemaGeneratorMixin):
+    pass
 
-class PGConstraintDropper(ansisql.ANSIConstraintDropper):
+class PGSchemaChanger(ansisql.ANSISchemaChanger, PGSchemaGeneratorMixin):
+    pass
+
+class PGConstraintGenerator(ansisql.ANSIConstraintGenerator, PGSchemaGeneratorMixin):
+    pass
+class PGConstraintDropper(ansisql.ANSIConstraintDropper, PGSchemaGeneratorMixin):
     pass
 
 class PGDialect(ansisql.ANSIDialect):

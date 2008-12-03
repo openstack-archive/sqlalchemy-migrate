@@ -5,6 +5,7 @@ from migrate.versioning.base import operations
 from migrate.versioning.template import template
 from migrate.versioning.script import base
 from migrate.versioning.util import import_path, loadModel
+import migrate
 
 class PythonScript(base.BaseScript):
     @classmethod
@@ -79,8 +80,10 @@ class PythonScript(base.BaseScript):
         else:
             raise exceptions.ScriptError("%d is not a valid step"%step)
         funcname = base.operations[op]
-
+        
+        migrate.migrate_engine = engine
         #migrate.run.migrate_engine = migrate.migrate_engine = engine
         func = self._func(funcname)
         func()
+        migrate.migrate_engine = None
         #migrate.run.migrate_engine = migrate.migrate_engine = None

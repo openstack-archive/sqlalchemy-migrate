@@ -59,6 +59,8 @@ class AlterTableVisitor(SchemaIterator,RawAlterTableVisitor):
     """Common operations for 'alter table' statements"""
         
 
+from sqlalchemy.schema import ForeignKeyConstraint
+    
 class ANSIColumnGenerator(AlterTableVisitor,SchemaGenerator):
     """Extends ansisql generator for column creation (alter table add col)"""
     #def __init__(self, *args, **kwargs):
@@ -79,11 +81,13 @@ class ANSIColumnGenerator(AlterTableVisitor,SchemaGenerator):
         pks = table.primary_key
         colspec = self.get_column_specification(column)
         self.append(colspec)
-        self.execute()
-        #if column.primary_key:
-        #    cons = self._pk_constraint(table,column,True)
-        #    cons.drop()
-        #    cons.create()
+        if column.foreign_keys:
+            for fk in column.foreign_keys:
+                self.append(";\n\t ")
+                self.add_foreignkey(fk.constraint)
+        else:
+            self.execute()
+
 
     def visit_table(self,table):
         pass

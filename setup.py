@@ -37,5 +37,5 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
     migrate = migrate.versioning.shell:main
     migrate-repository = migrate.versioning.migrate_repository:main
     """,
-    test_suite = "py.test.cmdline.main",
+    test_suite = "nose.collector",
 )

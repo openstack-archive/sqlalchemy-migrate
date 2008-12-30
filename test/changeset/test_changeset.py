@@ -66,10 +66,6 @@ class TestAddDropColumn(fixture.DB):
         self.assertEquals(getattr(self.table.c,col_name),col)
         #drop_column(col,self.table)
         col = getattr(self.table.c,col_name)
-        # SQLite can't do drop column: stop here
-        if self.url.startswith('sqlite://'):
-            self.assertRaises(changeset.exceptions.NotSupportedError,drop_column_func,col)
-            return
         drop_column_func(col)
         assert_numcols(1)
 
@@ -301,18 +297,7 @@ class TestColumnChange(fixture.DB):
         #self.engine.echo=False
         super(TestColumnChange, self)._teardown()
 
-    @fixture.usedb(supported='sqlite')
-    def test_sqlite_not_supported(self):
-        self.assertRaises(changeset.exceptions.NotSupportedError,
-            self.table.c.data.alter,server_default=DefaultClause('tluafed'))
-        self.assertRaises(changeset.exceptions.NotSupportedError,
-            self.table.c.data.alter,nullable=True)
-        self.assertRaises(changeset.exceptions.NotSupportedError,
-            self.table.c.data.alter,type=String(21))
-        self.assertRaises(changeset.exceptions.NotSupportedError,
-            self.table.c.data.alter,name='atad')
-
-    @fixture.usedb(not_supported='sqlite')
+    @fixture.usedb()
     def test_rename(self):
         """Can rename a column"""
         def num_rows(col,content):
@@ -354,7 +339,7 @@ class TestColumnChange(fixture.DB):
         self.table.c.data   # Should not raise exception
         self.assertEquals(num_rows(self.table.c.data,content),1)
         
-    @fixture.usedb(not_supported='sqlite')
+    @fixture.usedb()
     def xtest_fk(self):
         """Can add/drop foreign key constraints to/from a column
         Not supported
@@ -371,7 +356,7 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_(self.table.c.data.foreign_key is None)
 
-    @fixture.usedb(not_supported='sqlite')
+    @fixture.usedb()
     def test_type(self):
         """Can change a column's type"""
         # Entire column definition given
@@ -394,7 +379,7 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.id.type,String))
 
-    @fixture.usedb(not_supported=('sqlite', 'mysql'))
+    @fixture.usedb(not_supported='mysql')
     def test_default(self):
         """Can change a column's server_default value (DefaultClauses only)
         Only DefaultClauses are changed here: others are managed by the 
@@ -427,7 +412,7 @@ class TestColumnChange(fixture.DB):
         self.assert_(row['data'] is None,row['data'])
         
 
-    @fixture.usedb(not_supported='sqlite')
+    @fixture.usedb()
     def test_null(self):
         """Can change a column's null constraint"""
         self.assertEquals(self.table.c.data.nullable,True)
@@ -443,11 +428,12 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assertEquals(self.table.c.data.nullable,True)
 
-    @fixture.usedb(not_supported='sqlite')
+    @fixture.usedb()
     def xtest_pk(self):
         """Can add/drop a column to/from its table's primary key
         Not supported
         """
+        self.engine.echo = True
         self.assertEquals(len(self.table.primary_key),1)
 
         # Entire column definition

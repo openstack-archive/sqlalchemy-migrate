@@ -19,11 +19,8 @@ Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with datab
 Migrate extends SQLAlchemy to have database changeset handling. It provides a database change repository mechanism which can be used from the command line as well as from inside python code.
 """,
 
-    install_requires = ['sqlalchemy >= 0.4'],
-    setup_requires = [],
-    dependency_links = [
-        "http://codespeak.net/download/py/",
-    ],
+    install_requires = ['sqlalchemy >= 0.5'],
+    setup_requires = ['nose >= 0.10'],
 
     author = "Evan Rosson",
     author_email = "evan.rosson@gmail.com",

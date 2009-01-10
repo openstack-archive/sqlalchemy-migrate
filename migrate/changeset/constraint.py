@@ -124,3 +124,40 @@ class ForeignKeyConstraint(ConstraintChangeset,schema.ForeignKeyConstraint):
     def accept_schema_visitor(self,visitor,*p,**k):
         func = 'visit_migrate_foreign_key_constraint'
         return self._accept_schema_visitor(visitor,func,*p,**k)
+
+class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
+    def __init__(self, sqltext, *args, **kwargs):
+        cols = kwargs.pop('columns')
+        colnames, table = self._normalize_columns(cols)
+        table = kwargs.pop('table', table)
+        ConstraintChangeset.__init__(self, *args, **kwargs)
+        schema.CheckConstraint.__init__(self, sqltext, *args, **kwargs)
+        if table is not None:
+            self._set_parent(table)
+        self.colnames = colnames
+
+    def _set_parent(self, table):
+        self.table = table
+        return super(ConstraintChangeset, self)._set_parent(table)
+
+    def create(self):
+        from migrate.changeset.databases.visitor import get_engine_visitor
+        visitorcallable = get_engine_visitor(self.table.bind,
+                                             'constraintgenerator')
+        _engine_run_visitor(self.table.bind, visitorcallable, self)
+
+    def drop(self):
+        from migrate.changeset.databases.visitor import get_engine_visitor
+        visitorcallable = get_engine_visitor(self.table.bind,
+                                             'constraintdropper')
+        _engine_run_visitor(self.table.bind, visitorcallable, self)
+        self.columns.clear()
+        return self
+
+    def autoname(self):
+        return "%(table)s_%(cols)s_check" % \
+            {"table": self.table.name, "cols": "_".join(self.colnames)}
+
+    def accept_schema_visitor(self, visitor, *args, **kwargs):
+        func = 'visit_migrate_check_constraint'
+        return self._accept_schema_visitor(visitor, func, *args, **kwargs)

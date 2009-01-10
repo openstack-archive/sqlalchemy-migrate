@@ -250,6 +250,8 @@ class ANSIConstraintGenerator(ANSIConstraintCommon):
             )
             ret = "CONSTRAINT %(name)s FOREIGN KEY (%(columns)s) "\
                 "REFERENCES %(reftable)s (%(referenced)s)"%params
+        elif isinstance(cons,constraint.CheckConstraint):
+            ret = "CHECK (%s)"%cons.sqltext
         else:
             raise exceptions.InvalidConstraintError(cons)
         return ret
@@ -266,6 +268,9 @@ class ANSIConstraintGenerator(ANSIConstraintCommon):
     def visit_migrate_foreign_key_constraint(self,*p,**k):
         return self._visit_constraint(*p,**k)
 
+    def visit_migrate_check_constraint(self,*p,**k):
+        return self._visit_constraint(*p,**k)
+
 class ANSIConstraintDropper(ANSIConstraintCommon):
     def _visit_constraint(self,constraint):
         self.start_alter_table(constraint)
@@ -277,6 +282,9 @@ class ANSIConstraintDropper(ANSIConstraintCommon):
         return self._visit_constraint(*p,**k)
 
     def visit_migrate_foreign_key_constraint(self,*p,**k):
+        return self._visit_constraint(*p,**k)
+
+    def visit_migrate_check_constraint(self,*p,**k):
         return self._visit_constraint(*p,**k)
 
 class ANSIDialect(object):

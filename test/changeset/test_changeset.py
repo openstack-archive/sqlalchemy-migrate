@@ -153,11 +153,11 @@ class TestAddDropColumn(fixture.DB):
         reftable = Table('tmp_ref',self.meta,
             Column('id',Integer,primary_key=True),
         )
+        # create FK's target
+        if self.engine.has_table(reftable.name):
+            reftable.drop()
+        reftable.create()
         def add_func(col):
-            # create FK's target
-            if self.engine.has_table(reftable.name):
-                reftable.drop()
-            reftable.create()
             self.table.append_column(col)
             return create_column(col.name,self.table)
         def drop_func(col):
@@ -165,7 +165,8 @@ class TestAddDropColumn(fixture.DB):
             if self.engine.has_table(reftable.name):
                 reftable.drop()
             return ret
-        return self.run_(add_func,drop_func,Integer,ForeignKey('tmp_ref.id'))
+        return self.run_(add_func,drop_func,Integer,
+                         ForeignKey(reftable.c.id))
 
     #@fixture.usedb()
     #def xtest_pk(self):

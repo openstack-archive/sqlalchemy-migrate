@@ -318,7 +318,14 @@ class ChangesetColumn(object):
         table = _normalize_table(self,table)
         engine = table.bind
         visitorcallable = get_engine_visitor(engine,'columngenerator')
-        engine._run_visitor(visitorcallable,self,*args,**kwargs)
+        engine._run_visitor(visitorcallable, self, *args,**kwargs)
+
+        #add in foreign keys
+        if self.foreign_keys:
+            for fk in self.foreign_keys:
+                visitorcallable = get_engine_visitor(engine,'columnfkgenerator')
+                engine._run_visitor(visitorcallable, self, fk=fk)
+    
         return self
     
     def drop(self,table=None,*args,**kwargs):

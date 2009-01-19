@@ -40,6 +40,7 @@ class TestAddDropColumn(fixture.DB):
 
         def _assert_numcols(expected,type_):
             result = len(self.table.c)
+            
             self.assertEquals(result,expected,
                 "# %s cols incorrect: %s != %s"%(type_,result,expected))
             if not col_k.get('primary_key',None):
@@ -53,9 +54,11 @@ class TestAddDropColumn(fixture.DB):
             # Changed: create/drop shouldn't mess with the objects
             #_assert_numcols(expected,'object')
             # Detect # database cols via autoload
-            self.meta.clear()
+            #self.meta.clear()
+            del self.meta.tables[self.table_name]
             self.table=Table(self.table_name,self.meta,autoload=True)
             _assert_numcols(expected,'database')
+            
         assert_numcols(1)
         if len(col_p) == 0:
             col_p = [String(40)]

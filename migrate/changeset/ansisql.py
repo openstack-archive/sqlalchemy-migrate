@@ -22,7 +22,7 @@ class RawAlterTableVisitor(object):
         if isinstance(ret,sa.Table):
             ret = ret.fullname
         return ret
-
+    
     def _do_quote_table_identifier(self, identifier):
         return '"%s"'%identifier
     
@@ -81,12 +81,16 @@ class ANSIColumnGenerator(AlterTableVisitor,SchemaGenerator):
         pks = table.primary_key
         colspec = self.get_column_specification(column)
         self.append(colspec)
-        if column.foreign_keys:
-            for fk in column.foreign_keys:
-                self.append(";\n\t ")
-                self.add_foreignkey(fk.constraint)
-        else:
-            self.execute()
+
+#        if column.foreign_keys:
+#            self.append(" ")
+#            for fk in column.foreign_keys:
+#                self.add_foreignkey(fk.constraint)
+#                continue
+#                self.append(";\n\t ")
+#                self.define_foreign_key(fk.constraint)
+#        else:
+        self.execute()
 
 
     def visit_table(self,table):
@@ -283,14 +287,35 @@ class ANSIConstraintDropper(ANSIConstraintCommon):
 
     def visit_migrate_foreign_key_constraint(self,*p,**k):
         return self._visit_constraint(*p,**k)
-
+    
     def visit_migrate_check_constraint(self,*p,**k):
         return self._visit_constraint(*p,**k)
+
+class ANSIFKGenerator(AlterTableVisitor,SchemaGenerator):
+    """Extends ansisql generator for column creation (alter table add col)"""
+    def __init__(self, *args, **kwargs):
+        self.fk = kwargs.get('fk', None)
+        if self.fk:
+            del kwargs['fk']
+        super(ANSIFKGenerator, self).__init__(*args, **kwargs)
+
+    def visit_column(self,column):
+        """Create foreign keys for a column (table already exists); #32"""
+
+        if self.fk:
+            self.add_foreignkey(self.fk.constraint)
+
+        if self.buffer.getvalue() !='':
+            self.execute()
+
+    def visit_table(self,table):
+        pass
 
 class ANSIDialect(object):
     columngenerator = ANSIColumnGenerator
     columndropper = ANSIColumnDropper
     schemachanger = ANSISchemaChanger
+    columnfkgenerator = ANSIFKGenerator
 
     @classmethod
     def visitor(self,name):

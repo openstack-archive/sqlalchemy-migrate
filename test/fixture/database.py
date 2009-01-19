@@ -42,7 +42,7 @@ def is_supported(url,supported,not_supported):
 
 #we make the engines global, which should make the tests run a bit faster
 urls = readurls()
-engines=dict([(url,create_engine(url)) for url in urls])
+engines=dict([(url,create_engine(url, echo=True)) for url in urls])
 
 
 def usedb(supported=None,not_supported=None):

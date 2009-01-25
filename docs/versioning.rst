@@ -223,10 +223,9 @@ By default, change scripts may do anything any other SQLAlchemy
 program can do.
 
 SQLAlchemy Migrate extends SQLAlchemy with several operations used to
-change existing schemas - ie. ALTER TABLE stuff. See changeset_
-documentation for details.
+change existing schemas - ie. ALTER TABLE stuff. See :ref:`changeset
+<changeset-system>` documentation for details.
 
-.. _changeset: changeset.html
 
 Writing scripts with consistent behavior
 ----------------------------------------
@@ -340,8 +339,8 @@ Python API
 .. currentmodule:: migrate.versioning
 
 All commands available from the command line are also available for
-your Python scripts by importing `migrate.versioning.api`_. See the
-`migrate.versioning.api`_ documentation for a list of functions;
+your Python scripts by importing :mod:`migrate.versioning`. See the
+:mod:`migrate.versioning` documentation for a list of functions;
 function names match equivalent shell commands. You can use this to
 help integrate SQLAlchemy Migrate with your existing update process.
 

@@ -1,3 +1,5 @@
+.. _changeset-system:
+
 **********************
 Database changeset API
 **********************

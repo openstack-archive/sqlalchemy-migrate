@@ -9,12 +9,53 @@ Module :mod:`migrate.changeset`
    :members:
    :synopsis: Database changeset management
 
-Module :mod:`migrate.changeset.ansisql`
----------------------------------------
+Module :mod:`ansisql <migrate.changeset.ansisql>`
+-------------------------------------------------
 
 .. automodule:: migrate.changeset.ansisql
    :members:
    :synopsis: Standard SQL implementation for altering database schemas
+
+Module :mod:`databases <migrate.changeset.databases>`
+-----------------------------------------------------
+
+.. automodule:: migrate.changeset.databases
+   :members:
+   :synopsis: Database specific changeset implementations
+
+Module :mod:`mysql <migrate.changeset.databases.mysql>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: migrate.changeset.databases.mysql
+   :members:
+   :synopsis: MySQL database specific changeset implementations
+
+Module :mod:`oracle <migrate.changeset.databases.oracle>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: migrate.changeset.databases.oracle
+   :members:
+   :synopsis: Oracle database specific changeset implementations
+
+Module :mod:`postgres <migrate.changeset.databases.postgres>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: migrate.changeset.databases.postgres
+   :members:
+   :synopsis: PostgreSQL database specific changeset implementations
+
+Module :mod:`sqlite <migrate.changeset.databases.slite>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: migrate.changeset.databases.sqlite
+   :members:
+   :synopsis: SQLite database specific changeset implementations
+
+Module :mod:`visitor <migrate.changeset.databases.visitor>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: migrate.changeset.databases.visitor
+   :members:
 
 Module :mod:`migrate.versioning`
 ================================

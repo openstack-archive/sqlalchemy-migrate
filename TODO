@@ -1,0 +1,3 @@
+- better MySQL support
+- fix unit tests for other databases than PostgreSQL (MySQL and SQLite
+  fail at test_changeset.test_fk(..))

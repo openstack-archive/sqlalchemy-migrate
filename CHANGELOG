@@ -1,13 +1,15 @@
 0.5.0
-- SA 0.5.x support.
-- py.test is no longer used for testing.  (use nose)
-- Added --echo=True option for all commands, which will make the sqlalchemy connection echo SQL statements.
-- Better Postgres support, especially for schemas.
-- modification to the downgrade command to simplify the calling (old way still works just fine)
-- TODO: complete MySQL support
-
-0.4.x
-- TODO: document changes
+- SA 0.5.x support. SQLAlchemy < 0.5 not supported anymore.
+- use nose instead of py.test for testing
+- Added --echo=True option for all commands, which will make the
+  sqlalchemy connection echo SQL statements.
+- Better PostgreSQL support, especially for schemas.
+- modification to the downgrade command to simplify the calling (old
+  way still works just fine)
+- improved support for SQLite
+- add support for check constraints (EXPERIMENTAL)
+- print statements removed from APIs
+- improved documentation
 
 0.4.5
 - work by Christian Simms to compare metadata against databases

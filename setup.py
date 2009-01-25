@@ -1,7 +1,6 @@
 #!/usr/bin/python
 from setuptools import setup,find_packages
 
-# Pudge
 try:
     import buildutils
 except ImportError:
@@ -20,7 +19,7 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
 """,
 
     install_requires = ['sqlalchemy >= 0.5'],
-    setup_requires = ['nose >= 0.10'],
+    setup_requires = ['nose >= 0.10', 'sphinx >= 0.5'],
 
     author = "Evan Rosson",
     author_email = "evan.rosson@gmail.com",

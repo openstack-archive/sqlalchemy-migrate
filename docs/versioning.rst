@@ -337,7 +337,6 @@ assumes that commit is for a new version.
 Python API
 ==========
 
-.. module:: migrate.versioning
 .. currentmodule:: migrate.versioning
 
 All commands available from the command line are also available for

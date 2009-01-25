@@ -1,8 +1,5 @@
-==================
-SQLAlchemy Migrate
-==================
-SQLAlchemy schema change management
-===================================
+SQLAlchemy Migrate - SQLAlchemy schema change management
+========================================================
 
 Inspired by Ruby on Rails' migrations, SQLAlchemy Migrate provides a
 way to deal with database schema changes in SQLAlchemy_ projects.
@@ -22,11 +19,24 @@ SQLAlchemy Migrate.
 Documentation
 -------------
 
+SQLAlchemy is split into two parts, database schema versioning and
+database changeset management. This is represented by two python
+packages :mod:`migrate.versioning` and :mod:`migrate.changeset`. The
+versioning API is available as the :command:`migrate` command.
+
 .. toctree::
 
    versioning
    changeset
+   api
 
 .. _`google's summer of code`: http://code.google.com/soc
 .. _`Google Code project`: http://code.google.com/p/sqlalchemy-migrate
 .. _sqlalchemy: http://www.sqlalchemy.org
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

@@ -1,4 +1,3 @@
-==============================================
 Download and Development of SQLAlchemy Migrate
 ==============================================
 
@@ -27,7 +26,7 @@ are released, subscribe to `migrate-announce`_.
 .. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
 .. _sqlalchemy: http://www.sqlalchemy.org/download.myt
 .. _`project's download page`: http://code.google.com/p/sqlalchemy-migrate/downloads
-.. _`cheese shop`: http://www.python.org/pypi/sqlalchemy-migrate
+.. _`cheese shop`: http://pypi.python.org/pypi/sqlalchemy-migrate
 .. _`migrate-announce`: http://groups.google.com/group/migrate-announce
 
 Development

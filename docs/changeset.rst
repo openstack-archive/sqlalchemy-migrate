@@ -1,17 +1,22 @@
-=================
-migrate.changeset
-=================
+**********************
+Database changeset API
+**********************
 
-.. contents::
+.. currentmodule:: migrate.changeset
 
-Importing ``migrate.changeset`` adds some new methods to existing SA objects, as well as creating functions of its own. Most operations can be done either by a method or a function. Methods match SA's existing API and are more intuitive when the object is available; functions allow one to make changes when only the name of an object is available (for example, adding a column to a table in the database without having to load that table into Python). 
+Importing :mod:`migrate.changeset` adds some new methods to existing
+SA objects, as well as creating functions of its own. Most operations
+can be done either by a method or a function. Methods match
+SQLAlchemy's existing API and are more intuitive when the object is
+available; functions allow one to make changes when only the name of
+an object is available (for example, adding a column to a table in the
+database without having to load that table into Python).
 
-Changeset operations can be used independently of SQLAlchemy Migrate's `versioning system`_. 
+Changeset operations can be used independently of SQLAlchemy Migrate's
+:ref:`versioning <versioning-system>`.
 
-For more information, see the generated documentation for `migrate.changeset`_.
-
-.. _`migrate.changeset`: module-migrate.changeset.html
-.. _`versioning system`: versioning.html
+For more information, see the generated documentation for
+:mod:`migrate.changeset`.
 
 Column
 ======
@@ -65,7 +70,7 @@ Rename a table::
 
  table.rename('newtablename')
 
-.. _`table create/drop`: http://www.sqlalchemy.org/docs/metadata.myt#metadata_creating
+.. _`table create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#creating-and-dropping-database-tables
 
 Index
 =====
@@ -76,7 +81,7 @@ Rename an index, given an SQLAlchemy ``Index`` object::
 
  index.rename('newindexname')
 
-.. _`index create/drop`: http://www.sqlalchemy.org/docs/metadata.myt#metadata_indexes
+.. _`index create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#indexes
 
 Constraint
 ==========

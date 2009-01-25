@@ -41,8 +41,9 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
 
     def _modify_table(self, table, column):
         del table.columns[column.name]
-        return 'INSERT INTO %(table_name)s SELECT %s from migration_tmp' % \
-            ','.join([c.name for c in table.columns])
+        columns = ','.join([c.name for c in table.columns])
+        return 'INSERT INTO %(table_name)s SELECT ' + columns + \
+            ' from migration_tmp'
 
 
 class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):

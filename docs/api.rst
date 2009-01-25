@@ -111,3 +111,10 @@ Module :mod:`pathed <migrate.versioning.pathed>`
 .. automodule:: migrate.versioning.pathed
    :members:
    :synopsis: File/Directory handling class
+
+Module :mod:`repository <migrate.versioning.repository>`
+--------------------------------------------------------
+
+.. automodule:: migrate.versioning.repository
+   :members:
+   :synopsis: SQLAlchemy migrate repository management

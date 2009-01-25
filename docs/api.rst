@@ -118,3 +118,17 @@ Module :mod:`repository <migrate.versioning.repository>`
 .. automodule:: migrate.versioning.repository
    :members:
    :synopsis: SQLAlchemy migrate repository management
+
+Module :mod:`schema <migrate.versioning.schema>`
+------------------------------------------------
+
+.. automodule:: migrate.versioning.schema
+   :members:
+   :synopsis: Database schema management
+
+Module :mod:`schemadiff <migrate.versioning.schemadiff>`
+--------------------------------------------------------
+
+.. automodule:: migrate.versioning.schemadiff
+   :members:
+   :synopsis: Database schema and model differencing

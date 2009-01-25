@@ -28,6 +28,7 @@ versioning API is available as the :command:`migrate` command.
 
    versioning
    changeset
+   tools
    api
 
 .. _`google's summer of code`: http://code.google.com/soc

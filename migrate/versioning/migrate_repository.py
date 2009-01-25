@@ -1,17 +1,22 @@
-""" Script to migrate repository. This shouldn't use any other migrate
-modules, so that it can work in any version. """
+"""
+   Script to migrate repository from sqlalchemy <= 0.4.4 to the new
+   repository schema. This shouldn't use any other migrate modules, so
+   that it can work in any version.
+"""
 
-import os, os.path, sys
+import os
+import os.path
+import sys
 
 
 def usage():
     """Gives usage information."""
-    print '''Usage: %(prog)s repository-to-migrate
+    print """Usage: %(prog)s repository-to-migrate
 
-Upgrade your repository to the new flat format.
+    Upgrade your repository to the new flat format.
 
-NOTE: You should probably make a backup before running this.
-''' % {'prog': sys.argv[0]}
+    NOTE: You should probably make a backup before running this.
+    """ % {'prog': sys.argv[0]}
 
     sys.exit(1)
 
@@ -27,7 +32,8 @@ def move_file(src, tgt):
     print '    Moving file %s to %s' % (src, tgt)
     if os.path.exists(tgt):
         raise Exception(
-            'Cannot move file %s because target %s already exists' % (src, tgt))
+            'Cannot move file %s because target %s already exists' % \
+                (src, tgt))
     os.rename(src, tgt)
 
 
@@ -35,7 +41,7 @@ def delete_directory(dirpath):
     """Delete a directory and print a message."""
     print '    Deleting directory: %s' % dirpath
     os.rmdir(dirpath)
-    
+
 
 def migrate_repository(repos):
     """Does the actual migration to the new repository format."""
@@ -43,7 +49,7 @@ def migrate_repository(repos):
     versions = '%s/versions' % repos
     dirs = os.listdir(versions)
     # Only use int's in list.
-    numdirs = [ int(dirname) for dirname in dirs if dirname.isdigit() ]
+    numdirs = [int(dirname) for dirname in dirs if dirname.isdigit()]
     numdirs.sort()  # Sort list.
     for dirname in numdirs:
         origdir = '%s/%s' % (versions, dirname)
@@ -51,7 +57,6 @@ def migrate_repository(repos):
         files = os.listdir(origdir)
         files.sort()
         for filename in files:
-            
             # Delete compiled Python files.
             if filename.endswith('.pyc') or filename.endswith('.pyo'):
                 delete_file('%s/%s' % (origdir, filename))
@@ -91,4 +96,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

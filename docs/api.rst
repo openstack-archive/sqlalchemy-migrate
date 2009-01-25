@@ -84,3 +84,30 @@ Module :mod:`migrate.versioning`
 .. automodule:: migrate.versioning
    :members:
    :synopsis: Database version and repository management
+
+Module :mod:`api <migrate.versioning.api>`
+------------------------------------------
+
+.. automodule:: migrate.versioning.api
+   :synopsis: External API for :mod:`migrate.versioning`
+
+Module :mod:`exceptions <migrate.versioning.exceptions>`
+--------------------------------------------------------
+
+.. automodule:: migrate.versioning.exceptions
+   :members:
+   :synopsis: Exception classes for :mod:`migrate.versioning`
+
+Module :mod:`genmodel <migrate.versioning.genmodel>`
+----------------------------------------------------
+
+.. automodule:: migrate.versioning.genmodel
+   :members:
+   :synopsis: Python database model generator and differencer
+
+Module :mod:`pathed <migrate.versioning.pathed>`
+------------------------------------------------
+
+.. automodule:: migrate.versioning.pathed
+   :members:
+   :synopsis: File/Directory handling class

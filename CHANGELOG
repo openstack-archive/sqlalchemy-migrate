@@ -1,5 +1,5 @@
-0.5.0
-- SA 0.5.x support. SQLAlchemy < 0.5 not supported anymore.
+0.5.1
+- SA 0.5.x support. SQLAlchemy < 0.5.1 not supported anymore.
 - use nose instead of py.test for testing
 - Added --echo=True option for all commands, which will make the
   sqlalchemy connection echo SQL statements.

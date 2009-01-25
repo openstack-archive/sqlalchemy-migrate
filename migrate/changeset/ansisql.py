@@ -1,4 +1,8 @@
-"""Extensions to SQLAlchemy for altering existing tables.
+"""
+Module :mod:`migrate.changeset.ansisql`
+---------------------------------------
+
+Extensions to SQLAlchemy for altering existing tables.
 At the moment, this isn't so much based off of ANSI as much as things that just
 happen to work with multiple databases.
 """

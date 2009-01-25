@@ -64,6 +64,20 @@ Module :mod:`visitor <migrate.changeset.databases.visitor>`
 .. automodule:: migrate.changeset.databases.visitor
    :members:
 
+Module :mod:`exceptions <migrate.changeset.exceptions>`
+-------------------------------------------------------
+
+.. automodule:: migrate.changeset.exceptions
+   :members:
+   :synopsis: Changeset exception classes
+
+Module :mod:`schema <migrate.changeset.schema>`
+-----------------------------------------------
+
+.. automodule:: migrate.changeset.schema
+   :members:
+   :synopsis: Schema changeset handling functions
+
 Module :mod:`migrate.versioning`
 ================================
 

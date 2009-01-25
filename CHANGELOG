@@ -9,7 +9,9 @@
 - improved support for SQLite
 - add support for check constraints (EXPERIMENTAL)
 - print statements removed from APIs
-- improved documentation
+- improved sphinx based documentation
+- removal of old commented code
+- PEP-8 clean code
 
 0.4.5
 - work by Christian Simms to compare metadata against databases

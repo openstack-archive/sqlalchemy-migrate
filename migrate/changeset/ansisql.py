@@ -41,10 +41,10 @@ class RawAlterTableVisitor(object):
         Use the param object to determine the table name and use it
         for building the SQL statement.
 
-        :param param: object to determine the table from. This may be
-          a :class:`sqlalchemy.Column`, an :class:`sqlalchemy.Index`,
-          a :class:`sqlachemy.schema.Constraint`, a
-          :class:`sqlalchemy.Table` or a table name string
+        :param param: object to determine the table from
+        :type param: :class:`sqlalchemy.Column`, :class:`sqlalchemy.Index`,
+          :class:`sqlalchemy.schema.Constraint`, :class:`sqlalchemy.Table`,
+          or string (table name)
         """
         table = self._to_table(param)
         table_name = self._to_table_name(table)
@@ -66,7 +66,6 @@ class RawAlterTableVisitor(object):
             ret.c.append(column)
         else:
             # Dropped PK
-            #cons.remove(col)
             names = [c.name for c in cons.c]
             index = names.index(col.name)
             del ret.c[index]
@@ -78,41 +77,31 @@ class RawAlterTableVisitor(object):
 
 
 class AlterTableVisitor(SchemaIterator, RawAlterTableVisitor):
-    """Common operations for 'alter table' statements"""
+    """Common operations for ``ALTER TABLE`` statements"""
+    pass
 
 
 class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
     """Extends ansisql generator for column creation (alter table add col)"""
-    #def __init__(self, *args, **kwargs):
-    #    dialect = None
-    #    if isinstance(args[0], Connection):
-    #        dialect = args[0].engine.dialect
-    #    elif isinstance(args[0], Dialect):
-    #        dialect = args[0]
-    #    else:
-    #        raise exceptions.Error("Cannot infer dialect in __init__")
-    #    super(ANSIColumnGenerator, self).__init__(dialect, *args,
-    # **kwargs)
 
     def visit_column(self, column):
-        """Create a column (table already exists); #32"""
+        """Create a column (table already exists).
+
+        :param column: column object
+        :type column: :class:`sqlalchemy.Column`
+        """
         table = self.start_alter_table(column)
         self.append(" ADD ")
-        pks = table.primary_key
         colspec = self.get_column_specification(column)
         self.append(colspec)
-
-#        if column.foreign_keys:
-#            self.append(" ")
-#            for fk in column.foreign_keys:
-#                self.add_foreignkey(fk.constraint)
-#                continue
-#                self.append(";\n\t ")
-#                self.define_foreign_key(fk.constraint)
-#        else:
         self.execute()
 
     def visit_table(self, table):
+        """Default table visitor, does nothing.
+
+        :param table: table object
+        :type table: :class:`sqlalchemy.Table`
+        """
         pass
 
 
@@ -121,14 +110,15 @@ class ANSIColumnDropper(AlterTableVisitor):
     DROP COLUMN``)."""
 
     def visit_column(self, column):
-        """Drop a column; #33"""
+        """Drop a column from its table.
+
+        :param column: the column object
+        :type column: :class:`sqlalchemy.Column`
+        """
         table = self.start_alter_table(column)
         self.append(' DROP COLUMN %s' % \
                         self._do_quote_column_identifier(column.name))
         self.execute()
-        #if column.primary_key:
-        #    cons = self._pk_constraint(table,column,False)
-        #    cons.create()
 
 
 class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
@@ -154,14 +144,14 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         return identifier
 
     def visit_table(self, param):
-        """Rename a table; #38. Other ops aren't supported."""
+        """Rename a table. Other ops aren't supported."""
         table, newname = param
         self.start_alter_table(table)
         self.append("RENAME TO %s"%newname)
         self.execute()
 
     def visit_column(self, delta):
-        """Rename/change a column; #34/#35"""
+        """Rename/change a column."""
         # ALTER COLUMN is implemented as several ALTER statements
         keys = delta.keys()
         if 'type' in keys:
@@ -172,11 +162,6 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
             # Skip 'default': only handle server-side defaults, others
             # are managed by the app, not the db.
             self._run_subvisit(delta, self._visit_column_default)
-        #if 'primary_key' in keys:
-        #    #self._run_subvisit(delta,self._visit_column_primary_key)
-        #    self._visit_column_primary_key(delta)
-        #if 'foreign_key' in keys:
-        #    self._visit_column_foreign_key(delta)
         if 'name' in keys:
             self._run_subvisit(delta, self._visit_column_name)
 
@@ -224,7 +209,8 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
 
     def _visit_column_default(self, table_name, col_name, delta):
         server_default = delta['server_default']
-        # Dummy column: get_col_default_string needs a column for some reason
+        # Dummy column: get_col_default_string needs a column for some
+        # reason
         dummy = sa.Column(None, None, server_default=server_default)
         default_text = self.get_column_default_string(dummy)
         self.start_alter_table(table_name)
@@ -238,9 +224,9 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     def _visit_column_type(self, table_name, col_name, delta):
         type = delta['type']
         if not isinstance(type, sa.types.AbstractType):
-            # It's the class itself, not an instance... make an instance
+            # It's the class itself, not an instance... make an
+            # instance
             type = type()
-        #type_text = type.engine_impl(self.engine).get_col_spec()
         type_text = type.dialect_impl(self.dialect).get_col_spec()
         self.start_alter_table(table_name)
         self.append("ALTER COLUMN %s TYPE %s" % \
@@ -257,8 +243,6 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     def visit_index(self, param):
         """Rename an index; #36"""
         index, newname = param
-        #self.start_alter_table(index)
-        #self.append("RENAME INDEX %s TO %s"%(index.name,newname))
         self.append("ALTER INDEX %s RENAME TO %s" % (index.name, newname))
         self.execute()
 
@@ -271,6 +255,16 @@ class ANSIConstraintCommon(AlterTableVisitor):
     """
 
     def get_constraint_name(self, cons):
+        """Gets a name for the given constraint.
+
+        If the name is already set it will be used otherwise the
+        constraint's :meth:`autoname
+        <migrate.changeset.constraint.ConstraintChangeset.autoname>`
+        method is used.
+
+        :param cons: constraint object
+        :type cons: :class:`migrate.changeset.constraint.ConstraintChangeset`
+        """
         if cons.name is not None:
             ret = cons.name
         else:

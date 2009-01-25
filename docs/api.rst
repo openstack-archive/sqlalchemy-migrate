@@ -16,6 +16,13 @@ Module :mod:`ansisql <migrate.changeset.ansisql>`
    :members:
    :synopsis: Standard SQL implementation for altering database schemas
 
+Module :mod:`constraint <migrate.changeset.constraint>`
+-------------------------------------------------------
+
+.. automodule:: migrate.changeset.constraint
+   :members:
+   :synopsis: Standalone schema constraint objects
+
 Module :mod:`databases <migrate.changeset.databases>`
 -----------------------------------------------------
 

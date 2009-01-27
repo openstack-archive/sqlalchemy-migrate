@@ -1,6 +1,7 @@
 import sys
 import traceback
 from StringIO import StringIO
+from types import FileType
 import os,shutil
 from test import fixture
 from migrate.versioning.repository import Repository
@@ -19,7 +20,7 @@ class Shell(fixture.Shell):
     def execute(self,shell_cmd,runshell=None):
         """A crude simulation of a shell command, to speed things up"""
         # If we get an fd, the command is already done
-        if isinstance(shell_cmd,file) or isinstance(shell_cmd,StringIO):
+        if isinstance(shell_cmd, FileType) or isinstance(shell_cmd, StringIO):
             return shell_cmd
         # Analyze the command; see if we can 'fake' the shell
         try:

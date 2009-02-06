@@ -12,6 +12,8 @@ also available as the :command:`migrate` command.
 Project Setup
 =============
 
+.. _create_change_repository:
+
 Create a change repository
 --------------------------
 
@@ -29,7 +31,14 @@ create our project's repository::
  % migrate create my_repository "Example project"
 
 This creates an initially empty repository in the current directory at
-my_repository/ named Example project.
+my_repository/ named Example project. The repository directory
+contains a sub directory versions that will store the schema versions,
+a configuration file :file:`migrate.cfg` that contains
+:ref:`repository configuration <repository_configuration>`, a
+:file:`README` file containing information that the directory is an
+sqlalchemy-migrate repository and a script :file:`manage.py` that has
+the same functionality as the :command:`migrate` command but is
+preconfigured with the repository.
 
 Version-control a database
 --------------------------
@@ -42,11 +51,12 @@ repository.
 
 The database is specified as a `SQLAlchemy database url`_.
 
-.. _`sqlalchemy database url`: http://www.sqlalchemy.org/docs/05/dbengine.html#create-engine-url-arguments
+.. _`sqlalchemy database url`:
+ http://www.sqlalchemy.org/docs/05/dbengine.html#create-engine-url-arguments
 
 ::
 
- % migrate version_control sqlite:///project.db my_repository
+ % python my_repository/manage.py version_control sqlite:///project.db
 
 We can have any number of databases under this repository's version
 control.
@@ -55,7 +65,7 @@ Each schema has a version that SQLAlchemy Migrate manages. Each change
 script applied to the database increments this version number. You can
 see a database's current version::
 
- % migrate db_version sqlite:///project.db my_repository
+ % python my_repository/manage.py db_version sqlite:///project.db
  0 
 
 A freshly versioned database begins at version 0 by default. This
@@ -67,7 +77,7 @@ and applying change scripts changes the database's version number.
 Similarly, we can also see the latest version available in a
 repository with the command::
 
- % migrate version my_repository
+ % python my_repository/manage.py version
  0
 
 We've entered no changes so far, so our repository cannot upgrade a
@@ -87,7 +97,10 @@ and use it to perform commands::
 
 The script manage.py was created. All commands we perform with it are
 the same as those performed with the 'migrate' tool, using the
-repository and database connection entered above.
+repository and database connection entered above. The difference
+between the script :file:`manage.py` in the current directory and the
+script inside the repository is, that the one in the current directory
+has the database URL preconfigured.
 
 Making schema changes
 =====================
@@ -111,34 +124,33 @@ Our first change script will create a simple table::
 
 This table should be created in a change script. Let's create one::
 
- % python manage.py script script.py
+ % python manage.py script "Add account table"
 
-This creates an empty change script at ``script.py``. Next, we'll edit
-this script to create our table.
+This creates an empty change script at
+:file:`my_repository/versions/001_Add_account_table.py`. Next, we'll
+edit this script to create our table.
 
 Edit the change script
 ----------------------
 
-Our change script defines two functions, currently empty: upgrade()
-and downgrade(). We'll fill those in::
+Our change script defines two functions, currently empty:
+``upgrade()`` and ``downgrade()``. We'll fill those in::
 
- # script.py
- from sqlalchemy import *
- from migrate import *
- 
- meta = BoundMetaData(migrate_engine)
- account = Table('account',meta,
-     Column('id',Integer,primary_key=True),
-     Column('login',String(40)),
-     Column('passwd',String(40)),
- )
- 
- def upgrade():
-     account.create()
- 
- def downgrade():
-     account.drop()
-
+  from sqlalchemy import *
+  from migrate import *
+  
+  meta = MetaData(migrate_engine)
+  account = Table('account', meta,
+                  Column('id', Integer, primary_key=True),
+                  Column('login', String(40)),
+                  Column('passwd', String(40)),
+                  )
+  
+  def upgrade():
+      account.create()
+  
+  def downgrade():
+      account.drop()
 
 As you might have guessed, upgrade() upgrades the database to the next
 version. This function should contain the changes we want to perform;
@@ -156,17 +168,8 @@ You should be very careful about importing files from the rest of your
 application, as your change scripts might break when your application
 changes. More about `writing scripts with consistent behavior`_.
 
-Commit the change script
+Test the change script
 ------------------------
-
-Now that our script is done, we'll commit it to our
-repository. Committed scripts are considered 'done' - once a script is
-committed, it is moved into the repository, the change script file
-'disappears', and your change script can be applied to a
-database. Once a script is committed, SQLAlchemy Migrate expects that
-the SQL the script generates will not change. (As mentioned above,
-this may be a bad assumption when importing files from your
-application!)
 
 Change scripts should be tested before they are committed. Testing a
 script will run its upgrade() and downgrade() functions on a specified
@@ -175,9 +178,11 @@ testing on a test database - if something goes wrong here, you'll need
 to correct it by hand. If the test is successful, the database should
 appear unchanged after upgrade() and downgrade() run.
 
-To test the script::
+To test the script:
+
+.. code-block:: none
  
- % python manage.py test script.py
+ % python manage.py test
  Upgrading... done
  Downgrading... done
  Success
@@ -185,11 +190,7 @@ To test the script::
 Our script runs on our database (``sqlite:///project.db``, as
 specified in manage.py) without any errors.
 
-To commit the script::
-
- % python manage.py commit script.py
-
-``script.py`` will be removed, and our repository's version will change::
+Our repository's version now is::
 
  % python manage.py version
  1
@@ -200,18 +201,21 @@ Upgrade the database
 Now, we can apply this change script to our database::
 
  % python manage.py upgrade
+ 0 -> 1... done
 
 This upgrades the database (``sqlite:///project.db``, as specified
 when we created manage.py above) to the latest available version. (We
 could also specify a version number if we wished, using the --version
 option.) We can see the database's version number has changed, and our
-table has been created::
+table has been created:
+
+.. code-block:: none
 
  % python manage.py db_version
  1
  % sqlite3 project.db
  sqlite> .tables
- _version  account
+ account migrate_version
 
 Our account table was created - success! As our application evolves,
 we can create more change scripts using a similar process.
@@ -223,8 +227,8 @@ By default, change scripts may do anything any other SQLAlchemy
 program can do.
 
 SQLAlchemy Migrate extends SQLAlchemy with several operations used to
-change existing schemas - ie. ALTER TABLE stuff. See :ref:`changeset
-<changeset-system>` documentation for details.
+change existing schemas - ie. ``ALTER TABLE`` stuff. See
+:ref:`changeset <changeset-system>` documentation for details.
 
 
 Writing scripts with consistent behavior
@@ -239,19 +243,21 @@ does.
 Consider the following example of what can go wrong (i.e. what NOT to
 do):
 
-Your application defines a table in the model.py file::
+Your application defines a table in the model.py file:
 
- # model.py
+::
+
  from sqlalchemy import *
-
- meta = DynamicMetaData()
+ 
+ meta = MetaData()
  table = Table('mytable',meta,
      Column('id',Integer,primary_key=True),
  )
 
-...and uses this file to create a table in a change script::
+...and uses this file to create a table in a change script:
+
+::
  
- # changescript.py
  from sqlalchemy import *
  from migrate import *
  import model
@@ -274,7 +280,6 @@ the table definition?
 
 We'll create a new column with a matching change script::
 
- # changescript2.py
  from sqlalchemy import *
  from migrate import *
  import model
@@ -291,7 +296,9 @@ new database will result in an error - the first script creates the
 table based on the new definition, with both columns; the second
 cannot add the column because it already exists.
 
-To avoid the above problem, you should copy-paste your table definition into each change script rather than importing parts of your application. 
+To avoid the above problem, you should copy-paste your table
+definition into each change script rather than importing parts of your
+application.
 
 Writing for a specific database
 -------------------------------
@@ -312,26 +319,48 @@ database you're working with::
 ------------
 
 You might prefer to write your change scripts in SQL, as .sql files,
-rather than as Python scripts. SQLAlchemy Migrate can work with that::
+rather than as Python scripts. SQLAlchemy-migrate can work with that::
 
- % migrate version my_repository
- 10
- % migrate commit upgrade.sql my_repository postgres upgrade
- % migrate version my_repository
- 11
- % migrate commit downgrade.sql my_repository postgres downgrade 11
- % migrate version my_repository
- 11
+ % python manage.py version
+ 1
+ % python manage.py script_sql postgres
 
-Here, two scripts are given, one for each *operation*, or function
-defined in a Python change script - upgrade and downgrade. Both are
-specified to run with Postgres databases - we can commit more for
-different databases if we like. Any database defined by SQLAlchemy may
-be used here - ex. sqlite, postgres, oracle, mysql...
+This creates two scripts
+:file:`my_repository/versions/002_postgresql_upgrade.sql` and
+:file:`my_repository/versions/002_postgresql_downgrade.sql`, one for
+each *operation*, or function defined in a Python change script -
+upgrade and downgrade. Both are specified to run with Postgres
+databases - we can add more for different databases if we like. Any
+database defined by SQLAlchemy may be used here - ex. sqlite,
+postgres, oracle, mysql...
 
-For every .sql script added after the first, we must specify the
-version - if you don't enter a version to commit, SQLAlchemy Migrate
-assumes that commit is for a new version.
+Experimental commands
+=====================
+
+Some interesting new features to create SQLAlchemy db models from
+existing databases and vice versa were developed by Christian Simms
+during the development of SQLAlchemy-migrate 0.4.5. These features are
+roughly documented in a `thread in migrate-users`_.
+
+.. _`thread in migrate-users`:
+ http://groups.google.com/group/migrate-users/browse_thread/thread/a5605184e08abf33#msg_85c803b71b29993f
+
+Here are the commands' descriptions as given by ``migrate help <command>``:
+
+- ``compare_model_to_db``: Compare the current model (assumed to be a
+  module level variable of type sqlalchemy.MetaData) against the
+  current database.
+- ``create_model``: Dump the current database as a Python model to
+  stdout.
+- ``make_update_script_for_model``: Create a script changing the old
+  Python model to the new (current) Python model, sending to stdout.
+- ``upgrade_db_from_model``: Modify the database to match the
+  structure of the current Python model. This also sets the db_version
+  number to the latest in the repository.
+
+As this sections headline says: These features are EXPERIMENTAL. Take
+the necessary arguments to the commands from the output of ``migrate
+help <command>``.
 
 Python API
 ==========
@@ -364,3 +393,30 @@ For example, the following commands are similar:
   
 
 .. _migrate.versioning.api: module-migrate.versioning.api.html
+
+.. _repository_configuration:
+
+Repository configuration
+========================
+
+SQLAlchemy-migrate repositories can be configured in their migrate.cfg
+files. The initial configuration is performed by the `migrate create`
+call explained in :ref:`Create a change repository
+<create_change_repository>`. The following options are available
+currently:
+
+- `repository_id` Used to identify which repository this database is
+  versioned under. You can use the name of your project.
+- `version_table` The name of the database table used to track the
+  schema version. This name shouldn't already be used by your
+  project. If this is changed once a database is under version
+  control, you'll need to change the table name in each database too.
+- `required_dbs` When committing a change script, SQLAlchemy-migrate
+  will attempt to generate the sql for all supported databases;
+  normally, if one of them fails - probably because you don't have
+  that database installed - it is ignored and the commit continues,
+  perhaps ending successfully. Databases in this list MUST compile
+  successfully during a commit, or the entire commit will fail. List
+  the databases your application will actually be using to ensure your
+  updates to that database work properly. This must be a list;
+  example: `['postgres','sqlite']`

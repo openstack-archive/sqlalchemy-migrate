@@ -1,0 +1,3 @@
+include CHANGELOG
+include docs/*.rst
+include docs/conf.py

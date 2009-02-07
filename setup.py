@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.5.1.1",
+    version = "0.5.1.2",
     packages = find_packages(exclude=['test*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",

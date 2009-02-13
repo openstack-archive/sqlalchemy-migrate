@@ -1,14 +1,22 @@
 #!/usr/bin/python
-from setuptools import setup,find_packages
+
+try:
+    from setuptools import setup, find_packages
+except ImportError:
+    from ez_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup, find_packages
 
 try:
     import buildutils
 except ImportError:
     pass
 
+test_requirements = ['nose >= 0.10']
+
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.5.1.2",
+    version = "0.5.1.3",
     packages = find_packages(exclude=['test*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",
@@ -19,8 +27,10 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
 """,
 
     install_requires = ['sqlalchemy >= 0.5'],
-    setup_requires = ['nose >= 0.10', 'sphinx >= 0.5'],
-
+    extras_require = {
+        'testing': test_requirements,
+        'docs' : ['sphinx >= 0.5'],
+    },
     author = "Evan Rosson",
     author_email = "evan.rosson@gmail.com",
     url = "http://code.google.com/p/sqlalchemy-migrate/",
@@ -34,4 +44,5 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
     migrate-repository = migrate.versioning.migrate_repository:main
     """,
     test_suite = "nose.collector",
+    tests_require = test_requirements,
 )

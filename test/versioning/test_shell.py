@@ -136,9 +136,11 @@ class TestShellCommands(Shell):
         self.assertSuccess(self.cmd('script_sql', '--repository=%s' % repos, 'mydb'))
         self.assert_(os.path.exists('%s/versions/001_mydb_upgrade.sql' % repos))
         self.assert_(os.path.exists('%s/versions/001_mydb_downgrade.sql' % repos))
-        
-        # Can't create it again: it already exists
-        self.assertFailure(self.cmd('script_sql', '--repository=%s' % repos, 'mydb'))
+
+        # Test creating a second
+        self.assertSuccess(self.cmd('script_sql', '--repository=%s' % repos, 'mydb'))
+        self.assert_(os.path.exists('%s/versions/002_mydb_upgrade.sql' % repos))
+        self.assert_(os.path.exists('%s/versions/002_mydb_downgrade.sql' % repos))
 
     def test_manage(self):
         """Create a project management script"""

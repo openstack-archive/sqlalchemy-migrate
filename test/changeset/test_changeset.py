@@ -168,20 +168,14 @@ class TestAddDropColumn(fixture.DB):
             if self.engine.has_table(reftable.name):
                 reftable.drop()
             return ret
-        return self.run_(add_func,drop_func,Integer,
-                         ForeignKey(reftable.c.id))
+        if self.url.startswith('sqlite'):
+            self.assertRaises(changeset.exceptions.NotSupportedError,
+                              self.run_, add_func, drop_func, Integer,
+                              ForeignKey(reftable.c.id))
+        else:
+            return self.run_(add_func,drop_func,Integer,
+                             ForeignKey(reftable.c.id))
 
-    #@fixture.usedb()
-    #def xtest_pk(self):
-    #    """Can create/drop primary key columns
-    #    Not supported
-    #    """
-    #    def add_func(col):
-    #        create_column(col,self.table)
-    #    def drop_func(col):
-    #        drop_column(col,self.table)
-    #    # Primary key length is checked in run_
-    #    return self.run_(add_func,drop_func,Integer,primary_key=True)
 
 class TestRename(fixture.DB):
     level=fixture.DB.CONNECT

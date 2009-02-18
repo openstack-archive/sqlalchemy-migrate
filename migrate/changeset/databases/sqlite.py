@@ -77,6 +77,17 @@ class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
         self.execute()
 
 
+class SQLiteFKGenerator(SQLiteSchemaChanger, ansisql.ANSIFKGenerator):
+    def visit_column(self, column):
+        """Create foreign keys for a column (table already exists); #32"""
+
+        if self.fk:
+            self._not_supported("ALTER TABLE ADD FOREIGN KEY")
+
+        if self.buffer.getvalue() !='':
+            self.execute()
+
+
 class SQLiteConstraintDropper(ansisql.ANSIColumnDropper):
 
     def visit_migrate_primary_key_constraint(self, constraint):
@@ -93,3 +104,4 @@ class SQLiteDialect(ansisql.ANSIDialect):
     schemachanger = SQLiteSchemaChanger
     constraintgenerator = SQLiteConstraintGenerator
     constraintdropper = SQLiteConstraintDropper
+    columnfkgenerator = SQLiteFKGenerator

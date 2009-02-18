@@ -93,16 +93,16 @@ class ControlledSchema(object):
         # Create tables
         tname = repository.version_table
         meta = MetaData(engine)
-        try:
-            table = Table(
-                tname, meta,
-                Column('repository_id', String(255), primary_key=True),
-                Column('repository_path', Text),
-                Column('version', Integer), )
+
+        table = Table(
+            tname, meta,
+            Column('repository_id', String(255), primary_key=True),
+            Column('repository_path', Text),
+            Column('version', Integer), )
+
+        if not table.exists():
             table.create()
-        except (sa_exceptions.ArgumentError, sa_exceptions.SQLError):
-            # The table already exists, skip creation.
-            pass
+
         # Insert data
         try:
             engine.execute(table.insert(), repository_id=repository.id,

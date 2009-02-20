@@ -290,6 +290,10 @@ class ANSIConstraintGenerator(ANSIConstraintCommon):
             )
             ret = "CONSTRAINT %(name)s FOREIGN KEY (%(columns)s) "\
                 "REFERENCES %(reftable)s (%(referenced)s)" % params
+            if cons.onupdate:
+                ret = ret + " ON UPDATE %s" % cons.onupdate
+            if cons.ondelete:
+                ret = ret + " ON DELETE %s" % cons.ondelete
         elif isinstance(cons, constraint.CheckConstraint):
             ret = "CHECK (%s)" % cons.sqltext
         else:

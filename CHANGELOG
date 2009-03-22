@@ -1,3 +1,6 @@
+0.5.3
+- apply patch for Issue 29 by Jonathan Ellis
+
 0.5.2
 - move sphinx and nose dependencies to extras_require and tests_require
 - integrate patch for Issue 36 by Kumar McMillan

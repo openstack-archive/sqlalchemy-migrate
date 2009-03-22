@@ -96,13 +96,10 @@ class Collection(pathed.Pathed):
         self.versions[ver] = Version(ver, self.path, [filename])
         
     def createNewSQLVersion(self, database, **k):
-        # Determine version number to use.
-        if (not self.versions) or self.versions[self.latest].python or self.versions[self.latest].sql:
-            # First version or current version already contains python script, so create a new version.
-            ver = self.getNewVersion()
-            self.versions[ver] = Version(ver, self.path, [])
-        else:
-            ver = self.latest
+	# Determine version number to use.
+	# fix from Issue 29
+	ver = self.getNewVersion()
+	self.versions[ver] = Version(ver, self.path, [])
 
         # Create new files.
         for op in ('upgrade', 'downgrade'):

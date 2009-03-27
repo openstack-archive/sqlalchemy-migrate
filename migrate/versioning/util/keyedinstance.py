@@ -14,7 +14,7 @@ class KeyedInstance(object):
 
         key = cls._key(*p,**k)
         if key not in instances:
-            instances[key] = super(KeyedInstance,cls).__new__(cls,*p,**k)
+            instances[key] = super(KeyedInstance,cls).__new__(cls)
         self = instances[key]
         return self
 

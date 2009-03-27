@@ -9,7 +9,7 @@ class VerNum(object):
     def __new__(cls,value):
         val=str(value)
         if val not in cls._instances:
-            cls._instances[val] = super(VerNum,cls).__new__(cls,value)
+            cls._instances[val] = super(VerNum,cls).__new__(cls)
         ret = cls._instances[val]
         return ret
     def __init__(self,value):

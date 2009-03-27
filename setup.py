@@ -16,7 +16,7 @@ test_requirements = ['nose >= 0.10']
 
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.5.3",
+    version = "0.5.4",
     packages = find_packages(exclude=['test*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",

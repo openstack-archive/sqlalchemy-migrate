@@ -1,3 +1,6 @@
+0.5.4
+- TODO: document changes
+
 0.5.3
 - apply patch for Issue 29 by Jonathan Ellis
 - fix Issue 52 by removing needless parameters from object.__new__ calls

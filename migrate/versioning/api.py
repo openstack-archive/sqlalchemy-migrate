@@ -44,6 +44,7 @@ cls_vernum = version.VerNum
 cls_script_python = script_.PythonScript
 
 
+# deprecated
 def help(cmd=None, **opts):
     """%prog help COMMAND
 
@@ -68,7 +69,7 @@ def create(repository, name, **opts):
     Create an empty repository at the specified path.
 
     You can specify the version_table to be used; by default, it is
-    '_version'.  This table is created in all version-controlled
+    'migrate_version'.  This table is created in all version-controlled
     databases.
     """
     try:
@@ -103,8 +104,8 @@ def script_sql(database, repository=None, **opts):
     or generic ('default').
 
     For instance, manage.py script_sql postgres creates:
-    repository/versions/001_upgrade_postgres.py and
-    repository/versions/001_downgrade_postgres.py
+    repository/versions/001_upgrade_postgres.sql and
+    repository/versions/001_downgrade_postgres.sql
     """
     try:
         if repository is None:

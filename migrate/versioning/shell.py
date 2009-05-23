@@ -1,10 +1,12 @@
-"""The migrate command-line tool.
-"""
+"""The migrate command-line tool."""
+
 import sys
-from migrate.versioning.base import *
-from optparse import OptionParser,Values
-from migrate.versioning import api,exceptions
 import inspect
+from optparse import OptionParser, BadOptionError
+
+from migrate.versioning.base import *
+from migrate.versioning import api, exceptions
+
 
 alias = dict(
     s=api.script,
@@ -18,133 +20,139 @@ def alias_setup():
         setattr(api,key,val)
 alias_setup()
 
-class ShellUsageError(Exception):
-    def die(self,exitcode=None):
-        usage="""%%prog COMMAND ...
-        Available commands:
+
+class PassiveOptionParser(OptionParser):
+
+    def _process_args(self, largs, rargs, values):
+        """little hack to support all --some_option=value parameters"""
+        while rargs:
+            arg = rargs[0]
+            if arg == "--":
+                del rargs[0]
+                return
+            elif arg[0:2] == "--":
+                # if parser does not know about the option, pass it along (make it anonymous)
+                try:
+                    opt = arg.split('=', 1)[0]
+                    self._match_long_opt(opt)
+                except BadOptionError:
+                    largs.append(arg)
+                    del rargs[0]
+                else:
+                    self._process_long_opt(rargs, values)
+            elif arg[:1] == "-" and len(arg) > 1:
+                self._process_short_opts(rargs, values)
+            elif self.allow_interspersed_args:
+                largs.append(arg)
+                del rargs[0]
+            else:
+                return
+
+def main(argv=None, **kwargs):
+    """kwargs are default options that can be overriden with passing --some_option to cmdline"""
+    argv = argv or list(sys.argv[1:])
+    commands = list(api.__all__)
+    commands.sort()
+
+    usage="""%%prog COMMAND ...
+
+    Available commands:
         %s
 
-        Enter "%%prog help COMMAND" for information on a particular command.
-        """
-        usage = usage.replace("\n"+" "*8,"\n")
-        commands = list(api.__all__)
-        commands.sort()
-        commands = '\n'.join(map((lambda x:'\t'+x),commands))
-        message = usage%commands
-        try:
-            message = message.replace('%prog',sys.argv[0])
-        except IndexError:
-            pass
+    Enter "%%prog help COMMAND" for information on a particular command.
+    """ % '\n\t'.join(commands)
 
-        if self.args[0] is not None:
-            message += "\nError: %s\n"%str(self.args[0])
-            if exitcode is None:
-                exitcode = 1
-        if exitcode is None:
-            exitcode = 0
-        die(message,exitcode)
+    parser = PassiveOptionParser(usage=usage)
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
+    parser.add_option("-d", "--debug", action="store_true", dest="debug")
+    parser.add_option("-f", "--force", action="store_true", dest="force")
+    help_commands = ['help', '-h', '--help']
+    HELP = False
 
-def die(message,exitcode=1):
-    if message is not None:
-        sys.stderr.write(message)
-        sys.stderr.write("\n")
-    raise SystemExit(int(exitcode))
-
-kwmap = dict(
-    v='verbose',
-    d='debug',
-    f='force',
-)
-
-def kwparse(arg):
-    ret = arg.split('=',1)
-    if len(ret) == 1:
-        # No value specified (--kw, not --kw=stuff): use True
-        ret = [ret[0],True]
-    return ret
-
-def parse_arg(arg,argnames):
-    global kwmap
-    if arg.startswith('--'):
-        # Keyword-argument; either --keyword or --keyword=value
-        kw,val = kwparse(arg[2:])
-    elif arg.startswith('-'):
-        # Short form of a keyword-argument; map it to a keyword
-        try:
-            parg = kwmap.get(arg)
-        except KeyError:
-            raise ShellUsageError("Invalid argument: %s"%arg)
-        kw,val = kwparse(parg)
-    else:
-        # Simple positional parameter
-        val = arg
-        try:
-            kw = argnames.pop(0)
-        except IndexError,e:
-            raise ShellUsageError("Too many arguments to command")
-    return kw,val
-
-def parse_args(*args,**kwargs):
-    """Map positional arguments to keyword-args"""
-    args=list(args)
     try:
-        cmdname = args.pop(0)
-        if cmdname == 'downgrade':
-            if not args[-1].startswith('--'):
-                try:
-                    kwargs['version'] = str(int(args[-1]))
-                    args = args[:-1]
-                except:
-                    pass
-                
+        command = argv.pop(0)
+        if command in help_commands:
+            HELP = True
+            command = argv.pop(0)
     except IndexError:
-        # No command specified: no error message; just show usage
-        raise ShellUsageError(None)
+        parser.print_help()
+        return
 
-    # Special cases: -h and --help should act like 'help'
-    if cmdname == '-h' or cmdname == '--help':
-        cmdname = 'help'
+    command_func = getattr(api, command, None)
+    if command_func is None or command.startswith('_'):
+        parser.error("Invalid command %s" % command)
 
-    cmdfunc = getattr(api,cmdname,None)
-    if cmdfunc is None or cmdname.startswith('_'):
-        raise ShellUsageError("Invalid command %s"%cmdname)
+    parser.set_usage(inspect.getdoc(command_func))
+    f_args, f_varargs, f_kwargs, f_defaults = inspect.getargspec(command_func)
+    for arg in f_args:
+        parser.add_option(
+            "--%s" % arg,
+            dest=arg,
+            action='store',
+            type="string")
 
-    argnames, p,k, defaults = inspect.getargspec(cmdfunc)
-    argnames_orig = list(argnames)
+    # display help of the current command
+    if HELP:
+        parser.print_help()
+        return
 
+    options, args = parser.parse_args(argv)
+
+    # override kwargs with anonymous parameters
+    override_kwargs = dict()
+    for arg in list(args):
+        if arg.startswith('--'):
+            args.remove(arg)
+            if '=' in arg:
+                opt, value = arg[2:].split('=', 1)
+            else:
+                opt = arg[2:]
+                value = True
+            override_kwargs[opt] = value
+
+    # override kwargs with options if user is overwriting
+    for key, value in options.__dict__.iteritems():
+        if value is not None:
+            override_kwargs[key] = value
+
+    # arguments that function accepts without passed kwargs
+    f_required = list(f_args)
+    candidates = dict(kwargs)
+    candidates.update(override_kwargs)
+    for key, value in candidates.iteritems():
+        if key in f_args:
+            f_required.remove(key)
+
+    # map function arguments to parsed arguments
     for arg in args:
-        kw,val = parse_arg(arg,argnames)
-        kwargs[kw] = val
+        try:
+            kw = f_required.pop(0)
+        except IndexError:
+            parser.error("Too many arguments for command %s: %s" % (command, arg))
+        kwargs[kw] = arg
 
-    if defaults is not None:
-        num_defaults = len(defaults)
-    else:
+    # apply overrides
+    kwargs.update(override_kwargs)
+
+    # check if all args are given
+    try:
+        num_defaults = len(f_defaults)
+    except TypeError:
         num_defaults = 0
-    req_argnames = argnames_orig[:len(argnames_orig)-num_defaults]
-    for name in req_argnames:
-        if name not in kwargs:
-            raise ShellUsageError("Too few arguments: %s not specified"%name)
-    
-    return cmdfunc,kwargs
+    f_args_default = f_args[len(f_args) - num_defaults:]
+    required = list(set(f_required) - set(f_args_default))
+    if required:
+        parser.error("Not enough arguments for command %s: %s not specified" % (command, ', '.join(required)))
 
-def main(argv=None,**kwargs):
-    if argv is None:
-        argv = list(sys.argv[1:])
-
+    # handle command
     try:
-        command, kwargs = parse_args(*argv,**kwargs)
-    except ShellUsageError,e:
-        e.die()
-
-    try:
-        ret = command(**kwargs)
+        ret = command_func(**kwargs)
         if ret is not None:
             print ret
-    except exceptions.UsageError,e:
-        e = ShellUsageError(e.args[0])
-        e.die()
-    except exceptions.KnownError,e:
-        die(e.args[0])
+    except (exceptions.UsageError, exceptions.KnownError), e:
+        if e.args[0] is None:
+            parser.print_help()
+        parser.error(e.args[0])
 
 if __name__=="__main__":
     main()

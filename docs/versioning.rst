@@ -102,6 +102,15 @@ between the script :file:`manage.py` in the current directory and the
 script inside the repository is, that the one in the current directory
 has the database URL preconfigured.
 
+.. versionchanged:: 0.5.4
+	Whole command line parsing was rewriten from scratch, with use of OptionParser.
+	Options passed as kwargs to migrate.versioning.shell.main are now parsed correctly.
+	Options are passed to commands in the following priority (starting from highest):
+	- optional (given by --option in commandline)
+	- normal arguments
+	- kwargs passed to migrate.versioning.shell.main
+
+
 Making schema changes
 =====================
 

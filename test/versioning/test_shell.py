@@ -17,7 +17,7 @@ class Shell(fixture.Shell):
         p = map(lambda s: str(s),p)
         ret = ' '.join([cls._cmd]+p)
         return ret
-    def execute(self,shell_cmd,runshell=None):
+    def execute(self, shell_cmd, runshell=None, **kwargs):
         """A crude simulation of a shell command, to speed things up"""
         # If we get an fd, the command is already done
         if isinstance(shell_cmd, FileType) or isinstance(shell_cmd, StringIO):
@@ -46,7 +46,7 @@ class Shell(fixture.Shell):
         # Execute this command
         try:
             try:
-                shell.main(params)
+                shell.main(params, **kwargs)
             except SystemExit,e:
                 # Simulate the exit status
                 fd_close=fd.close
@@ -103,7 +103,7 @@ class TestShellCommands(Shell):
             output = fd.read()
             self.assertNotEquals(output,'')
             self.assertSuccess(fd)
-    
+
     def test_create(self):
         """Repositories are created successfully"""
         repos=self.tmp_repos()
@@ -142,6 +142,7 @@ class TestShellCommands(Shell):
         self.assert_(os.path.exists('%s/versions/002_mydb_upgrade.sql' % repos))
         self.assert_(os.path.exists('%s/versions/002_mydb_downgrade.sql' % repos))
 
+
     def test_manage(self):
         """Create a project management script"""
         script=self.tmp_py()
@@ -156,7 +157,7 @@ class TestShellRepository(Shell):
         """Create repository, python change script"""
         self.path_repos=repos=self.tmp_repos()
         self.assertSuccess(self.cmd('create',repos,'repository_name'))
-    
+
     def test_version(self):
         """Correctly detect repository version"""
         # Version: 0 (no scripts yet); successful execution
@@ -172,6 +173,7 @@ class TestShellRepository(Shell):
         fd=self.execute(self.cmd('version',self.path_repos))
         self.assertEquals(fd.read().strip(),"1")
         self.assertSuccess(fd)
+
     def test_source(self):
         """Correctly fetch a script's source"""
         self.assertSuccess(self.cmd('script', '--repository=%s' % self.path_repos, 'Desc'))
@@ -211,6 +213,18 @@ class TestShellDatabase(Shell,fixture.DB):
         self.assertSuccess(self.cmd('drop_version_control',self.url,path_repos))
         # Attempting to drop vc from a database without it should fail
         self.assertFailure(self.cmd('drop_version_control',self.url,path_repos))
+
+    @fixture.usedb()
+    def test_wrapped_kwargs(self):
+        """Commands with default arguments set by manage.py"""
+        path_repos=repos=self.tmp_repos()
+        self.assertSuccess(self.cmd('create', 'repository_name'), repository=path_repos)
+        self.exitcode(self.cmd('drop_version_control'), url=self.url, repository=path_repos)
+        self.assertSuccess(self.cmd('version_control'), url=self.url, repository=path_repos)
+        # Clean up
+        self.assertSuccess(self.cmd('drop_version_control'), url=self.url, repository=path_repos)
+        # Attempting to drop vc from a database without it should fail
+        self.assertFailure(self.cmd('drop_version_control'), url=self.url, repository=path_repos)
 
     @fixture.usedb()
     def test_version_control_specified(self):
@@ -469,7 +483,7 @@ class TestShellDatabase(Shell,fixture.DB):
         
         # We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
         output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model' % script_path)  # intentionally omit a parameter
-        self.assertEquals('Error: Too few arguments' in output, True)
+        self.assertEquals('Not enough arguments' in output, True)
         output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model --oldmodel=oldtestmodel.meta' % script_path)
         assert  """from sqlalchemy import *
 from migrate import *
@@ -500,4 +514,3 @@ def downgrade():
         self.assertEquals(exitcode, None)
         self.assertEquals(self.cmd_version(repos_path),1)
         self.assertEquals(self.cmd_db_version(self.url,repos_path),1)
-

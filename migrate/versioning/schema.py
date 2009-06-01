@@ -1,21 +1,22 @@
 """
    Database schema version management.
 """
-from sqlalchemy import Table, Column, MetaData, String, Text, Integer, \
-    create_engine
+from sqlalchemy import (Table, Column, MetaData, String, Text, Integer,
+    create_engine)
 from sqlalchemy.sql import and_
 from sqlalchemy import exceptions as sa_exceptions
+
+from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.repository import Repository
 from migrate.versioning.util import loadModel
 from migrate.versioning.version import VerNum
-from migrate.versioning import exceptions, genmodel, schemadiff
 
 
 class ControlledSchema(object):
     """A database under version control"""
 
     def __init__(self, engine, repository):
-        if type(repository) is str:
+        if isinstance(repository, str):
             repository=Repository(repository)
         self.engine = engine
         self.repository = repository
@@ -76,7 +77,7 @@ class ControlledSchema(object):
         :return: valid version number
         """
         if version is None:
-            version=0
+            version = 0
         try:
             version = VerNum(version) # raises valueerror
             if version < 0 or version > repository.latest:

@@ -14,11 +14,13 @@
 
 import sys
 import inspect
-from sqlalchemy import create_engine
-from migrate.versioning import exceptions, repository, schema, version
-import script as script_ #command name conflict
 
-__all__=[
+from sqlalchemy import create_engine
+
+from migrate.versioning import (exceptions, repository, schema, version,
+    script as script_) # command name conflict
+
+__all__ = [
 'help',
 'create',
 'script',
@@ -73,7 +75,7 @@ def create(repository, name, **opts):
     databases.
     """
     try:
-        rep=cls_repository.create(repository, name, **opts)
+        rep = cls_repository.create(repository, name, **opts)
     except exceptions.PathFoundError, e:
         raise exceptions.KnownError("The path %s already exists" % e.args[0])
 
@@ -93,7 +95,7 @@ def script(description, repository=None, **opts):
         repos = cls_repository(repository)
         repos.create_script(description, **opts)
     except exceptions.PathFoundError, e:
-        raise exceptions.KnownError("The path %s already exists"%e.args[0])
+        raise exceptions.KnownError("The path %s already exists" % e.args[0])
 
 
 def script_sql(database, repository=None, **opts):
@@ -113,7 +115,7 @@ def script_sql(database, repository=None, **opts):
         repos = cls_repository(repository)
         repos.create_script_sql(database, **opts)
     except exceptions.PathFoundError, e:
-        raise exceptions.KnownError("The path %s already exists"%e.args[0])
+        raise exceptions.KnownError("The path %s already exists" % e.args[0])
 
 
 def test(repository, url=None, **opts):
@@ -124,8 +126,8 @@ def test(repository, url=None, **opts):
     bad state. You should therefore better run the test on a copy of
     your database.
     """
-    engine=create_engine(url)
-    repos=cls_repository(repository)
+    engine = create_engine(url)
+    repos = cls_repository(repository)
     script = repos.version(None).script()
     # Upgrade
     print "Upgrading...",
@@ -151,7 +153,7 @@ def version(repository, **opts):
 
     Display the latest version available in a repository.
     """
-    repos=cls_repository(repository)
+    repos = cls_repository(repository)
     return repos.latest
 
 
@@ -164,12 +166,12 @@ def source(version, dest=None, repository=None, **opts):
     """
     if repository is None:
         raise exceptions.UsageError("A repository must be specified")
-    repos=cls_repository(repository)
-    ret=repos.version(version).script().source()
+    repos = cls_repository(repository)
+    ret = repos.version(version).script().source()
     if dest is not None:
-        dest=open(dest, 'w')
+        dest = open(dest, 'w')
         dest.write(ret)
-        ret=None
+        ret = None
     return ret
 
 

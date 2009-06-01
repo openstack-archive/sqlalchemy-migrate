@@ -14,6 +14,7 @@ alias = dict(
     dbv=api.db_version,
     v=api.version,
 )
+
 def alias_setup():
     global alias
     for key,val in alias.iteritems():
@@ -25,6 +26,7 @@ class PassiveOptionParser(OptionParser):
 
     def _process_args(self, largs, rargs, values):
         """little hack to support all --some_option=value parameters"""
+
         while rargs:
             arg = rargs[0]
             if arg == "--":
@@ -50,6 +52,7 @@ class PassiveOptionParser(OptionParser):
 
 def main(argv=None, **kwargs):
     """kwargs are default options that can be overriden with passing --some_option to cmdline"""
+
     argv = argv or list(sys.argv[1:])
     commands = list(api.__all__)
     commands.sort()

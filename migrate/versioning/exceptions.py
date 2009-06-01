@@ -56,11 +56,12 @@ class LogSqlError(Error):
         self.entry = entry
 
     def __str__(self):
-        ret = "SQL error in statement: \n%s\n"%(str(self.entry))
-        ret += "Traceback from change script:\n"
-        ret += ''.join(traceback.format_list(self.entry.traceback))
-        ret += str(self.sqlerror)
-        return ret
+        """SQL error in statement:
+        %s
+        Traceback from change script:
+        %s%s""" % (self.entry,
+            ''.join(traceback.format_list(self.entry.traceback)),
+            self.sqlerror)
 
 
 class PathError(Error):

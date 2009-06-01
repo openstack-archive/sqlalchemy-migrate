@@ -7,6 +7,7 @@
 """
 
 import sys
+
 import migrate
 import sqlalchemy
 

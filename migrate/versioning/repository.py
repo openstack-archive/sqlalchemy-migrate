@@ -1,13 +1,14 @@
 """
    SQLAlchemy migrate repository management.
 """
-from pkg_resources import resource_string, resource_filename
 import os
 import shutil
 import string
-from migrate.versioning.base import *
-from migrate.versioning.template import template
+from pkg_resources import resource_string, resource_filename
+
 from migrate.versioning import exceptions, script, version, pathed, cfgparse
+from migrate.versioning.template import template
+from migrate.versioning.base import *
 
 
 class Changeset(dict):
@@ -61,9 +62,9 @@ class Changeset(dict):
 class Repository(pathed.Pathed):
     """A project's change script repository"""
     # Configuration file, inside repository
-    _config='migrate.cfg'
+    _config = 'migrate.cfg'
     # Version information, inside repository
-    _versions='versions'
+    _versions = 'versions'
 
     def __init__(self, path):
         log.info('Loading repository %s...' % path)
@@ -177,7 +178,7 @@ def manage(file, **opts):
     """Create a project management script"""
     pkg, rsrc = template.manage(as_pkg=True)
     tmpl = resource_string(pkg, rsrc)
-    vars = ",".join(["%s='%s'"%vars for vars in opts.iteritems()])
+    vars = ",".join(["%s='%s'" % vars for vars in opts.iteritems()])
     result = tmpl%dict(defaults=vars)
 
     fd = open(file, 'w')

@@ -2,9 +2,10 @@
    Configuration parser module.
 """
 
+from ConfigParser import ConfigParser
+
 from migrate.versioning.base import *
 from migrate.versioning import pathed
-from ConfigParser import ConfigParser
 
 
 class Parser(ConfigParser):

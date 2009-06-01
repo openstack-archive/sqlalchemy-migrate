@@ -2,11 +2,12 @@
    A path/directory class.
 """
 
+import os
+import shutil
+
 from migrate.versioning.base import *
 from migrate.versioning.util import KeyedInstance
 from migrate.versioning import exceptions
-import os
-import shutil
 
 
 class Pathed(KeyedInstance):
@@ -16,21 +17,21 @@ class Pathed(KeyedInstance):
     Only one instance of this class may exist for a particular file;
     __new__ will return an existing instance if possible
     """
-    parent=None
+    parent = None
 
     @classmethod
     def _key(cls, path):
         return str(path)
 
     def __init__(self, path):
-        self.path=path
+        self.path = path
         if self.__class__.parent is not None:
             self._init_parent(path)
 
     def _init_parent(self, path):
         """Try to initialize this object's parent, if it has one"""
-        parent_path=self.__class__._parent_path(path)
-        self.parent=self.__class__.parent(parent_path)
+        parent_path = self.__class__._parent_path(path)
+        self.parent = self.__class__.parent(parent_path)
         log.info("Getting parent %r:%r" % (self.__class__.parent, parent_path))
         self.parent._init_child(path, self)
 

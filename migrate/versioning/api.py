@@ -19,6 +19,7 @@ from sqlalchemy import create_engine
 
 from migrate.versioning import (exceptions, repository, schema, version,
     script as script_) # command name conflict
+from migrate.versioning.util import asbool
 
 __all__ = [
 'help',
@@ -194,7 +195,7 @@ def version_control(url, repository, version=None, **opts):
     identical to what it would be if the database were created from
     scratch.
     """
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     cls_schema.create(engine, repository, version)
 
@@ -208,7 +209,7 @@ def db_version(url, repository, **opts):
 
     The url should be any valid SQLAlchemy connection string.
     """
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     schema = cls_schema(engine, repository)
     return schema.version
@@ -249,7 +250,7 @@ def downgrade(url, repository, version, **opts):
 
 
 def _migrate(url, repository, version, upgrade, err, **opts):
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     schema = cls_schema(engine, repository)
     version = _migrate_version(schema, version, upgrade, err)
@@ -295,7 +296,7 @@ def drop_version_control(url, repository, **opts):
 
     Removes version control from a database.
     """
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     schema=cls_schema(engine, repository)
     schema.drop()
@@ -328,7 +329,7 @@ def compare_model_to_db(url, model, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     print cls_schema.compare_model_to_db(engine, model, repository)
 
@@ -340,7 +341,7 @@ def create_model(url, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     declarative = opts.get('declarative', False)
     print cls_schema.create_model(engine, repository, declarative)
@@ -354,7 +355,7 @@ def make_update_script_for_model(url, oldmodel, model, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     try:
         print cls_script_python.make_update_script_for_model(
@@ -373,7 +374,7 @@ def update_db_from_model(url, model, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    echo = 'True' == opts.get('echo', False)
+    echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
     schema = cls_schema(engine, repository)
     schema.update_db_from_model(model)

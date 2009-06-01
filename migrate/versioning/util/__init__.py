@@ -11,4 +11,15 @@ def loadModel(model):
     else:
         # Assume it's already loaded.
         return model
-    
+
+def asbool(obj):
+    """Do everything to use object as bool"""
+    if isinstance(obj, (str, unicode)):
+        obj = obj.strip().lower()
+        if obj in ['true', 'yes', 'on', 'y', 't', '1']:
+            return True
+        elif obj in ['false', 'no', 'off', 'n', 'f', '0']:
+            return False
+        else:
+            raise ValueError("String is not true/false: %r" % obj)
+    return bool(obj)

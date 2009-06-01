@@ -13,10 +13,8 @@ def readurls():
     try:
         fd=open(fullpath)
     except IOError:
-        print "You must specify the databases to use for testing!"
-        tmplfile = "%s.tmpl"%filename
-        print "Copy %s.tmpl to %s and edit your database URLs."%(tmplfile,filename)
-        raise
+        raise IOError("""You must specify the databases to use for testing!
+            Copy %(filename)s.tmpl to %(filename)s and edit your database URLs.""" % locals())
     #fd = resource_stream('__main__',filename)
     for line in fd:
         if line.startswith('#'):

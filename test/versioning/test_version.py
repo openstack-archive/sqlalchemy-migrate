@@ -45,10 +45,10 @@ class TestVerNum(fixture.Base):
         
 class TestDescriptionNaming(fixture.Base):
     def test_names(self):
-        self.assertEquals(strToFilename(''), '')
-        self.assertEquals(strToFilename('a'), 'a')
-        self.assertEquals(strToFilename('Abc Def'), 'Abc_Def')
-        self.assertEquals(strToFilename('Abc "D" Ef'), 'Abc_D_Ef')
-        self.assertEquals(strToFilename("Abc's Stuff"), 'Abc_s_Stuff')
-        self.assertEquals(strToFilename("a      b"), 'a_b')
+        self.assertEquals(str_to_filename(''), '')
+        self.assertEquals(str_to_filename('a'), 'a')
+        self.assertEquals(str_to_filename('Abc Def'), 'Abc_Def')
+        self.assertEquals(str_to_filename('Abc "D" Ef'), 'Abc_D_Ef')
+        self.assertEquals(str_to_filename("Abc's Stuff"), 'Abc_s_Stuff')
+        self.assertEquals(str_to_filename("a      b"), 'a_b')
         

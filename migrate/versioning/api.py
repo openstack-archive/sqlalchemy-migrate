@@ -19,26 +19,26 @@ from sqlalchemy import create_engine
 
 from migrate.versioning import (exceptions, repository, schema, version,
     script as script_) # command name conflict
-from migrate.versioning.util import asbool
+from migrate.versioning.util import asbool, catch_known_errors
 
 __all__ = [
-'help',
-'create',
-'script',
-'script_sql',
-'make_update_script_for_model',
-'version',
-'source',
-'version_control',
-'db_version',
-'upgrade',
-'downgrade',
-'drop_version_control',
-'manage',
-'test',
-'compare_model_to_db',
-'create_model',
-'update_db_from_model',
+    'help',
+    'create',
+    'script',
+    'script_sql',
+    'make_update_script_for_model',
+    'version',
+    'source',
+    'version_control',
+    'db_version',
+    'upgrade',
+    'downgrade',
+    'drop_version_control',
+    'manage',
+    'test',
+    'compare_model_to_db',
+    'create_model',
+    'update_db_from_model',
 ]
 
 cls_repository = repository.Repository
@@ -65,7 +65,7 @@ def help(cmd=None, **opts):
         ret = ret.replace('%prog', sys.argv[0])
     return ret
 
-
+@catch_known_errors
 def create(repository, name, **opts):
     """%prog create REPOSITORY_PATH NAME [--table=TABLE]
 
@@ -75,13 +75,11 @@ def create(repository, name, **opts):
     'migrate_version'.  This table is created in all version-controlled
     databases.
     """
-    try:
-        rep = cls_repository.create(repository, name, **opts)
-    except exceptions.PathFoundError, e:
-        raise exceptions.KnownError("The path %s already exists" % e.args[0])
+    rep = cls_repository.create(repository, name, **opts)
 
 
-def script(description, repository=None, **opts):
+@catch_known_errors
+def script(description, repository, **opts):
     """%prog script [--repository=REPOSITORY_PATH] DESCRIPTION
 
     Create an empty change script using the next unused version number
@@ -90,16 +88,12 @@ def script(description, repository=None, **opts):
     For instance, manage.py script "Add initial tables" creates:
     repository/versions/001_Add_initial_tables.py
     """
-    try:
-        if repository is None:
-            raise exceptions.UsageError("A repository must be specified")
-        repos = cls_repository(repository)
-        repos.create_script(description, **opts)
-    except exceptions.PathFoundError, e:
-        raise exceptions.KnownError("The path %s already exists" % e.args[0])
+    repos = cls_repository(repository)
+    repos.create_script(description, **opts)
 
 
-def script_sql(database, repository=None, **opts):
+@catch_known_errors
+def script_sql(database, repository, **opts):
     """%prog script_sql [--repository=REPOSITORY_PATH] DATABASE
 
     Create empty change SQL scripts for given DATABASE, where DATABASE
@@ -107,16 +101,11 @@ def script_sql(database, repository=None, **opts):
     or generic ('default').
 
     For instance, manage.py script_sql postgres creates:
-    repository/versions/001_upgrade_postgres.sql and
-    repository/versions/001_downgrade_postgres.sql
+    repository/versions/001_postgres_upgrade.sql and
+    repository/versions/001_postgres_postgres.sql
     """
-    try:
-        if repository is None:
-            raise exceptions.UsageError("A repository must be specified")
-        repos = cls_repository(repository)
-        repos.create_script_sql(database, **opts)
-    except exceptions.PathFoundError, e:
-        raise exceptions.KnownError("The path %s already exists" % e.args[0])
+    repos = cls_repository(repository)
+    repos.create_script_sql(database, **opts)
 
 
 def test(repository, url=None, **opts):
@@ -130,21 +119,14 @@ def test(repository, url=None, **opts):
     engine = create_engine(url)
     repos = cls_repository(repository)
     script = repos.version(None).script()
+
     # Upgrade
     print "Upgrading...",
-    try:
-        script.run(engine, 1)
-    except:
-        print "ERROR"
-        raise
+    script.run(engine, 1)
     print "done"
 
     print "Downgrading...",
-    try:
-        script.run(engine, -1)
-    except:
-        print "ERROR"
-        raise
+    script.run(engine, -1)
     print "done"
     print "Success"
 
@@ -172,6 +154,7 @@ def source(version, dest=None, repository=None, **opts):
     if dest is not None:
         dest = open(dest, 'w')
         dest.write(ret)
+        dest.close()
         ret = None
     return ret
 
@@ -298,7 +281,7 @@ def drop_version_control(url, repository, **opts):
     """
     echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
-    schema=cls_schema(engine, repository)
+    schema = cls_schema(engine, repository)
     schema.drop()
 
 
@@ -347,6 +330,8 @@ def create_model(url, repository, **opts):
     print cls_schema.create_model(engine, repository, declarative)
 
 
+# TODO: get rid of this? if we don't add back path param
+@catch_known_errors
 def make_update_script_for_model(url, oldmodel, model, repository, **opts):
     """%prog make_update_script_for_model URL OLDMODEL MODEL REPOSITORY_PATH
 
@@ -357,12 +342,8 @@ def make_update_script_for_model(url, oldmodel, model, repository, **opts):
     """  # TODO: get rid of EXPERIMENTAL label
     echo = asbool(opts.get('echo', False))
     engine = create_engine(url, echo=echo)
-    try:
-        print cls_script_python.make_update_script_for_model(
-            engine, oldmodel, model, repository, **opts)
-    except exceptions.PathFoundError, e:
-        # TODO: get rid of this? if we don't add back path param
-        raise exceptions.KnownError("The path %s already exists" % e.args[0])
+    print cls_script_python.make_update_script_for_model(
+        engine, oldmodel, model, repository, **opts)
 
 
 def update_db_from_model(url, model, repository, **opts):

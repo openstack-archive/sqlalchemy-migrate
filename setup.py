@@ -13,6 +13,7 @@ except ImportError:
     pass
 
 test_requirements = ['nose >= 0.10']
+required_deps = ['sqlalchemy >= 0.5', 'decorator']
 
 setup(
     name = "sqlalchemy-migrate",
@@ -26,7 +27,7 @@ Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with datab
 Migrate extends SQLAlchemy to have database changeset handling. It provides a database change repository mechanism which can be used from the command line as well as from inside python code.
 """,
 
-    install_requires = ['sqlalchemy >= 0.5'],
+    install_requires = required_deps,
     extras_require = {
         'testing': test_requirements,
         'docs' : ['sphinx >= 0.5'],

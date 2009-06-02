@@ -1,5 +1,12 @@
-from keyedinstance import KeyedInstance
-from importpath import import_path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from decorator import decorator
+
+from migrate.versioning import exceptions
+from migrate.versioning.util.keyedinstance import KeyedInstance
+from migrate.versioning.util.importpath import import_path
+
 
 def loadModel(model):
     ''' Import module and use module-level variable -- assume model is of form "mod1.mod2.varname". '''
@@ -23,3 +30,12 @@ def asbool(obj):
         else:
             raise ValueError("String is not true/false: %r" % obj)
     return bool(obj)
+
+@decorator
+def catch_known_errors(f, *a, **kw):
+    """Decorator that catches known api usage errors"""
+
+    try:
+        f(*a, **kw)
+    except exceptions.PathFoundError, e:
+        raise exceptions.KnownError("The path %s already exists" % e.args[0])

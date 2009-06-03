@@ -11,7 +11,7 @@ from StringIO import StringIO
 from sqlalchemy import MetaData,Table
 
 from migrate.versioning.repository import Repository
-from migrate.versioning import genmodel, shell
+from migrate.versioning import genmodel, shell, api
 from test import fixture
 
 
@@ -158,6 +158,26 @@ class TestShellCommands(Shell):
         self.assertSuccess(self.cmd('script_sql', '--repository=%s' % repos, 'postgres'))
         self.assert_(os.path.exists('%s/versions/002_postgres_upgrade.sql' % repos))
         self.assert_(os.path.exists('%s/versions/002_postgres_downgrade.sql' % repos))
+
+    def test_construct_engine(self):
+        """Construct engine the smart way"""
+        url = 'sqlite://'
+
+        engine = api._construct_engine(url)
+        self.assert_(engine.name == 'sqlite')
+
+        # keyword arg
+        engine = api._construct_engine(url, engine_arg_assert_unicode=True)
+        self.assert_(engine.dialect.assert_unicode)
+
+        # dict
+        engine = api._construct_engine(url, engine_dict={'assert_unicode': True})
+        self.assert_(engine.dialect.assert_unicode)
+
+        # test precedance
+        engine = api._construct_engine(url, engine_dict={'assert_unicode': False},
+            engine_arg_assert_unicode=True)
+        self.assert_(engine.dialect.assert_unicode)
 
     def test_manage(self):
         """Create a project management script"""

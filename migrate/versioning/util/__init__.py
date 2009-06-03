@@ -31,6 +31,26 @@ def asbool(obj):
             raise ValueError("String is not true/false: %r" % obj)
     return bool(obj)
 
+def guess_obj_type(obj):
+    """Do everything to guess object type from string"""
+    result = None
+
+    try:
+        result = asbool(obj)
+    except:
+        pass
+
+    if result is None:
+        try:
+            result = int(obj)
+        except:
+            pass
+
+    if result is not None:
+        return result
+    else:
+        return obj
+
 @decorator
 def catch_known_errors(f, *a, **kw):
     """Decorator that catches known api usage errors"""

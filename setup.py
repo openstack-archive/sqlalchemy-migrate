@@ -29,9 +29,9 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
 
     install_requires = required_deps,
     extras_require = {
-        'testing': test_requirements,
         'docs' : ['sphinx >= 0.5'],
     },
+    tests_require = test_requirements,
     author = "Evan Rosson",
     author_email = "evan.rosson@gmail.com",
     url = "http://code.google.com/p/sqlalchemy-migrate/",

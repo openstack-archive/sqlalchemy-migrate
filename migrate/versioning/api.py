@@ -321,7 +321,7 @@ def _migrate(url, repository, version, upgrade, err, **opts):
     changeset = schema.changeset(version)
     for ver, change in changeset:
         nextver = ver + changeset.step
-        print '%s -> %s... '%(ver, nextver),
+        print '%s -> %s... ' % (ver, nextver),
         if opts.get('preview_sql'):
             print
             print change.log

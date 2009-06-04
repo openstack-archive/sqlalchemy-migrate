@@ -4,6 +4,7 @@
 import os
 import shutil
 import sys
+import types
 
 from test.fixture.pathed import *
 
@@ -13,7 +14,7 @@ class Shell(Pathed):
     def execute(self, command, *p, **k):
         """Return the fd of a command; can get output (stdout/err) and exitcode"""
         # We might be passed a file descriptor for some reason; if so, just return it
-        if isinstance(command, file):
+        if isinstance(command, types.FileType):
             return command
 
         # Redirect stderr to stdout

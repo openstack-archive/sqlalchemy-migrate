@@ -1,23 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import warnings
 from decorator import decorator
+from pkg_resources import EntryPoint
 
 from migrate.versioning import exceptions
 from migrate.versioning.util.keyedinstance import KeyedInstance
 from migrate.versioning.util.importpath import import_path
 
 
-def loadModel(model):
-    ''' Import module and use module-level variable -- assume model is of form "mod1.mod2.varname". '''
-    if isinstance(model, basestring):
-        varname = model.split('.')[-1]
-        modules = '.'.join(model.split('.')[:-1])
-        module = __import__(modules, globals(), {}, ['dummy-not-used'], -1)
-        return getattr(module, varname)
+def loadModel(dotted_name):
+    ''' Import module and use module-level variable -- assume model is of form "mod1.mod2:varname". '''
+    if isinstance(dotted_name, basestring):
+        if ':' not in dotted_name:
+            # backwards compatibility
+            warnings.warn('model should be in form of module.model:User'
+                'and not module.model.User', DeprecationWarning)
+            dotted_name = ':'.join(dotted_name.rsplit('.', 1))
+        return EntryPoint.parse('x=%s' % dotted_name).load(False)
     else:
         # Assume it's already loaded.
-        return model
+        return dotted_name
 
 def asbool(obj):
     """Do everything to use object as bool"""

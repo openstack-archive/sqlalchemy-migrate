@@ -1,4 +1,5 @@
 0.5.4
+- use entrypoints terminology to specify dotted model names (module.model.User) [Domen Kozar]
 - added engine_dict and engine_arg_* parameters to all api functions [Domen Kozar]
 - make --echo parameter a bit more forgivable (better Python API support) [Domen Kozar]
 - apply patch to refactor cmd line parsing for Issue 54 by Domen Kozar

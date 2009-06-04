@@ -495,7 +495,7 @@ class TestShellDatabase(Shell, fixture.DB):
         self.assertEquals(self.cmd_db_version(self.url,repos_path),0)
 
         # Setup helper script.
-        model_module = 'testmodel.meta'
+        model_module = 'testmodel:meta'
         self.assertSuccess(self.cmd('manage',script_path,'--repository=%s --url=%s --model=%s' % (repos_path, self.url, model_module)))
         self.assert_(os.path.exists(script_path))
         
@@ -521,6 +521,10 @@ class TestShellDatabase(Shell, fixture.DB):
         
         # Model is defined but database is empty.
         output, exitcode = self.output_and_exitcode('python %s compare_model_to_db' % script_path)
+        assert "tables missing in database: tmp_account_rundiffs" in output, output
+
+        # Test Deprecation
+        output, exitcode = self.output_and_exitcode('python %s compare_model_to_db --model=testmodel.meta' % script_path)
         assert "tables missing in database: tmp_account_rundiffs" in output, output
         
         # Update db to latest model.

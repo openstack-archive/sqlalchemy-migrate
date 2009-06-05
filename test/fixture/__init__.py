@@ -1,14 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import unittest
 import sys
 
-## Append test method name,etc. to descriptions automatically.
-## Yes, this is ugly, but it's the simplest way...
-#def getDescription(self,test):
-#   ret = str(test)
-#   if self.descriptions:
-#       ret += "\n\t"+(test.shortDescription() or '')
-#   return ret
-#unittest._TextTestResult.getDescription = getDescription
+
+# Append test method name,etc. to descriptions automatically.
+# Yes, this is ugly, but it's the simplest way...
+def getDescription(self, test):
+   ret = str(test)
+   if self.descriptions:
+       return test.shortDescription() or ret
+   return ret
+unittest._TextTestResult.getDescription = getDescription
+
 
 class Result(unittest._TextTestResult):
     # test description may be changed as we go; store the description at 
@@ -59,4 +64,3 @@ from base import Base
 from pathed import Pathed
 from shell import Shell
 from database import DB,usedb
-

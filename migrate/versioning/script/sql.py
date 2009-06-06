@@ -2,7 +2,7 @@ from migrate.versioning.script import base
 
 class SqlScript(base.BaseScript):
     """A file containing plain SQL statements."""
-    def run(self,engine,step):
+    def run(self, engine, step):
         text = self.source()
         # Don't rely on SA's autocommit here
         # (SA uses .startswith to check if a commit is needed. What if script

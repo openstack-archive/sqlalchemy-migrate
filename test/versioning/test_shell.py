@@ -159,26 +159,6 @@ class TestShellCommands(Shell):
         self.assert_(os.path.exists('%s/versions/002_postgres_upgrade.sql' % repos))
         self.assert_(os.path.exists('%s/versions/002_postgres_downgrade.sql' % repos))
 
-    def test_construct_engine(self):
-        """Construct engine the smart way"""
-        url = 'sqlite://'
-
-        engine = api.construct_engine(url)
-        self.assert_(engine.name == 'sqlite')
-
-        # keyword arg
-        engine = api.construct_engine(url, engine_arg_assert_unicode=True)
-        self.assertTrue(engine.dialect.assert_unicode)
-
-        # dict
-        engine = api.construct_engine(url, engine_dict={'assert_unicode': True})
-        self.assertTrue(engine.dialect.assert_unicode)
-
-        # test precedance
-        engine = api.construct_engine(url, engine_dict={'assert_unicode': False},
-            engine_arg_assert_unicode=True)
-        self.assertTrue(engine.dialect.assert_unicode)
-
     def test_manage(self):
         """Create a project management script"""
         script = self.tmp_py()

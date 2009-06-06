@@ -9,7 +9,7 @@ from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.base import operations
 from migrate.versioning.template import template
 from migrate.versioning.script import base
-from migrate.versioning.util import import_path, loadModel, construct_engine
+from migrate.versioning.util import import_path, load_model, construct_engine
 
 class PythonScript(base.BaseScript):
 
@@ -35,8 +35,8 @@ class PythonScript(base.BaseScript):
             # oh dear, an import cycle!
             from migrate.versioning.repository import Repository
             repository = Repository(repository)
-        oldmodel = loadModel(oldmodel)
-        model = loadModel(model)
+        oldmodel = load_model(oldmodel)
+        model = load_model(model)
         diff = schemadiff.getDiffOfModelAgainstModel(
             oldmodel,
             model,

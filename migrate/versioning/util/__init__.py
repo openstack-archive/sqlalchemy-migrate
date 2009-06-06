@@ -12,7 +12,7 @@ from migrate.versioning.util.keyedinstance import KeyedInstance
 from migrate.versioning.util.importpath import import_path
 
 
-def loadModel(dotted_name):
+def load_model(dotted_name):
     ''' Import module and use module-level variable -- assume model is of form "mod1.mod2:varname". '''
     if isinstance(dotted_name, basestring):
         if ':' not in dotted_name:
@@ -45,13 +45,13 @@ def guess_obj_type(obj):
     result = None
 
     try:
-        result = asbool(obj)
+        result = int(obj)
     except:
         pass
 
     if result is None:
         try:
-            result = int(obj)
+            result = asbool(obj)
         except:
             pass
 

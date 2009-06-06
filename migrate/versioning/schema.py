@@ -8,7 +8,7 @@ from sqlalchemy import exceptions as sa_exceptions
 
 from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.repository import Repository
-from migrate.versioning.util import loadModel
+from migrate.versioning.util import load_model
 from migrate.versioning.version import VerNum
 
 
@@ -121,7 +121,7 @@ class ControlledSchema(object):
         """
         if isinstance(repository, basestring):
             repository=Repository(repository)
-        model = loadModel(model)
+        model = load_model(model)
         diff = schemadiff.getDiffOfModelAgainstDatabase(
             model, engine, excludeTables=[repository.version_table])
         return diff
@@ -143,7 +143,7 @@ class ControlledSchema(object):
         """
         if isinstance(self.repository, basestring):
             self.repository=Repository(self.repository)
-        model = loadModel(model)
+        model = load_model(model)
         diff = schemadiff.getDiffOfModelAgainstDatabase(
             model, self.engine, excludeTables=[self.repository.version_table])
         genmodel.ModelGenerator(diff).applyModel()

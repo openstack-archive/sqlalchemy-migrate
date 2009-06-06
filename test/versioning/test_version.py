@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from test import fixture
 from migrate.versioning.version import *
+
 
 class TestVerNum(fixture.Base):
     def test_invalid(self):

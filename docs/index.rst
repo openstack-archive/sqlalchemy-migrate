@@ -30,6 +30,7 @@ versioning API is available as the :command:`migrate` command.
    changeset
    tools
    api
+   changelog
 
 .. _`google's summer of code`: http://code.google.com/soc
 .. _`Google Code project`: http://code.google.com/p/sqlalchemy-migrate

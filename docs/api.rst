@@ -78,6 +78,7 @@ Module :mod:`schema <migrate.changeset.schema>`
    :members:
    :synopsis: Schema changeset handling functions
 
+
 Module :mod:`migrate.versioning`
 ================================
 
@@ -89,6 +90,7 @@ Module :mod:`api <migrate.versioning.api>`
 ------------------------------------------
 
 .. automodule:: migrate.versioning.api
+   :members:
    :synopsis: External API for :mod:`migrate.versioning`
 
 Module :mod:`exceptions <migrate.versioning.exceptions>`
@@ -125,6 +127,20 @@ Module :mod:`schema <migrate.versioning.schema>`
 .. automodule:: migrate.versioning.schema
    :members:
    :synopsis: Database schema management
+
+Module :mod:`shell <migrate.versioning.shell>`
+------------------------------------------------
+
+.. automodule:: migrate.versioning.shell
+   :members:
+   :synopsis: Shell commands
+
+Module :mod:`util <migrate.versioning.util>`
+------------------------------------------------
+
+.. automodule:: migrate.versioning.util
+   :members:
+   :synopsis: Utility functions
 
 Module :mod:`schemadiff <migrate.versioning.schemadiff>`
 --------------------------------------------------------

@@ -86,6 +86,8 @@ database past version 0.
 Project management script
 -------------------------
 
+.. _project_management_script:
+
 Many commands need to know our project's database url and repository
 path - typing them each time is tedious. We can create a script for
 our project that remembers the database and repository we're using,
@@ -101,14 +103,6 @@ repository and database connection entered above. The difference
 between the script :file:`manage.py` in the current directory and the
 script inside the repository is, that the one in the current directory
 has the database URL preconfigured.
-
-.. versionchanged:: 0.5.4
-	Whole command line parsing was rewriten from scratch, with use of OptionParser.
-	Options passed as kwargs to migrate.versioning.shell.main are now parsed correctly.
-	Options are passed to commands in the following priority (starting from highest):
-	- optional (given by --option in commandline)
-	- normal arguments
-	- kwargs passed to migrate.versioning.shell.main
 
 
 Making schema changes
@@ -324,7 +318,7 @@ database you're working with::
  >>> engine.name
  'sqlite'
 
-.sql scripts
+Writings .sql scripts
 ------------
 
 You might prefer to write your change scripts in SQL, as .sql files,
@@ -343,33 +337,52 @@ databases - we can add more for different databases if we like. Any
 database defined by SQLAlchemy may be used here - ex. sqlite,
 postgres, oracle, mysql...
 
-Experimental commands
-=====================
 
-Some interesting new features to create SQLAlchemy db models from
-existing databases and vice versa were developed by Christian Simms
-during the development of SQLAlchemy-migrate 0.4.5. These features are
-roughly documented in a `thread in migrate-users`_.
+Command line usage
+==================
 
-.. _`thread in migrate-users`:
- http://groups.google.com/group/migrate-users/browse_thread/thread/a5605184e08abf33#msg_85c803b71b29993f
+.. currentmodule:: migrate.versioning.shell
 
-Here are the commands' descriptions as given by ``migrate help <command>``:
+:command:`migrate` command is used for API interface. For list of commands and help use
 
-- ``compare_model_to_db``: Compare the current model (assumed to be a
-  module level variable of type sqlalchemy.MetaData) against the
-  current database.
-- ``create_model``: Dump the current database as a Python model to
-  stdout.
-- ``make_update_script_for_model``: Create a script changing the old
-  Python model to the new (current) Python model, sending to stdout.
-- ``upgrade_db_from_model``: Modify the database to match the
-  structure of the current Python model. This also sets the db_version
-  number to the latest in the repository.
+::
 
-As this sections headline says: These features are EXPERIMENTAL. Take
-the necessary arguments to the commands from the output of ``migrate
-help <command>``.
+	migrate --help
+
+:program:`migrate` command uses :func:`migrate.versioning.shell.main` function.
+For ease of usage, generate your own :ref:`project management script <project_management_script>`,
+which calls :func:`shell.main` function with keywords arguments.
+You may want to specify `url` and `repository` arguments which almost all API functions require as positional arguments.
+
+If api command looks like::
+
+	migrate downgrade URL REPOSITORY VERSION [--preview_sql|--preview_py]
+
+and you have a project management script that looks like::
+
+	from migrate.versioning.shell import main
+
+	main(url='sqlite://', repository='./project/migrations/')
+
+you have first two slots filed, and command line usage would look like::
+
+	# downgrade to version 2 and preview Python file
+	migrate downgrade 2 --preview_py
+
+	# downgrade to version 2
+	migrate downgrade 2
+
+.. versionchanged:: 0.5.4
+	Command line parsing refactored: positional parameters usage
+
+Whole command line parsing was rewriten from scratch with use of OptionParser.
+Options passed as kwargs to :func:`migrate.versioning.shell.main` are now parsed correctly.
+Options are passed to commands in the following priority (starting from highest):
+
+- optional (given by ``--some_option`` in commandline)
+- positional arguments
+- kwargs passed to migrate.versioning.shell.main
+
 
 Python API
 ==========
@@ -404,6 +417,34 @@ For example, the following commands are similar:
 .. _migrate.versioning.api: module-migrate.versioning.api.html
 
 .. _repository_configuration:
+
+Experimental commands
+=====================
+
+Some interesting new features to create SQLAlchemy db models from
+existing databases and vice versa were developed by Christian Simms
+during the development of SQLAlchemy-migrate 0.4.5. These features are
+roughly documented in a `thread in migrate-users`_.
+
+.. _`thread in migrate-users`:
+ http://groups.google.com/group/migrate-users/browse_thread/thread/a5605184e08abf33#msg_85c803b71b29993f
+
+Here are the commands' descriptions as given by ``migrate help <command>``:
+
+- ``compare_model_to_db``: Compare the current model (assumed to be a
+  module level variable of type sqlalchemy.MetaData) against the
+  current database.
+- ``create_model``: Dump the current database as a Python model to
+  stdout.
+- ``make_update_script_for_model``: Create a script changing the old
+  Python model to the new (current) Python model, sending to stdout.
+- ``upgrade_db_from_model``: Modify the database to match the
+  structure of the current Python model. This also sets the db_version
+  number to the latest in the repository.
+
+As this sections headline says: These features are EXPERIMENTAL. Take
+the necessary arguments to the commands from the output of ``migrate
+help <command>``.
 
 Repository configuration
 ========================

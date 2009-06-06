@@ -1,7 +1,9 @@
 0.5.4
+- fixed preview_sql parameter for downgrade/upgrade. Now it prints SQL if the step is SQL script
+and runs step with mocked engine to only print SQL statements if ORM is used. [Domen Kozar]
 - use entrypoints terminology to specify dotted model names (module.model.User) [Domen Kozar]
-- added engine_dict and engine_arg_* parameters to all api functions [Domen Kozar]
-- make --echo parameter a bit more forgivable (better Python API support) [Domen Kozar]
+- added engine_dict and engine_arg_* parameters to all api functions (deprecated echo) [Domen Kozar]
+- make --echo parameter a bit more forgivable (better Python API support)  [Domen Kozar]
 - apply patch to refactor cmd line parsing for Issue 54 by Domen Kozar
 
 0.5.3

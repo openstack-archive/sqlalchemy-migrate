@@ -5,6 +5,8 @@ import warnings
 from decorator import decorator
 from pkg_resources import EntryPoint
 
+from sqlalchemy import create_engine
+
 from migrate.versioning import exceptions
 from migrate.versioning.util.keyedinstance import KeyedInstance
 from migrate.versioning.util.importpath import import_path
@@ -33,7 +35,10 @@ def asbool(obj):
             return False
         else:
             raise ValueError("String is not true/false: %r" % obj)
-    return bool(obj)
+    if obj in (True, False):
+        return bool(obj)
+    else:
+        raise ValueError("String is not true/false: %r" % obj)
 
 def guess_obj_type(obj):
     """Do everything to guess object type from string"""
@@ -63,3 +68,38 @@ def catch_known_errors(f, *a, **kw):
         f(*a, **kw)
     except exceptions.PathFoundError, e:
         raise exceptions.KnownError("The path %s already exists" % e.args[0])
+
+def construct_engine(url, **opts):
+    """Constructs and returns SQLAlchemy engine.
+
+    Currently, there are 2 ways to pass create_engine options to api functions:
+
+        * keyword parameters (starting with `engine_arg_*`)
+        * python dictionary of options (`engine_dict`)
+
+    NOTE: keyword parameters override `engine_dict` values.
+
+    .. versionadded:: 0.5.4
+    """
+    # TODO: include docs
+    
+    # get options for create_engine
+    if opts.get('engine_dict') and isinstance(opts['engine_dict'], dict):
+        kwargs = opts['engine_dict']
+    else:
+        kwargs = dict()
+
+    # DEPRECATED: handle echo the old way
+    echo = asbool(opts.get('echo', False))
+    if echo:
+        warnings.warn('echo=True parameter is deprecated, pass '
+            'engine_arg_echo=True or engine_dict={"echo": True}',
+            DeprecationWarning)
+        kwargs['echo'] = echo
+    
+    # parse keyword arguments
+    for key, value in opts.iteritems():
+        if key.startswith('engine_arg_'):
+            kwargs[key[11:]] = guess_obj_type(value)
+    
+    return create_engine(url, **kwargs)

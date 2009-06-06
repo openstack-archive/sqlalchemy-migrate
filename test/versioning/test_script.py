@@ -1,13 +1,19 @@
-from test import fixture
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os
+import shutil
+
 from migrate.versioning.script import *
 from migrate.versioning import exceptions, version
-import os,shutil
+from test import fixture
+
 
 class TestPyScript(fixture.Pathed):
     cls = PythonScript
     def test_create(self):
         """We can create a migration script"""
-        path=self.tmp_py()
+        path = self.tmp_py()
         # Creating a file that doesn't exist should succeed
         self.cls.create(path)
         self.assert_(os.path.exists(path))
@@ -18,8 +24,8 @@ class TestPyScript(fixture.Pathed):
 
     def test_verify_notfound(self):
         """Correctly verify a python migration script: nonexistant file"""
-        path=self.tmp_py()
-        self.assert_(not os.path.exists(path))
+        path = self.tmp_py()
+        self.assertFalse(os.path.exists(path))
         # Fails on empty path
         self.assertRaises(exceptions.InvalidScriptError,self.cls.verify,path)
         self.assertRaises(exceptions.InvalidScriptError,self.cls,path)
@@ -38,19 +44,52 @@ class TestPyScript(fixture.Pathed):
 
     def test_verify_nofuncs(self):
         """Correctly verify a python migration script: valid python file; no upgrade func"""
-        path=self.tmp_py()
+        path = self.tmp_py()
         # Create empty file
-        f=open(path,'w')
+        f = open(path, 'w')
         f.write("def zergling():\n\tprint 'rush'")
         f.close()
-        self.assertRaises(exceptions.InvalidScriptError,self.cls.verify_module,path)
+        self.assertRaises(exceptions.InvalidScriptError, self.cls.verify_module, path)
         # script isn't verified on creation, but on module reference
         py = self.cls(path)
         self.assertRaises(exceptions.InvalidScriptError,(lambda x: x.module),py)
 
+    @fixture.usedb(supported='sqlite')
+    def test_preview_sql(self):
+        """Preview SQL abstract from ORM layer (sqlite)"""
+        path = self.tmp_py()
+
+        f = open(path, 'w')
+        content = """
+from migrate import *
+from sqlalchemy import *
+
+metadata = MetaData(migrate_engine)
+
+UserGroup = Table('Link', metadata,
+    Column('link1ID', Integer),
+    Column('link2ID', Integer),
+    UniqueConstraint('link1ID', 'link2ID'))
+
+def upgrade():
+    metadata.create_all()
+        """
+        f.write(content)
+        f.close()
+
+        pyscript = self.cls(path)
+        SQL = pyscript.preview_sql(self.url, 1)
+        self.assertEqualsIgnoreWhitespace("""
+        CREATE TABLE "Link"
+        ("link1ID" INTEGER,
+        "link2ID" INTEGER,
+        UNIQUE ("link1ID", "link2ID"))
+        """, SQL)
+        # TODO: test: No SQL should be executed!
+
     def test_verify_success(self):
         """Correctly verify a python migration script: success"""
-        path=self.tmp_py()
+        path = self.tmp_py()
         # Succeeds after creating
         self.cls.create(path)
         self.cls.verify(path)
@@ -66,8 +105,8 @@ class TestSqlScript(fixture.Pathed):
         # Create files -- files must be present or you'll get an exception later.
         sqlite_upgrade_file = '001_sqlite_upgrade.sql'
         default_upgrade_file = '001_default_upgrade.sql'
-        for file in [sqlite_upgrade_file, default_upgrade_file]:
-            filepath = '%s/%s' % (path, file)
+        for file_ in [sqlite_upgrade_file, default_upgrade_file]:
+            filepath = '%s/%s' % (path, file_)
             open(filepath, 'w').close()
 
         ver = version.Version(1, path, [sqlite_upgrade_file])

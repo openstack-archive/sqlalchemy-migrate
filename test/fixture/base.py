@@ -21,7 +21,7 @@ class Base(unittest.TestCase):
         def createLines(s):
             s = s.replace(' ', '')
             lines = s.split('\n')
-            return [line for line in lines if line]
+            return filter(None, lines)
         lines1 = createLines(v1)
         lines2 = createLines(v2)
         self.assertEquals(len(lines1), len(lines2))

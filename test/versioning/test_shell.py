@@ -163,21 +163,21 @@ class TestShellCommands(Shell):
         """Construct engine the smart way"""
         url = 'sqlite://'
 
-        engine = api._construct_engine(url)
+        engine = api.construct_engine(url)
         self.assert_(engine.name == 'sqlite')
 
         # keyword arg
-        engine = api._construct_engine(url, engine_arg_assert_unicode=True)
-        self.assert_(engine.dialect.assert_unicode)
+        engine = api.construct_engine(url, engine_arg_assert_unicode=True)
+        self.assertTrue(engine.dialect.assert_unicode)
 
         # dict
-        engine = api._construct_engine(url, engine_dict={'assert_unicode': True})
-        self.assert_(engine.dialect.assert_unicode)
+        engine = api.construct_engine(url, engine_dict={'assert_unicode': True})
+        self.assertTrue(engine.dialect.assert_unicode)
 
         # test precedance
-        engine = api._construct_engine(url, engine_dict={'assert_unicode': False},
+        engine = api.construct_engine(url, engine_dict={'assert_unicode': False},
             engine_arg_assert_unicode=True)
-        self.assert_(engine.dialect.assert_unicode)
+        self.assertTrue(engine.dialect.assert_unicode)
 
     def test_manage(self):
         """Create a project management script"""
@@ -327,8 +327,12 @@ class TestShellDatabase(Shell, fixture.DB):
         # Add a script to the repository; upgrade the db
         self.assertSuccess(self.cmd('script', '--repository=%s' % repos_path, 'Desc'))
         self.assertEquals(self.cmd_version(repos_path), 1)
-
         self.assertEquals(self.cmd_db_version(self.url, repos_path), 0)
+
+        # Test preview
+        self.assertSuccess(self.cmd('upgrade', self.url, repos_path, 0, "--preview_sql"))
+        self.assertSuccess(self.cmd('upgrade', self.url, repos_path, 0, "--preview_py"))
+
         self.assertSuccess(self.cmd('upgrade', self.url, repos_path))
         self.assertEquals(self.cmd_db_version(self.url, repos_path), 1)
         
@@ -345,7 +349,7 @@ class TestShellDatabase(Shell, fixture.DB):
         self.assertEquals(self.cmd_db_version(self.url, repos_path), 0)
 
         self.assertSuccess(self.cmd('drop_version_control', self.url, repos_path))
-    
+
     def _run_test_sqlfile(self, upgrade_script, downgrade_script):
         # TODO: add test script that checks if db really changed
 

@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from migrate.versioning.base import log,operations
 from migrate.versioning import pathed,exceptions
-#        import migrate.run
+
 
 class BaseScript(pathed.Pathed):
     """Base class for other types of scripts
@@ -17,10 +20,10 @@ class BaseScript(pathed.Pathed):
     """
 
     def __init__(self,path):
-        log.info('Loading script %s...'%path)
+        log.info('Loading script %s...' % path)
         self.verify(path)
-        super(BaseScript,self).__init__(path)
-        log.info('Script %s loaded successfully'%path)
+        super(BaseScript, self).__init__(path)
+        log.info('Script %s loaded successfully' % path)
     
     @classmethod
     def verify(cls,path):
@@ -33,10 +36,10 @@ class BaseScript(pathed.Pathed):
             raise exceptions.InvalidScriptError(path)
 
     def source(self):
-        fd=open(self.path)
-        ret=fd.read()
+        fd = open(self.path)
+        ret = fd.read()
         fd.close()
         return ret
 
-    def run(self,engine):
+    def run(self, engine):
         raise NotImplementedError()

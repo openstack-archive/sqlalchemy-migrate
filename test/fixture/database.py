@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+from decorator import decorator
 
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import create_session
@@ -74,6 +75,7 @@ def usedb(supported=None, not_supported=None):
                 yield func, self
                 self._teardown()
         entangle.__name__ = func.__name__
+        entangle.__doc__ = func.__doc__
         return entangle
     return dec
 

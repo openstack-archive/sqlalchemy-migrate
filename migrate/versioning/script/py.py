@@ -1,15 +1,20 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import shutil
-#import migrate.run
+from StringIO import StringIO
+
+import migrate
 from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.base import operations
 from migrate.versioning.template import template
 from migrate.versioning.script import base
-from migrate.versioning.util import import_path, loadModel
-import migrate
+from migrate.versioning.util import import_path, loadModel, construct_engine
 
 class PythonScript(base.BaseScript):
+
     @classmethod
-    def create(cls,path,**opts):
+    def create(cls, path, **opts):
         """Create an empty migration script"""
         cls.require_notfound(path)
 
@@ -18,29 +23,38 @@ class PythonScript(base.BaseScript):
         # different one later.
         template_file = None
         src = template.get_script(template_file)
-        shutil.copy(src,path)
+        shutil.copy(src, path)
 
     @classmethod
-    def make_update_script_for_model(cls,engine,oldmodel,model,repository,**opts):
+    def make_update_script_for_model(cls, engine, oldmodel,
+                                     model, repository, **opts):
         """Create a migration script"""
         
         # Compute differences.
         if isinstance(repository, basestring):
-            from migrate.versioning.repository import Repository  # oh dear, an import cycle!
-            repository=Repository(repository)
+            # oh dear, an import cycle!
+            from migrate.versioning.repository import Repository
+            repository = Repository(repository)
         oldmodel = loadModel(oldmodel)
         model = loadModel(model)
-        diff = schemadiff.getDiffOfModelAgainstModel(oldmodel, model, engine, excludeTables=[repository.version_table])
-        decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
+        diff = schemadiff.getDiffOfModelAgainstModel(
+            oldmodel,
+            model,
+            engine,
+            excludeTables=[repository.version_table])
+        decls, upgradeCommands, downgradeCommands = \
+            genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
 
         # Store differences into file.
         template_file = None
         src = template.get_script(template_file)
         contents = open(src).read()
         search = 'def upgrade():'
-        contents = contents.replace(search, decls + '\n\n' + search, 1)
-        if upgradeCommands: contents = contents.replace('    pass', upgradeCommands, 1)
-        if downgradeCommands: contents = contents.replace('    pass', downgradeCommands, 1)
+        contents = contents.replace(search, '\n\n'.join((decls, search)), 1)
+        if upgradeCommands:
+            contents = contents.replace('    pass', upgradeCommands, 1)
+        if downgradeCommands:
+            contents = contents.replace('    pass', downgradeCommands, 1)
         return contents
 
     @classmethod
@@ -54,31 +68,31 @@ class PythonScript(base.BaseScript):
             raise
         try:
             assert callable(module.upgrade)
-        except Exception,e:
-            raise exceptions.InvalidScriptError(path+': %s'%str(e))
+        except Exception, e:
+            raise exceptions.InvalidScriptError(path + ': %s' % str(e))
         return module
 
-    def _get_module(self):
-        if not hasattr(self,'_module'):
-            self._module = self.verify_module(self.path)
-        return self._module
-    module = property(_get_module)
+    def preview_sql(self, url, step, **args):
+        """Mock engine to store all executable calls in a string \
+        and execute the step"""
+        buf = StringIO()
+        args['engine_arg_strategy'] = 'mock'
+        args['engine_arg_executor'] = lambda s, p='': buf.write(s + p)
+        engine = construct_engine(url, **args)
 
+        self.run(engine, step)
 
-    def _func(self,funcname):
-        fn = getattr(self.module, funcname, None)
-        if not fn:
-            msg = "The function %s is not defined in this script"
-            raise exceptions.ScriptError(msg%funcname)
-        return fn
+        return buf.getvalue()
             
-    def run(self,engine,step):
+    def run(self, engine, step):
+        """Core method of Script file. \
+            Exectues update() or downgrade() function"""
         if step > 0:
             op = 'upgrade'
         elif step < 0:
             op = 'downgrade'
         else:
-            raise exceptions.ScriptError("%d is not a valid step"%step)
+            raise exceptions.ScriptError("%d is not a valid step" % step)
         funcname = base.operations[op]
         
         migrate.migrate_engine = engine
@@ -87,3 +101,17 @@ class PythonScript(base.BaseScript):
         func()
         migrate.migrate_engine = None
         #migrate.run.migrate_engine = migrate.migrate_engine = None
+
+    def _get_module(self):
+        if not hasattr(self,'_module'):
+            self._module = self.verify_module(self.path)
+        return self._module
+    module = property(_get_module)
+
+
+    def _func(self, funcname):
+        fn = getattr(self.module, funcname, None)
+        if not fn:
+            msg = "The function %s is not defined in this script"
+            raise exceptions.ScriptError(msg%funcname)
+        return fn

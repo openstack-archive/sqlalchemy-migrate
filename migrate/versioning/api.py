@@ -16,11 +16,10 @@ import sys
 import inspect
 import warnings
 
-from sqlalchemy import create_engine
-
 from migrate.versioning import (exceptions, repository, schema, version,
     script as script_) # command name conflict
-from migrate.versioning.util import asbool, catch_known_errors, guess_obj_type
+from migrate.versioning.util import catch_known_errors, construct_engine
+
 
 __all__ = [
     'help',
@@ -46,6 +45,7 @@ Repository = repository.Repository
 ControlledSchema = schema.ControlledSchema
 VerNum = version.VerNum
 PythonScript = script_.PythonScript
+SqlScript = script_.SqlScript
 
 
 # deprecated
@@ -117,7 +117,7 @@ def test(repository, url=None, **opts):
     bad state. You should therefore better run the test on a copy of
     your database.
     """
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     repos = Repository(repository)
     script = repos.version(None).script()
 
@@ -179,7 +179,7 @@ def version_control(url, repository, version=None, **opts):
     identical to what it would be if the database were created from
     scratch.
     """
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     ControlledSchema.create(engine, repository, version)
 
 
@@ -192,7 +192,7 @@ def db_version(url, repository, **opts):
 
     The url should be any valid SQLAlchemy connection string.
     """
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     schema = ControlledSchema(engine, repository)
     return schema.version
 
@@ -236,7 +236,7 @@ def drop_version_control(url, repository, **opts):
 
     Removes version control from a database.
     """
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     schema = ControlledSchema(engine, repository)
     schema.drop()
 
@@ -268,7 +268,7 @@ def compare_model_to_db(url, model, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     print ControlledSchema.compare_model_to_db(engine, model, repository)
 
 
@@ -279,7 +279,7 @@ def create_model(url, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     declarative = opts.get('declarative', False)
     print ControlledSchema.create_model(engine, repository, declarative)
 
@@ -294,7 +294,7 @@ def make_update_script_for_model(url, oldmodel, model, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     print PythonScript.make_update_script_for_model(
         engine, oldmodel, model, repository, **opts)
 
@@ -308,30 +308,37 @@ def update_db_from_model(url, model, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     schema = ControlledSchema(engine, repository)
     schema.update_db_from_model(model)
 
 
 def _migrate(url, repository, version, upgrade, err, **opts):
-    engine = _construct_engine(url, **opts)
+    engine = construct_engine(url, **opts)
     schema = ControlledSchema(engine, repository)
     version = _migrate_version(schema, version, upgrade, err)
 
     changeset = schema.changeset(version)
     for ver, change in changeset:
         nextver = ver + changeset.step
-        print '%s -> %s... ' % (ver, nextver),
+        print '%s -> %s... ' % (ver, nextver)
+
         if opts.get('preview_sql'):
-            print
-            print change.log
+            if isinstance(change, PythonScript):
+                print change.preview_sql(url, changeset.step, **opts)
+            elif isinstance(change, SqlScript):
+                print change.source()
+
         elif opts.get('preview_py'):
             source_ver = max(ver, nextver)
             module = schema.repository.version(source_ver).script().module
             funcname = upgrade and "upgrade" or "downgrade"
             func = getattr(module, funcname)
-            print
-            print inspect.getsource(module.upgrade)
+            if isinstance(change, PythonScript):
+                print inspect.getsource(func)
+            else:
+                raise UsageError("Python source can be only displayed"
+                    " for python migration files")
         else:
             schema.runchange(ver, change, changeset.step)
             print 'done'
@@ -352,39 +359,3 @@ def _migrate_version(schema, version, upgrade, err):
         if not direction:
             raise exceptions.KnownError(err % (cur, version))
     return version
-
-
-def _construct_engine(url, **opts):
-    """Constructs and returns SQLAlchemy engine.
-
-    Currently, there are 2 ways to pass create_engine options to api functions:
-
-        * keyword parameters (starting with `engine_arg_*`)
-        * python dictionary of options (`engine_dict`)
-
-    NOTE: keyword parameters override `engine_dict` values.
-
-    .. versionadded:: 0.5.4
-    """
-    # TODO: include docs
-    
-    # get options for create_engine
-    if opts.get('engine_dict') and isinstance(opts['engine_dict'], dict):
-        kwargs = opts['engine_dict']
-    else:
-        kwargs = dict()
-
-    # DEPRECATED: handle echo the old way
-    echo = asbool(opts.get('echo', False))
-    if echo:
-        warnings.warn('echo=True parameter is deprecated, pass '
-            'engine_arg_echo=True or engine_dict={"echo": True}',
-            DeprecationWarning)
-        kwargs['echo'] = echo
-    
-    # parse keyword arguments
-    for key, value in opts.iteritems():
-        if key.startswith('engine_arg_'):
-            kwargs[key[11:]] = guess_obj_type(value)
-    
-    return create_engine(url, **kwargs)

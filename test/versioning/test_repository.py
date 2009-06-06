@@ -52,6 +52,7 @@ class TestVersionedRepository(fixture.Pathed):
     """Tests on an existing repository with a single python script"""
     script_cls = script.PythonScript
     def setUp(self):
+        super(TestVersionedRepository, self).setUp()
         Repository.clear()
         self.path_repos=self.tmp_repos()
         # Create repository, script

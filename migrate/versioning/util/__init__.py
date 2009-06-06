@@ -17,7 +17,7 @@ def load_model(dotted_name):
     if isinstance(dotted_name, basestring):
         if ':' not in dotted_name:
             # backwards compatibility
-            warnings.warn('model should be in form of module.model:User'
+            warnings.warn('model should be in form of module.model:User '
                 'and not module.model.User', DeprecationWarning)
             dotted_name = ':'.join(dotted_name.rsplit('.', 1))
         return EntryPoint.parse('x=%s' % dotted_name).load(False)

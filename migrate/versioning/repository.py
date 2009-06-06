@@ -61,9 +61,7 @@ class Changeset(dict):
 
 class Repository(pathed.Pathed):
     """A project's change script repository"""
-    # Configuration file, inside repository
     _config = 'migrate.cfg'
-    # Version information, inside repository
     _versions = 'versions'
 
     def __init__(self, path):
@@ -133,10 +131,10 @@ class Repository(pathed.Pathed):
         return cls(path)
 
     def create_script(self, description, **k):
-        self.versions.createNewVersion(description, **k)
+        self.versions.create_new_python_version(description, **k)
 
     def create_script_sql(self, database, **k):
-        self.versions.createNewSQLVersion(database, **k)
+        self.versions.create_new_sql_version(database, **k)
 
     latest=property(lambda self: self.versions.latest)
     version_table=property(lambda self: self.config.get('db_settings',

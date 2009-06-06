@@ -173,6 +173,7 @@ class TestShellRepository(Shell):
 
     def setUp(self):
         """Create repository, python change script"""
+        super(TestShellRepository, self).setUp()
         self.path_repos = repos = self.tmp_repos()
         self.assertSuccess(self.cmd('create', repos, 'repository_name'))
 

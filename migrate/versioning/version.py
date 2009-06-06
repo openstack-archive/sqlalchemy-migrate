@@ -36,7 +36,7 @@ class VerNum(object):
         return int(self) - int(value)
 
     def __repr__(self):
-        return str(self.value)
+        return "<VerNum(%s)>" % self.value
 
     def __str__(self):
         return str(self.value)
@@ -44,32 +44,25 @@ class VerNum(object):
     def __int__(self):
         return int(self.value)
 
-def str_to_filename(s):
-    """Replaces spaces, (double and single) quotes
-    and double underscores to underscores
-    """
-
-    s = s.replace(' ', '_').replace('"', '_').replace("'", '_')
-    while '__' in s:
-        s = s.replace('__', '_')
-    return s
-        
 
 class Collection(pathed.Pathed):
     """A collection of versioning scripts in a repository"""
 
-    FILENAME_WITH_VERSION = re.compile(r'^(\d+).*')
+    FILENAME_WITH_VERSION = re.compile(r'^(\d{3,}).*')
 
     def __init__(self, path):
+        """Collect current version scripts in repository"""
         super(Collection, self).__init__(path)
         
         # Create temporary list of files, allowing skipped version numbers.
         files = os.listdir(path)
-        tempVersions = dict()
         if '1' in files:
+            # deprecation
             raise Exception('It looks like you have a repository in the old '
                 'format (with directories for each version). '
                 'Please convert repository before proceeding.')
+
+        tempVersions = dict()
         for filename in files:
             match = self.FILENAME_WITH_VERSION.match(filename)
             if match:
@@ -83,27 +76,14 @@ class Collection(pathed.Pathed):
         self.versions = dict()
         for num, files in tempVersions.items():
             self.versions[VerNum(num)] = Version(num, path, files)
-        # calculate latest version
-        self.latest = max([VerNum(0)] + self.versions.keys())
 
-    def version_path(self, ver):
-        return os.path.join(self.path, str(ver))
-    
-    def version(self, vernum=None):
-        if vernum is None:
-            vernum = self.latest
-        return self.versions[VerNum(vernum)]
+    @property
+    def latest(self):
+        return max([VerNum(0)] + self.versions.keys())
 
-    def getNewVersion(self):
+    def create_new_python_version(self, description, **k):
+        """Create Python files for new version"""
         ver = self.latest + 1
-        # No change scripts exist for 0 (even though it's a valid version)
-        if ver <= 0:
-            raise exceptions.InvalidVersionError()
-        self.latest = ver
-        return ver
-    
-    def createNewVersion(self, description, **k):
-        ver = self.getNewVersion()
         extra = str_to_filename(description)
 
         if extra:
@@ -113,7 +93,7 @@ class Collection(pathed.Pathed):
                 extra = '_%s' % extra
 
         filename = '%03d%s.py' % (ver, extra)
-        filepath = self.version_path(filename)
+        filepath = self._version_path(filename)
 
         if os.path.exists(filepath):
             raise Exception('Script already exists: %s' % filepath)
@@ -122,82 +102,70 @@ class Collection(pathed.Pathed):
 
         self.versions[ver] = Version(ver, self.path, [filename])
         
-    def createNewSQLVersion(self, database, **k):
-        # Determine version number to use.
-        # fix from Issue 29
-        ver = self.getNewVersion()
+    def create_new_sql_version(self, database, **k):
+        """Create SQL files for new version"""
+        ver = self.latest + 1
         self.versions[ver] = Version(ver, self.path, [])
 
         # Create new files.
         for op in ('upgrade', 'downgrade'):
             filename = '%03d_%s_%s.sql' % (ver, database, op)
-            filepath = self.version_path(filename)
+            filepath = self._version_path(filename)
             if os.path.exists(filepath):
                 raise Exception('Script already exists: %s' % filepath)
             else:
                 open(filepath, "w").close()
-            self.versions[ver]._add_script(filepath)
+            self.versions[ver].add_script(filepath)
         
+    def version(self, vernum=None):
+        """Returns latest Version if vernum is not given. \
+        Otherwise, returns wanted version"""
+        if vernum is None:
+            vernum = self.latest
+        return self.versions[VerNum(vernum)]
+
     @classmethod
     def clear(cls):
         super(Collection, cls).clear()
-    
 
-class Extensions:
-    """A namespace for file extensions"""
-    py = 'py'
-    sql = 'sql'
+    def _version_path(self, ver):
+        """Returns path of file in versions repository"""
+        return os.path.join(self.path, str(ver))
 
 
-class Version(object):  # formerly inherit from: (pathed.Pathed):
-    """A single version in a repository """
+class Version(object):
+    """A single version in a collection """
 
     def __init__(self, vernum, path, filelist):
-        # Version must be numeric
-        try:
-            self.version = VerNum(vernum)
-        except:
-            raise exceptions.InvalidVersionError(vernum)
+        self.version = VerNum(vernum)
 
         # Collect scripts in this folder
         self.sql = dict()
         self.python = None
 
         for script in filelist:
-            # skip __init__.py, because we assume that it's
-            # just there to mark the package
-            if script == '__init__.py':
-                continue
-            self._add_script(os.path.join(path, script))
+            self.add_script(os.path.join(path, script))
     
     def script(self, database=None, operation=None):
-        # Try to return a .sql script first
-        try:
-            return self._script_sql(database, operation)
-        except KeyError:
-            pass  # No .sql script exists
-            
-        # Try to return the default .sql script
-        try:
-            return self._script_sql('default', operation)
-        except KeyError:
-            pass  # No .sql script exists
+        """Returns SQL or Python Script"""
+        for db in (database, 'default'):
+            # Try to return a .sql script first
+            try:
+                return self.sql[db][operation]
+            except KeyError:
+                continue  # No .sql script exists
 
-        ret = self._script_py()
+        # TODO: maybe add force Python parameter?
+        ret = self.python
 
         assert ret is not None
         return ret
 
-    def _script_py(self):
-        return self.python
-
-    def _script_sql(self, database, operation):
-        return self.sql[database][operation]
-
+    # deprecated?
     @classmethod
     def create(cls, path):
         os.mkdir(path)
-        # craete the version as a proper Python package
+        # create the version as a proper Python package
         initfile = os.path.join(path, "__init__.py")
         if not os.path.exists(initfile):
             # just touch the file
@@ -209,7 +177,8 @@ class Version(object):  # formerly inherit from: (pathed.Pathed):
             raise
         return ret
 
-    def _add_script(self, path):
+    def add_script(self, path):
+        """Add script to Collection/Version"""
         if path.endswith(Extensions.py):
             self._add_script_py(path)
         elif path.endswith(Extensions.sql):
@@ -223,14 +192,10 @@ class Version(object):  # formerly inherit from: (pathed.Pathed):
         if match:
             version, dbms, op = match.group(1), match.group(2), match.group(3)
         else:
-            raise exceptions.ScriptError("Invalid sql script name %s" % path)
+            raise exceptions.ScriptError("Invalid SQL script name %s" % path)
 
         # File the script into a dictionary
-        dbmses = self.sql
-        if dbms not in dbmses:
-            dbmses[dbms] = dict()
-        ops = dbmses[dbms]
-        ops[op] = script.SqlScript(path)
+        self.sql.setdefault(dbms, {})[op] = script.SqlScript(path)
 
     def _add_script_py(self, path):
         if self.python is not None:
@@ -238,9 +203,17 @@ class Version(object):  # formerly inherit from: (pathed.Pathed):
                 ' but you have: %s and %s' % (self.python, path))
         self.python = script.PythonScript(path)
 
-    def _rm_ignore(self, path):
-        """Try to remove a path; ignore failure"""
-        try:
-            os.remove(path)
-        except OSError:
-            pass
+class Extensions:
+    """A namespace for file extensions"""
+    py = 'py'
+    sql = 'sql'
+
+def str_to_filename(s):
+    """Replaces spaces, (double and single) quotes
+    and double underscores to underscores
+    """
+
+    s = s.replace(' ', '_').replace('"', '_').replace("'", '_')
+    while '__' in s:
+        s = s.replace('__', '_')
+    return s

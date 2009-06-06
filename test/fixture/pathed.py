@@ -13,6 +13,14 @@ class Pathed(base.Base):
 
     _tmpdir = tempfile.mkdtemp()
 
+    def setUp(self):
+        super(Pathed, self).setUp()
+        self.temp_usable_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        super(Pathed, self).tearDown()
+        self.temp_usable_dir = tempfile.mkdtemp()
+
     @classmethod
     def _tmp(cls, prefix='', suffix=''):
         """Generate a temporary file name that doesn't exist

@@ -68,15 +68,12 @@ def usedb(supported=None, not_supported=None):
 
     my_urls = [url for url in urls if is_supported(url, supported, not_supported)]
 
-    def dec(func):
-        def entangle(self):
-            for url in my_urls:
-                self._setup(url)
-                yield func, self
-                self._teardown()
-        entangle.__name__ = func.__name__
-        entangle.__doc__ = func.__doc__
-        return entangle
+    @decorator
+    def dec(f, self, *a, **kw):
+        for url in my_urls:
+            self._setup(url)
+            f(self, *a, **kw)
+            self._teardown()
     return dec
 
 
@@ -88,7 +85,7 @@ class DB(Base):
 
     level = TXN
 
-    def _engineInfo(self,url=None):
+    def _engineInfo(self, url=None):
         if url is None: 
             url = self.url
         return url
@@ -99,7 +96,7 @@ class DB(Base):
     def _teardown(self):
         self._disconnect()
     
-    def _connect(self,url):
+    def _connect(self, url):
         self.url = url
         self.engine = engines[url]
         self.meta = MetaData(bind=self.engine)

@@ -9,7 +9,7 @@ from migrate.versioning import exceptions, version
 from test import fixture
 
 
-class TestPyScript(fixture.Pathed):
+class TestPyScript(fixture.Pathed, fixture.DB):
     cls = PythonScript
     def test_create(self):
         """We can create a migration script"""

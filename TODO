@@ -1,8 +1,5 @@
 - better MySQL support
 - fix unit tests for other databases than PostgreSQL (MySQL and SQLite
   fail at test_changeset.test_fk(..))
-- document dotted_name parsing changes
-- document shell parsing
-- document engine parameters usage/parsing
 
 - better SQL scripts support (testing, source viewing)

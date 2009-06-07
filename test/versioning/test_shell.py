@@ -12,6 +12,7 @@ from sqlalchemy import MetaData,Table
 
 from migrate.versioning.repository import Repository
 from migrate.versioning import genmodel, shell, api
+from migrate.versioning.exceptions import *
 from test import fixture
 
 
@@ -103,6 +104,11 @@ class TestShellCommands(Shell):
         self.assertSuccess(self.cmd('-h'), runshell=True)
         self.assertSuccess(self.cmd('--help'), runshell=True)
         self.assertSuccess(self.cmd('help'), runshell=True)
+        self.assertSuccess(self.cmd('help'))
+
+        self.assertRaises(UsageError, api.help)
+        self.assertRaises(UsageError, api.help, 'foobar')
+        self.assert_(isinstance(api.help('create'), str))
 
     def test_help_commands(self):
         """Display help on a specific command"""
@@ -245,7 +251,7 @@ class TestShellDatabase(Shell, fixture.DB):
     def test_wrapped_kwargs(self):
         """Commands with default arguments set by manage.py"""
         path_repos = repos = self.tmp_repos()
-        self.assertSuccess(self.cmd('create', 'repository_name'), repository=path_repos)
+        self.assertSuccess(self.cmd('create', '--', '--name=repository_name'), repository=path_repos)
         self.exitcode(self.cmd('drop_version_control'), url=self.url, repository=path_repos)
         self.assertSuccess(self.cmd('version_control'), url=self.url, repository=path_repos)
 

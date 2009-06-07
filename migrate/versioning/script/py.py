@@ -102,12 +102,11 @@ class PythonScript(base.BaseScript):
         migrate.migrate_engine = None
         #migrate.run.migrate_engine = migrate.migrate_engine = None
 
-    def _get_module(self):
+    @property
+    def module(self):
         if not hasattr(self,'_module'):
             self._module = self.verify_module(self.path)
         return self._module
-    module = property(_get_module)
-
 
     def _func(self, funcname):
         fn = getattr(self.module, funcname, None)

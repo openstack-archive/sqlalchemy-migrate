@@ -47,8 +47,6 @@ class PassiveOptionParser(OptionParser):
             elif self.allow_interspersed_args:
                 largs.append(arg)
                 del rargs[0]
-            else:
-                return
 
 def main(argv=None, **kwargs):
     """kwargs are default options that can be overriden with passing --some_option to cmdline"""
@@ -157,5 +155,5 @@ def main(argv=None, **kwargs):
             parser.print_help()
         parser.error(e.args[0])
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

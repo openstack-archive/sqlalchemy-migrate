@@ -95,29 +95,5 @@ def upgrade():
         self.cls.verify(path)
     
 class TestSqlScript(fixture.Pathed):
-    def test_selection(self):
-        """Verify right sql script is selected"""
-        
-        # Create empty directory.
-        path=self.tmp_repos()
-        os.mkdir(path)
-        
-        # Create files -- files must be present or you'll get an exception later.
-        sqlite_upgrade_file = '001_sqlite_upgrade.sql'
-        default_upgrade_file = '001_default_upgrade.sql'
-        for file_ in [sqlite_upgrade_file, default_upgrade_file]:
-            filepath = '%s/%s' % (path, file_)
-            open(filepath, 'w').close()
-
-        ver = version.Version(1, path, [sqlite_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('sqlite', 'upgrade').path), sqlite_upgrade_file)
-    
-        ver = version.Version(1, path, [default_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('default', 'upgrade').path), default_upgrade_file)
-    
-        ver = version.Version(1, path, [sqlite_upgrade_file, default_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('sqlite', 'upgrade').path), sqlite_upgrade_file)
-    
-        ver = version.Version(1, path, [sqlite_upgrade_file, default_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('postgres', 'upgrade').path), default_upgrade_file)
+    pass
     

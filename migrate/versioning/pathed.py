@@ -5,9 +5,9 @@
 import os
 import shutil
 
+from migrate.versioning import exceptions
 from migrate.versioning.base import *
 from migrate.versioning.util import KeyedInstance
-from migrate.versioning import exceptions
 
 
 class Pathed(KeyedInstance):
@@ -41,7 +41,6 @@ class Pathed(KeyedInstance):
         Parameters: the child object; the path to this object (its
         parent)
         """
-        pass
 
     @classmethod
     def _parent_path(cls, path):

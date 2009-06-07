@@ -1,8 +1,14 @@
 """
    This module provides an external API to the versioning system.
 
-   Used by the shell utility; could also be used by other scripts
+   .. versionchanged:: 0.4.5 
+    ``--preview_sql`` displays source file when using SQL scripts. If Python script is used,
+    it runs the action with mocked engine and returns captured SQL statements.
+
+   .. versionchanged:: 0.4.5
+    Deprecated ``--echo`` parameter in favour of new :func:`migrate.versioning.util.construct_engine` behavior.
 """
+
 # Dear migrate developers,
 #
 # please do not comment this module using sphinx syntax because its

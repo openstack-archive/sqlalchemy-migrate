@@ -47,23 +47,6 @@ class NoSuchTableError(ControlledSchemaError):
     pass
 
 
-class LogSqlError(Error):
-    """A SQLError, with a traceback of where that statement was logged."""
-
-    def __init__(self, sqlerror, entry):
-        Exception.__init__(self)
-        self.sqlerror = sqlerror
-        self.entry = entry
-
-    def __str__(self):
-        """SQL error in statement:
-        %s
-        Traceback from change script:
-        %s%s""" % (self.entry,
-            ''.join(traceback.format_list(self.entry.traceback)),
-            self.sqlerror)
-
-
 class PathError(Error):
     """Base class for path errors."""
     pass

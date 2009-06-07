@@ -13,7 +13,13 @@ from migrate.versioning.util.importpath import import_path
 
 
 def load_model(dotted_name):
-    ''' Import module and use module-level variable -- assume model is of form "mod1.mod2:varname". '''
+    """Import module and use module-level variable".
+
+    :param dotted_name: path to model in form of string: ``some.python.module:Class``
+    
+    .. versionchanged:: 0.5.4
+
+    """
     if isinstance(dotted_name, basestring):
         if ':' not in dotted_name:
             # backwards compatibility
@@ -72,12 +78,14 @@ def catch_known_errors(f, *a, **kw):
 def construct_engine(url, **opts):
     """Constructs and returns SQLAlchemy engine.
 
-    Currently, there are 2 ways to pass create_engine options to api functions:
+    Currently, there are 2 ways to pass create_engine options to :mod:`migrate.versioning.api` functions:
 
-        * keyword parameters (starting with `engine_arg_*`)
-        * python dictionary of options (`engine_dict`)
+        * keyword parameters (starting with ``engine_arg_*``)
+        * python dictionary of options (``engine_dict``)
 
-    NOTE: keyword parameters override `engine_dict` values.
+    .. note::
+
+        keyword parameters override ``engine_dict`` values.
 
     .. versionadded:: 0.5.4
     """

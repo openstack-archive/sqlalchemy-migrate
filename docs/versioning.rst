@@ -319,7 +319,7 @@ database you're working with::
  'sqlite'
 
 Writings .sql scripts
-------------
+---------------------
 
 You might prefer to write your change scripts in SQL, as .sql files,
 rather than as Python scripts. SQLAlchemy-migrate can work with that::

@@ -1,0 +1,128 @@
+Changelog
+=========
+
+0.5.4
+-----
+
+- fixed preview_sql parameter for downgrade/upgrade. Now it prints SQL if the step is SQL script and runs step with mocked engine to only print SQL statements if ORM is used. [Domen Kozar]
+- use entrypoints terminology to specify dotted model names (module.model:User) [Domen Kozar]
+- added engine_dict and engine_arg_* parameters to all api functions (deprecated echo) [Domen Kozar]
+- make --echo parameter a bit more forgivable (better Python API support)  [Domen Kozar]
+- apply patch to refactor cmd line parsing for Issue 54 by Domen Kozar
+
+0.5.3
+-----
+
+- apply patch for Issue 29 by Jonathan Ellis
+- fix Issue 52 by removing needless parameters from object.__new__ calls
+
+0.5.2
+-----
+
+- move sphinx and nose dependencies to extras_require and tests_require
+- integrate patch for Issue 36 by Kumar McMillan
+- fix unit tests
+- mark ALTER TABLE ADD COLUMN with FOREIGN KEY as not supported by SQLite
+
+0.5.1.2
+-------
+
+- corrected build
+
+0.5.1.1
+-------
+
+- add documentation in tarball
+- add a MANIFEST.in
+
+0.5.1
+-----
+
+- SA 0.5.x support. SQLAlchemy < 0.5.1 not supported anymore.
+- use nose instead of py.test for testing
+- Added --echo=True option for all commands, which will make the sqlalchemy connection echo SQL statements.
+- Better PostgreSQL support, especially for schemas.
+- modification to the downgrade command to simplify the calling (old way still works just fine)
+- improved support for SQLite
+- add support for check constraints (EXPERIMENTAL)
+- print statements removed from APIs
+- improved sphinx based documentation
+- removal of old commented code
+- PEP-8 clean code
+
+0.4.5
+-----
+
+- work by Christian Simms to compare metadata against databases
+- new repository format
+- a repository format migration tool is in migrate/versioning/migrate_repository.py
+- support for default SQL scripts
+- EXPERIMENTAL support for dumping database to model
+
+0.4.4
+-----
+
+- patch by pwannygoodness for Issue #15
+- fixed unit tests to work with py.test 0.9.1
+- fix for a SQLAlchemy deprecation warning
+
+0.4.3
+-----
+
+- patch by Kevin Dangoor to handle database versions as packages and ignore their __init__.py files in version.py
+- fixed unit tests and Oracle changeset support by Christian Simms
+
+0.4.2
+-----
+
+- package name is sqlalchemy-migrate again to make pypi work
+- make import of sqlalchemy's SchemaGenerator work regardless of previous imports
+
+0.4.1
+-----
+
+- setuptools patch by Kevin Dangoor
+- re-rename module to migrate
+
+0.4.0
+-----
+
+- SA 0.4.0 compatibility thanks to Christian Simms
+- all unit tests are working now (with sqlalchemy >= 0.3.10)
+
+0.3
+---
+
+- SA 0.3.10 compatibility
+
+0.2.3
+-----
+
+- Removed lots of SA monkeypatching in Migrate's internals
+- SA 0.3.3 compatibility
+- Removed logsql (#75)
+- Updated py.test version from 0.8 to 0.9; added a download link to setup.py
+- Fixed incorrect "function not defined" error (#88)
+- Fixed SQLite and .sql scripts (#87)
+
+0.2.2
+-----
+
+- Deprecated driver(engine) in favor of engine.name (#80)
+- Deprecated logsql (#75)
+- Comments in .sql scripts don't make things fail silently now (#74)
+- Errors while downgrading (and probably other places) are shown on their own line
+- Created mailing list and announcements list, updated documentation accordingly
+- Automated tests now require py.test (#66)
+- Documentation fix to .sql script commits (#72)
+- Fixed a pretty major bug involving logengine, dealing with commits/tests (#64)
+- Fixes to the online docs - default DB versioning table name (#68)
+- Fixed the engine name in the scripts created by the command 'migrate script' (#69)
+- Added Evan's email to the online docs
+
+0.2.1
+-----
+
+- Created this changelog
+- Now requires (and is now compatible with) SA 0.3
+- Commits across filesystems now allowed (shutil.move instead of os.rename) (#62)

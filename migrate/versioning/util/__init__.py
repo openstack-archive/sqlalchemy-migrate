@@ -47,7 +47,13 @@ def asbool(obj):
         raise ValueError("String is not true/false: %r" % obj)
 
 def guess_obj_type(obj):
-    """Do everything to guess object type from string"""
+    """Do everything to guess object type from string
+    
+    Tries to convert to `int`, `bool` and finally returns if not succeded.
+    
+    .. versionadded: 0.5.4
+    """
+
     result = None
 
     try:
@@ -68,7 +74,10 @@ def guess_obj_type(obj):
 
 @decorator
 def catch_known_errors(f, *a, **kw):
-    """Decorator that catches known api usage errors"""
+    """Decorator that catches known api errors
+    
+    .. versionadded: 0.5.4
+    """
 
     try:
         f(*a, **kw)
@@ -76,20 +85,20 @@ def catch_known_errors(f, *a, **kw):
         raise exceptions.KnownError("The path %s already exists" % e.args[0])
 
 def construct_engine(url, **opts):
-    """Constructs and returns SQLAlchemy engine.
+    """.. versionadded:: 0.5.4
+
+    Constructs and returns SQLAlchemy engine.
 
     Currently, there are 2 ways to pass create_engine options to :mod:`migrate.versioning.api` functions:
 
-        * keyword parameters (starting with ``engine_arg_*``)
-        * python dictionary of options (``engine_dict``)
+    :param engine_dict: python dictionary of options to pass to `create_engine`
+    :param engine_arg_*: keyword parameters to pass to `create_engine` (evaluated with :func:`migrate.versioning.util.guess_obj_type`)
 
     .. note::
 
         keyword parameters override ``engine_dict`` values.
 
-    .. versionadded:: 0.5.4
     """
-    # TODO: include docs
     
     # get options for create_engine
     if opts.get('engine_dict') and isinstance(opts['engine_dict'], dict):

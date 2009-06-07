@@ -33,7 +33,7 @@ def load_model(dotted_name):
 
 def asbool(obj):
     """Do everything to use object as bool"""
-    if isinstance(obj, (str, unicode)):
+    if isinstance(obj, basestring):
         obj = obj.strip().lower()
         if obj in ['true', 'yes', 'on', 'y', 't', '1']:
             return True

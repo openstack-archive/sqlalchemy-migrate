@@ -17,7 +17,7 @@ required_deps = ['sqlalchemy >= 0.5', 'decorator']
 
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.5.4",
+    version = "0.5.5",
     packages = find_packages(exclude=['test*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",

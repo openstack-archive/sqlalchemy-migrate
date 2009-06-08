@@ -248,7 +248,7 @@ def drop_version_control(url, repository, **opts):
 
 
 def manage(file, **opts):
-    """%prog manage FILENAME VARIABLES...
+    """%prog manage FILENAME [VARIABLES...]
 
     Creates a script that runs Migrate with a set of default values.
 
@@ -263,7 +263,7 @@ def manage(file, **opts):
         python manage.py version
         %prog version --repository=/path/to/repository
     """
-    return repository.manage(file, **opts)
+    return Repository.create_manage_file(file, **opts)
 
 
 def compare_model_to_db(url, model, repository, **opts):

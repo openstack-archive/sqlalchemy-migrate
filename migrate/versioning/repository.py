@@ -80,7 +80,7 @@ class Repository(pathed.Pathed):
         """
         Ensure the target path is a valid repository.
 
-        :raises: :exc:`InvalidRepositoryError` if not valid
+        :raises: :exc:`InvalidRepositoryError <migrate.versioning.exceptions.InvalidRepositoryError>`
         """
         # Ensure the existance of required files
         try:
@@ -90,22 +90,22 @@ class Repository(pathed.Pathed):
         except exceptions.PathNotFoundError, e:
             raise exceptions.InvalidRepositoryError(path)
 
+    # TODO: what are those options?
     @classmethod
     def prepare_config(cls, pkg, rsrc, name, **opts):
         """
         Prepare a project configuration file for a new project.
         """
         # Prepare opts
-        defaults=dict(
-            version_table='migrate_version',
-            repository_id=name,
-            required_dbs=[], )
-        for key, val in defaults.iteritems():
-            if (key not in opts) or (opts[key] is None):
-                opts[key]=val
+        defaults = dict(
+            version_table = 'migrate_version',
+            repository_id = name,
+            required_dbs = [])
+
+        defaults.update(opts)
 
         tmpl = resource_string(pkg, rsrc)
-        ret = string.Template(tmpl).substitute(opts)
+        ret = string.Template(tmpl).substitute(defaults)
         return ret
 
     @classmethod
@@ -127,40 +127,46 @@ class Repository(pathed.Pathed):
             fd.close()
             # Create a management script
             manager = os.path.join(path, 'manage.py')
-            manage(manager, repository=path)
+            Repository.create_manage_file(manager, repository=path)
         except:
             log.error("There was an error creating your repository")
         return cls(path)
 
     def create_script(self, description, **k):
+        """"""
         self.versions.create_new_python_version(description, **k)
 
     def create_script_sql(self, database, **k):
+        """"""
         self.versions.create_new_sql_version(database, **k)
 
     @property
     def latest(self):
+        """"""
         return self.versions.latest
 
     @property
     def version_table(self):
+        """"""
         return self.config.get('db_settings', 'version_table')
 
     @property
     def id(self):
+        """"""
         return self.config.get('db_settings', 'repository_id')
 
     def version(self, *p, **k):
+        """"""
         return self.versions.version(*p, **k)
 
     @classmethod
     def clear(cls):
+        """"""
         super(Repository, cls).clear()
         version.Collection.clear()
 
     def changeset(self, database, start, end=None):
-        """
-        Create a changeset to migrate this dbms from ver. start to end/latest.
+        """Create a changeset to migrate this dbms from ver. start to end/latest.
         """
         start = version.VerNum(start)
         if end is None:
@@ -181,13 +187,19 @@ class Repository(pathed.Pathed):
         return ret
 
 
-def manage(file, **opts):
-    """Create a project management script"""
-    pkg, rsrc = template.manage(as_pkg=True)
-    tmpl = resource_string(pkg, rsrc)
-    vars = ",".join(["%s='%s'" % vars for vars in opts.iteritems()])
-    result = tmpl % dict(defaults=vars)
+    @classmethod
+    def create_manage_file(cls, file_, **opts):
+        """Create a project management script (manage.py)
+        
+        :param file_: Destination file to be written
+        :param **opts: Options that are passed to template
+        """
+        vars_ = ",".join(["%s='%s'" % var for var in opts.iteritems()])
 
-    fd = open(file, 'w')
-    fd.write(result)
-    fd.close()
+        pkg, rsrc = template.manage(as_pkg=True)
+        tmpl = resource_string(pkg, rsrc)
+        result = tmpl % dict(defaults=vars_)
+
+        fd = open(file_, 'w')
+        fd.write(result)
+        fd.close()

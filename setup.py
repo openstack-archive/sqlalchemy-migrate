@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import os
+
 try:
     from setuptools import setup, find_packages
 except ImportError:
@@ -14,6 +16,7 @@ except ImportError:
 
 test_requirements = ['nose >= 0.10']
 required_deps = ['sqlalchemy >= 0.5', 'decorator']
+readme_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README')
 
 setup(
     name = "sqlalchemy-migrate",
@@ -21,12 +24,7 @@ setup(
     packages = find_packages(exclude=['test*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",
-    long_description = """
-Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with database schema changes in `SQLAlchemy <http://sqlalchemy.org>`_ projects.
-
-Migrate extends SQLAlchemy to have database changeset handling. It provides a database change repository mechanism which can be used from the command line as well as from inside python code.
-""",
-
+    long_description = readme_file.read(),
     install_requires = required_deps,
     tests_require = test_requirements,
     extras_require = {
@@ -38,7 +36,6 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
     maintainer = "Jan Dittberner",
     maintainer_email = "jan@dittberner.info",
     license = "MIT",
-
     entry_points = """
     [console_scripts]
     migrate = migrate.versioning.shell:main

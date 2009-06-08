@@ -135,6 +135,23 @@ Module :mod:`shell <migrate.versioning.shell>`
    :members:
    :synopsis: Shell commands
 
+Module :mod:`script <migrate.versioning.script>`
+------------------------------------------------
+
+.. automodule:: migrate.versioning.script.base
+   :synopsis: Script utilities
+   :members:
+
+.. automodule:: migrate.versioning.script.py
+   :members:
+   :inherited-members:
+   :show-inheritance:
+
+.. automodule:: migrate.versioning.script.sql
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
 Module :mod:`util <migrate.versioning.util>`
 ------------------------------------------------
 

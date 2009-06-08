@@ -91,8 +91,13 @@ def construct_engine(url, **opts):
 
     Currently, there are 2 ways to pass create_engine options to :mod:`migrate.versioning.api` functions:
 
+    :param url: connection string
     :param engine_dict: python dictionary of options to pass to `create_engine`
     :param engine_arg_*: keyword parameters to pass to `create_engine` (evaluated with :func:`migrate.versioning.util.guess_obj_type`)
+    :type engine_dict: dict
+    :type url: string
+    :type engine_arg_*: string
+    :returns: SQLAlchemy Engine
 
     .. note::
 

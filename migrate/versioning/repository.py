@@ -61,6 +61,7 @@ class Changeset(dict):
 
 class Repository(pathed.Pathed):
     """A project's change script repository"""
+
     _config = 'migrate.cfg'
     _versions = 'versions'
 
@@ -68,8 +69,8 @@ class Repository(pathed.Pathed):
         log.info('Loading repository %s...' % path)
         self.verify(path)
         super(Repository, self).__init__(path)
-        self.config=cfgparse.Config(os.path.join(self.path, self._config))
-        self.versions=version.Collection(os.path.join(self.path,
+        self.config = cfgparse.Config(os.path.join(self.path, self._config))
+        self.versions = version.Collection(os.path.join(self.path,
                                                       self._versions))
         log.info('Repository %s loaded successfully' % path)
         log.debug('Config: %r' % self.config.to_dict())
@@ -116,6 +117,7 @@ class Repository(pathed.Pathed):
         tmplpkg = '.'.join((pkg, rsrc))
         tmplfile = resource_filename(pkg, rsrc)
         config_text = cls.prepare_config(tmplpkg, cls._config, name, **opts)
+
         # Create repository
         try:
             shutil.copytree(tmplfile, path)
@@ -136,10 +138,17 @@ class Repository(pathed.Pathed):
     def create_script_sql(self, database, **k):
         self.versions.create_new_sql_version(database, **k)
 
-    latest=property(lambda self: self.versions.latest)
-    version_table=property(lambda self: self.config.get('db_settings',
-                                                        'version_table'))
-    id=property(lambda self: self.config.get('db_settings', 'repository_id'))
+    @property
+    def latest(self):
+        return self.versions.latest
+
+    @property
+    def version_table(self):
+        return self.config.get('db_settings', 'version_table')
+
+    @property
+    def id(self):
+        return self.config.get('db_settings', 'repository_id')
 
     def version(self, *p, **k):
         return self.versions.version(*p, **k)
@@ -177,7 +186,7 @@ def manage(file, **opts):
     pkg, rsrc = template.manage(as_pkg=True)
     tmpl = resource_string(pkg, rsrc)
     vars = ",".join(["%s='%s'" % vars for vars in opts.iteritems()])
-    result = tmpl%dict(defaults=vars)
+    result = tmpl % dict(defaults=vars)
 
     fd = open(file, 'w')
     fd.write(result)

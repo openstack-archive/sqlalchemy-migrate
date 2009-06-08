@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from migrate.versioning.base import log,operations
-from migrate.versioning import pathed,exceptions
+from migrate.versioning.base import log, operations
+from migrate.versioning import pathed, exceptions
 
 
 class BaseScript(pathed.Pathed):
-    """Base class for other types of scripts
+    """Base class for other types of scripts.
     All scripts have the following properties:
 
     source (script.source())
@@ -17,18 +17,20 @@ class BaseScript(pathed.Pathed):
       The operations defined by the script: upgrade(), downgrade() or both.
       Returns a tuple of operations.
       Can also check for an operation with ex. script.operation(Script.ops.up)
-    """
+    """ # TODO: sphinxfy this and implement it correctly
 
-    def __init__(self,path):
+    def __init__(self, path):
         log.info('Loading script %s...' % path)
         self.verify(path)
         super(BaseScript, self).__init__(path)
         log.info('Script %s loaded successfully' % path)
     
     @classmethod
-    def verify(cls,path):
-        """Ensure this is a valid script, or raise InvalidScriptError
+    def verify(cls, path):
+        """Ensure this is a valid script
         This version simply ensures the script file's existence
+
+        :raises: :exc:`InvalidScriptError <migrate.versioning.exceptions.InvalidScriptError>`
         """
         try:
             cls.require_found(path)
@@ -36,10 +38,16 @@ class BaseScript(pathed.Pathed):
             raise exceptions.InvalidScriptError(path)
 
     def source(self):
+        """:returns: source code of the script.
+        :rtype: string
+        """
         fd = open(self.path)
         ret = fd.read()
         fd.close()
         return ret
 
     def run(self, engine):
+        """Core of each BaseScript subclass.
+        This method executes the script.
+        """
         raise NotImplementedError()

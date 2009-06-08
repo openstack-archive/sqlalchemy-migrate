@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+
 from test import fixture
 from migrate.versioning.util import *
 
@@ -51,16 +53,16 @@ class TestUtil(fixture.Pathed):
 
     def test_load_model(self):
         """load model from dotted name"""
-        model_path = self.tmp_named('testmodel.py')
+        model_path = os.path.join(self.temp_usable_dir, 'test_load_model.py')
 
         f = open(model_path, 'w')
         f.write("class FakeFloat(int): pass")
         f.close()
 
-        FakeFloat = load_model('testmodel.FakeFloat')
+        FakeFloat = load_model('test_load_model.FakeFloat')
         self.assert_(isinstance(FakeFloat(), int))
 
-        FakeFloat = load_model('testmodel:FakeFloat')
+        FakeFloat = load_model('test_load_model:FakeFloat')
         self.assert_(isinstance(FakeFloat(), int))
 
         FakeFloat = load_model(FakeFloat)

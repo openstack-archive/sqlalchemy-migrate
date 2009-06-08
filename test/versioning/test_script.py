@@ -2,11 +2,27 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import shutil
 
+from migrate.versioning import exceptions, version, repository
 from migrate.versioning.script import *
-from migrate.versioning import exceptions, version
+from migrate.versioning.util import *
+
 from test import fixture
+
+
+class TestBaseScript(fixture.Pathed):
+
+    def test_all(self):
+        """Testing all basic BaseScript operations"""
+        # verify / source / run
+        src = self.tmp()
+        open(src, 'w').close()
+        bscript = BaseScript(src)
+        BaseScript.verify(src)
+        self.assertEqual(bscript.source(), '')
+        self.assertRaises(NotImplementedError, bscript.run, 'foobar')
 
 
 class TestPyScript(fixture.Pathed, fixture.DB):
@@ -21,6 +37,16 @@ class TestPyScript(fixture.Pathed, fixture.DB):
         self.cls.verify(path)
         # Can't create it again: it already exists
         self.assertRaises(exceptions.PathFoundError,self.cls.create,path)
+
+    @fixture.usedb(supported='sqlite')
+    def test_run(self):
+        script_path = self.tmp_py()
+        pyscript = PythonScript.create(script_path)
+        pyscript.run(self.engine, 1)
+        pyscript.run(self.engine, -1)
+
+        self.assertRaises(exceptions.ScriptError, pyscript.run, self.engine, 0)
+        self.assertRaises(exceptions.ScriptError, pyscript._func, 'foobar')
 
     def test_verify_notfound(self):
         """Correctly verify a python migration script: nonexistant file"""
@@ -93,7 +119,80 @@ def upgrade():
         # Succeeds after creating
         self.cls.create(path)
         self.cls.verify(path)
-    
-class TestSqlScript(fixture.Pathed):
-    pass
-    
+
+    # test for PythonScript.make_update_script_for_model
+
+    @fixture.usedb()
+    def test_make_update_script_for_model(self):
+        """Construct script source from differences of two models"""
+
+        self.setup_model_params()
+        self.write_file(self.first_model_path, self.base_source)
+        self.write_file(self.second_model_path, self.base_source + self.model_source)
+
+
+        source_script = self.pyscript.make_update_script_for_model(
+            engine=self.engine,
+            oldmodel=load_model('testmodel_first:meta'),
+            model=load_model('testmodel_second:meta'),
+            repository=self.repo_path,
+        )
+
+        self.assertTrue('User.create()' in source_script)
+        self.assertTrue('User.drop()' in source_script)
+
+    #@fixture.usedb()
+    #def test_make_update_script_for_model_equals(self):
+    #    """Try to make update script from two identical models"""
+
+    #    self.setup_model_params()
+    #    self.write_file(self.first_model_path, self.base_source + self.model_source)
+    #    self.write_file(self.second_model_path, self.base_source + self.model_source)
+
+    #    source_script = self.pyscript.make_update_script_for_model(
+    #        engine=self.engine,
+    #        oldmodel=load_model('testmodel_first:meta'),
+    #        model=load_model('testmodel_second:meta'),
+    #        repository=self.repo_path,
+    #    )
+
+    #    self.assertFalse('User.create()' in source_script)
+    #    self.assertFalse('User.drop()' in source_script)
+
+    def setup_model_params(self):
+        self.script_path = self.tmp_py()
+        self.repo_path = self.tmp()
+        self.first_model_path = os.path.join(self.temp_usable_dir, 'testmodel_first.py')
+        self.second_model_path = os.path.join(self.temp_usable_dir, 'testmodel_second.py')
+
+        self.base_source = """from sqlalchemy import *\nmeta = MetaData()\n"""
+        self.model_source = """
+User = Table('User', meta,
+    Column('id', Integer, primary_key=True),
+    Column('login', Unicode(40)),
+    Column('passwd', String(40)),
+)"""
+
+        self.repo = repository.Repository.create(self.repo_path, 'repo')
+        self.pyscript = PythonScript.create(self.script_path)
+
+
+    def write_file(self, path, contents):
+        f = open(path, 'w')
+        f.write(contents)
+        f.close()
+        
+
+class TestSqlScript(fixture.Pathed, fixture.DB):
+
+    @fixture.usedb()
+    def test_error(self):
+        """Test if exception is raised on wrong script source"""
+        src = self.tmp()
+
+        f = open(src, 'w')
+        f.write("""foobar""")
+        f.close()
+
+        sqls = SqlScript(src)
+        self.assertRaises(Exception, sqls.run, self.engine)

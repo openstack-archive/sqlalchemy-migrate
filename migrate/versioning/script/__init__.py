@@ -1,3 +1,6 @@
-from py import PythonScript
-from sql import SqlScript
-from base import BaseScript
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from migrate.versioning.script.base import BaseScript
+from migrate.versioning.script.py import PythonScript
+from migrate.versioning.script.sql import SqlScript

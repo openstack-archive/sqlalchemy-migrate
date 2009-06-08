@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import shutil
 import tempfile
 
@@ -16,10 +17,12 @@ class Pathed(base.Base):
     def setUp(self):
         super(Pathed, self).setUp()
         self.temp_usable_dir = tempfile.mkdtemp()
+        sys.path.append(self.temp_usable_dir)
 
     def tearDown(self):
         super(Pathed, self).tearDown()
-        self.temp_usable_dir = tempfile.mkdtemp()
+        sys.path.remove(self.temp_usable_dir)
+        Pathed.purge(self.temp_usable_dir)
 
     @classmethod
     def _tmp(cls, prefix='', suffix=''):

@@ -14,11 +14,10 @@ from migrate.versioning.base import *
 class Changeset(dict):
     """A collection of changes to be applied to a database.
 
-    Changesets are bound to a repository and manage a set of logsql
+    Changesets are bound to a repository and manage a set of
     scripts from that repository.
 
-    Behaves like a dict, for the most part. Keys are ordered based on
-    start/end.
+    Behaves like a dict, for the most part. Keys are ordered based on step value.
     """
 
     def __init__(self, start, *changes, **k):
@@ -50,11 +49,13 @@ class Changeset(dict):
         return zip(self.keys(), self.values())
 
     def add(self, change):
+        """Add new change to changeset"""
         key = self.end
         self.end += self.step
         self[key] = change
 
     def run(self, *p, **k):
+        """Run the changeset scripts"""
         for version, script in self:
             script.run(*p, **k)
 
@@ -119,54 +120,62 @@ class Repository(pathed.Pathed):
         config_text = cls.prepare_config(tmplpkg, cls._config, name, **opts)
 
         # Create repository
-        try:
-            shutil.copytree(tmplfile, path)
-            # Edit config defaults
-            fd = open(os.path.join(path, cls._config), 'w')
-            fd.write(config_text)
-            fd.close()
-            # Create a management script
-            manager = os.path.join(path, 'manage.py')
-            Repository.create_manage_file(manager, repository=path)
-        except:
-            log.error("There was an error creating your repository")
+        shutil.copytree(tmplfile, path)
+
+        # Edit config defaults
+        fd = open(os.path.join(path, cls._config), 'w')
+        fd.write(config_text)
+        fd.close()
+
+        # Create a management script
+        manager = os.path.join(path, 'manage.py')
+        Repository.create_manage_file(manager, repository=path)
+
         return cls(path)
 
     def create_script(self, description, **k):
-        """"""
+        """API to :meth:`migrate.versioning.version.Collection.create_new_python_version`"""
         self.versions.create_new_python_version(description, **k)
 
     def create_script_sql(self, database, **k):
-        """"""
+        """API to :meth:`migrate.versioning.version.Collection.create_new_sql_version`"""
         self.versions.create_new_sql_version(database, **k)
 
     @property
     def latest(self):
-        """"""
+        """API to :attr:`migrate.versioning.version.Collection.latest`"""
         return self.versions.latest
 
     @property
     def version_table(self):
-        """"""
+        """Returns version_table name specified in config"""
         return self.config.get('db_settings', 'version_table')
 
     @property
     def id(self):
-        """"""
+        """Returns repository id specified in config"""
         return self.config.get('db_settings', 'repository_id')
 
     def version(self, *p, **k):
-        """"""
+        """API to :attr:`migrate.versioning.version.Collection.version`"""
         return self.versions.version(*p, **k)
 
     @classmethod
     def clear(cls):
-        """"""
+        # TODO: deletes repo
         super(Repository, cls).clear()
         version.Collection.clear()
 
     def changeset(self, database, start, end=None):
-        """Create a changeset to migrate this dbms from ver. start to end/latest.
+        """Create a changeset to migrate this database from ver. start to end/latest.
+
+        :param database: name of database to generate changeset
+        :param start: version to start at
+        :param end: version to end at (latest if None given)
+        :type database: string
+        :type start: int
+        :type end: int
+        :returns: :class:`Changeset instance <migration.versioning.repository.Changeset>`
         """
         start = version.VerNum(start)
 
@@ -189,13 +198,12 @@ class Repository(pathed.Pathed):
         ret = Changeset(start, step=step, *changes)
         return ret
 
-
     @classmethod
     def create_manage_file(cls, file_, **opts):
         """Create a project management script (manage.py)
         
         :param file_: Destination file to be written
-        :param **opts: Options that are passed to template
+        :param opts: Options that are passed to template
         """
         vars_ = ",".join(["%s='%s'" % var for var in opts.iteritems()])
 

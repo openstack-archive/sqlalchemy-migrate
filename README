@@ -5,36 +5,29 @@ Migrate extends SQLAlchemy to have database changeset handling. It provides a da
 Help
 ----
 
-Sphinx documentation is available at the project page [1].
+Sphinx documentation is available at the project page `packages.python.org <http://packages.python.org/sqlalchemy-migrate/>`_.
 
 Users and developers can be found at #sqlalchemy-migrate on Freenode IRC network
-and at the public users mailing list [2].
+and at the public users mailing list `migrate-users <http://groups.google.com/group/migrate-users>`_.
 
 New releases and major changes are announced at the public announce
-mailing list [3] and at the Python package index [4].
+mailing list `migrate-announce <http://groups.google.com/group/migrate-announce>`_
+and at the Python package index `sqlalchemy-migrate <http://pypi.python.org/pypi/sqlalchemy-migrate>`_.
 
-Homepage is located at [5]
+Homepage is located at `code.google.com <http://code.google.com/p/sqlalchemy-migrate/>`_
 
-[1] http://packages.python.org/sqlalchemy-migrate/
-[2] http://groups.google.com/group/migrate-users
-[3] http://groups.google.com/group/migrate-announce
-[4] http://pypi.python.org/pypi/sqlalchemy-migrate
-[5] http://code.google.com/p/sqlalchemy-migrate/
 
 Tests and Bugs
 --------------
 
 To run automated tests:
+
 - Copy test_db.cfg.tmpl to test_db.cfg
-- Edit test_db.cfg with database connection strings suitable for
-  running tests.  (Use empty databases.)
+- Edit test_db.cfg with database connection strings suitable for running tests.  (Use empty databases.)
 - python setup.py test
 
-Note that nose [5] is required to run migrate's tests. It should be
+Note that `nose <http://somethingaboutorange.com/mrl/projects/nose/>`_ is required to run migrate's tests. It should be
 installed automatically; if not, try "easy_install nose".
 
 Please report any issues with sqlalchemy-migrate to the issue tracker
-at [6]
-
-[5] http://somethingaboutorange.com/mrl/projects/nose/
-[6] http://code.google.com/p/sqlalchemy-migrate/issues/list
+at `code.google.com issues <http://code.google.com/p/sqlalchemy-migrate/issues/list>`_

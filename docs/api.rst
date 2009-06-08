@@ -128,12 +128,12 @@ Module :mod:`schema <migrate.versioning.schema>`
    :members:
    :synopsis: Database schema management
 
-Module :mod:`shell <migrate.versioning.shell>`
-------------------------------------------------
+Module :mod:`schemadiff <migrate.versioning.schemadiff>`
+--------------------------------------------------------
 
-.. automodule:: migrate.versioning.shell
+.. automodule:: migrate.versioning.schemadiff
    :members:
-   :synopsis: Shell commands
+   :synopsis: Database schema and model differencing
 
 Module :mod:`script <migrate.versioning.script>`
 ------------------------------------------------
@@ -152,16 +152,23 @@ Module :mod:`script <migrate.versioning.script>`
    :show-inheritance:
    :inherited-members:
 
+Module :mod:`shell <migrate.versioning.shell>`
+----------------------------------------------
+
+.. automodule:: migrate.versioning.shell
+   :members:
+   :synopsis: Shell commands
+
 Module :mod:`util <migrate.versioning.util>`
-------------------------------------------------
+--------------------------------------------
 
 .. automodule:: migrate.versioning.util
    :members:
    :synopsis: Utility functions
 
-Module :mod:`schemadiff <migrate.versioning.schemadiff>`
---------------------------------------------------------
+Module :mod:`version <migrate.versioning.version>`
+--------------------------------------------------
 
-.. automodule:: migrate.versioning.schemadiff
+.. automodule:: migrate.versioning.version
    :members:
-   :synopsis: Database schema and model differencing
+   :synopsis: Version management

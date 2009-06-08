@@ -17,25 +17,26 @@ class ControlledSchema(object):
 
     def __init__(self, engine, repository):
         if isinstance(repository, str):
-            repository=Repository(repository)
+            repository = Repository(repository)
         self.engine = engine
         self.repository = repository
-        self.meta=MetaData(engine)
-        self._load()
+        self.meta = MetaData(engine)
+        self.load()
 
     def __eq__(self, other):
+        """Compare two schemas by repositories and versions"""
         return (self.repository is other.repository \
             and self.version == other.version)
 
-    def _load(self):
+    def load(self):
         """Load controlled schema version info from DB"""
         tname = self.repository.version_table
-        self.meta=MetaData(self.engine)
         if not hasattr(self, 'table') or self.table is None:
             try:
                 self.table = Table(tname, self.meta, autoload=True)
             except (exceptions.NoSuchTableError):
                 raise exceptions.DatabaseNotControlledError(tname)
+
         # TODO?: verify that the table is correct (# cols, etc.)
         result = self.engine.execute(self.table.select(
                     self.table.c.repository_id == str(self.repository.id)))
@@ -57,13 +58,15 @@ class ControlledSchema(object):
     def create(cls, engine, repository, version=None):
         """
         Declare a database to be under a repository's version control.
+
+        :returns: :class:`ControlledSchema`
         """
         # Confirm that the version # is valid: positive, integer,
         # exists in repos
-        if type(repository) is str:
-            repository=Repository(repository)
+        if isinstance(repository, str):
+            repository = Repository(repository)
         version = cls._validate_version(repository, version)
-        table=cls._create_table_version(engine, repository, version)
+        table = cls._create_table_version(engine, repository, version)
         # TODO: history table
         # Load repository information and return
         return cls(engine, repository)
@@ -73,7 +76,7 @@ class ControlledSchema(object):
         """
         Ensures this is a valid version number for this repository.
 
-        :raises: :exc:`cls.InvalidVersionError` if invalid
+        :raises: :exc:`ControlledSchema.InvalidVersionError` if invalid
         :return: valid version number
         """
         if version is None:
@@ -164,8 +167,7 @@ class ControlledSchema(object):
         """
         Returns the database name of an engine - ``postgres``, ``sqlite`` ...
         """
-        # TODO: This is a bit of a hack...
-        return str(engine.dialect.__module__).split('.')[-1]
+        return engine.name
 
     def changeset(self, version=None):
         database = self._engine_db(self.engine)
@@ -187,7 +189,7 @@ class ControlledSchema(object):
             and_(self.table.c.version == int(startver),
                  self.table.c.repository_id == str(self.repository.id)))
         self.engine.execute(update, version=int(endver))
-        self._load()
+        self.load()
 
     def upgrade(self, version=None):
         """

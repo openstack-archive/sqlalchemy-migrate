@@ -9,7 +9,7 @@ from migrate.versioning import exceptions, pathed, script
 
 
 class VerNum(object):
-    """A version number"""
+    """A version number that behaves like a string and int at the same time"""
 
     _instances = dict()
 
@@ -51,7 +51,9 @@ class Collection(pathed.Pathed):
     FILENAME_WITH_VERSION = re.compile(r'^(\d{3,}).*')
 
     def __init__(self, path):
-        """Collect current version scripts in repository"""
+        """Collect current version scripts in repository
+        and store them in self.versions
+        """
         super(Collection, self).__init__(path)
         
         # Create temporary list of files, allowing skipped version numbers.
@@ -79,6 +81,7 @@ class Collection(pathed.Pathed):
 
     @property
     def latest(self):
+        """:returns: Latest version in Collection"""
         return max([VerNum(0)] + self.versions.keys())
 
     def create_new_python_version(self, description, **k):
@@ -118,7 +121,7 @@ class Collection(pathed.Pathed):
             self.versions[ver].add_script(filepath)
         
     def version(self, vernum=None):
-        """Returns latest Version if vernum is not given. \
+        """Returns latest Version if vernum is not given.
         Otherwise, returns wanted version"""
         if vernum is None:
             vernum = self.latest

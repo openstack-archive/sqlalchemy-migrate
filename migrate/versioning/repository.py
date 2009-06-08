@@ -169,10 +169,12 @@ class Repository(pathed.Pathed):
         """Create a changeset to migrate this dbms from ver. start to end/latest.
         """
         start = version.VerNum(start)
+
         if end is None:
             end = self.latest
         else:
             end = version.VerNum(end)
+
         if start <= end:
             step = 1
             range_mod = 1
@@ -181,7 +183,8 @@ class Repository(pathed.Pathed):
             step = -1
             range_mod = 0
             op = 'downgrade'
-        versions = range(start+range_mod, end+range_mod, step)
+
+        versions = range(start + range_mod, end + range_mod, step)
         changes = [self.version(v).script(database, op) for v in versions]
         ret = Changeset(start, step=step, *changes)
         return ret

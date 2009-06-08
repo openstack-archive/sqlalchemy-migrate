@@ -126,7 +126,7 @@ class TestVersionedRepository(fixture.Pathed):
             """Creates and verifies a changeset"""
             changeset = repos.changeset('postgres', *params)
             self.assertEquals(len(changeset), length)
-            self.assert_(isinstance(changeset, Changeset))
+            self.assertTrue(isinstance(changeset, Changeset))
             uniq = list()
             # Changesets are iterable
             for version, change in changeset:
@@ -137,50 +137,55 @@ class TestVersionedRepository(fixture.Pathed):
             return changeset
 
         # Upgrade to a specified version...
-        cs = check_changeset((0,10),10)
-        self.assertEquals(cs.keys().pop(0),0) # 0 -> 1: index is starting version
-        self.assertEquals(cs.keys().pop(),9) # 9 -> 10: index is starting version
-        self.assertEquals(cs.start,0) # starting version
-        self.assertEquals(cs.end,10) # ending version
-        check_changeset((0,1),1)
-        check_changeset((0,5),5)
-        check_changeset((0,0),0)
-        check_changeset((5,5),0)
-        check_changeset((10,10),0)
-        check_changeset((5,10),5)
+        cs = check_changeset((0, 10), 10)
+        self.assertEquals(cs.keys().pop(0),0 ) # 0 -> 1: index is starting version
+        self.assertEquals(cs.keys().pop(), 9) # 9 -> 10: index is starting version
+        self.assertEquals(cs.start, 0) # starting version
+        self.assertEquals(cs.end, 10) # ending version
+        check_changeset((0, 1), 1)
+        check_changeset((0, 5), 5)
+        check_changeset((0, 0), 0)
+        check_changeset((5, 5), 0)
+        check_changeset((10, 10), 0)
+        check_changeset((5, 10), 5)
+
         # Can't request a changeset of higher version than this repository
-        self.assertRaises(Exception,repos.changeset,'postgres',5,11)
-        self.assertRaises(Exception,repos.changeset,'postgres',-1,5)
+        self.assertRaises(Exception, repos.changeset, 'postgres', 5, 11)
+        self.assertRaises(Exception, repos.changeset, 'postgres', -1, 5)
 
         # Upgrade to the latest version...
-        cs=check_changeset((0,),10)
-        self.assertEquals(cs.keys().pop(0),0)
-        self.assertEquals(cs.keys().pop(),9)
-        self.assertEquals(cs.start,0)
-        self.assertEquals(cs.end,10)
-        check_changeset((1,),9)
-        check_changeset((5,),5)
-        check_changeset((9,),1)
-        check_changeset((10,),0)
+        cs = check_changeset((0,), 10)
+        self.assertEquals(cs.keys().pop(0), 0)
+        self.assertEquals(cs.keys().pop(), 9)
+        self.assertEquals(cs.start, 0)
+        self.assertEquals(cs.end, 10)
+        check_changeset((1,), 9)
+        check_changeset((5,), 5)
+        check_changeset((9,), 1)
+        check_changeset((10,), 0)
+
         # Can't request a changeset of higher/lower version than this repository
-        self.assertRaises(Exception,repos.changeset,'postgres',11)
-        self.assertRaises(Exception,repos.changeset,'postgres',-1)
+        self.assertRaises(Exception, repos.changeset, 'postgres', 11)
+        self.assertRaises(Exception, repos.changeset, 'postgres', -1)
 
         # Downgrade
-        cs=check_changeset((10,0),10)
-        self.assertEquals(cs.keys().pop(0),10) # 10 -> 9
-        self.assertEquals(cs.keys().pop(),1)    # 1 -> 0
-        self.assertEquals(cs.start,10)
-        self.assertEquals(cs.end,0)
-        check_changeset((10,5),5)
-        check_changeset((5,0),5)
+        cs=check_changeset((10, 0),10)
+        self.assertEquals(cs.keys().pop(0), 10) # 10 -> 9
+        self.assertEquals(cs.keys().pop(), 1)    # 1 -> 0
+        self.assertEquals(cs.start, 10)
+        self.assertEquals(cs.end, 0)
+        check_changeset((10, 5), 5)
+        check_changeset((5, 0), 5)
         
     def test_many_versions(self):
         """Test what happens when lots of versions are created"""
-        repos=Repository(self.path_repos)
-        for i in range(1001):  # since we normally create 3 digit ones, let's see if we blow up
+        repos = Repository(self.path_repos)
+        for i in range(1001):  
             repos.create_script('')
+
+        # since we normally create 3 digit ones, let's see if we blow up
         self.assert_(os.path.exists('%s/versions/1000.py' % self.path_repos))
         self.assert_(os.path.exists('%s/versions/1001.py' % self.path_repos))
         
 # TODO: test manage file
+# TODO: test changeset

@@ -16,7 +16,7 @@ except ImportError:
 
 test_requirements = ['nose >= 0.10']
 required_deps = ['sqlalchemy >= 0.5', 'decorator']
-readme_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README')
+readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README'))
 
 setup(
     name = "sqlalchemy-migrate",

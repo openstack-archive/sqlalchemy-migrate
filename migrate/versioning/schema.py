@@ -5,6 +5,7 @@ from sqlalchemy import (Table, Column, MetaData, String, Text, Integer,
     create_engine)
 from sqlalchemy.sql import and_
 from sqlalchemy import exceptions as sa_exceptions
+from sqlalchemy.sql import bindparam
 
 from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.repository import Repository
@@ -34,36 +35,92 @@ class ControlledSchema(object):
         if not hasattr(self, 'table') or self.table is None:
             try:
                 self.table = Table(tname, self.meta, autoload=True)
-            except (exceptions.NoSuchTableError):
+            except sa_exceptions.NoSuchTableError:
                 raise exceptions.DatabaseNotControlledError(tname)
 
         # TODO?: verify that the table is correct (# cols, etc.)
         result = self.engine.execute(self.table.select(
                     self.table.c.repository_id == str(self.repository.id)))
-        data = list(result)[0]
-        # TODO?: exception if row count is bad
-        # TODO: check repository id, exception if incorrect
+
+        try:
+            data = list(result)[0]
+        except IndexError:
+            raise exceptions.DatabaseNotControlledError(tname)
+
         self.version = data['version']
+        return data
 
-    def _get_repository(self):
+    def drop(self):
         """
-        Given a database engine, try to guess the repository.
+        Remove version control from a database.
+        """
+        try:
+            self.table.drop()
+        except (sa_exceptions.SQLError):
+            raise exceptions.DatabaseNotControlledError(str(self.table))
 
-        :raise: :exc:`NotImplementedError`
+    def changeset(self, version=None):
+        """API to Changeset creation.
+        
+        Uses self.version for start version and engine.name to get database name."""
+        database = self.engine.name
+        start_ver = self.version
+        changeset = self.repository.changeset(database, start_ver, version)
+        return changeset
+
+    def runchange(self, ver, change, step):
+        startver = ver
+        endver = ver + step
+        # Current database version must be correct! Don't run if corrupt!
+        if self.version != startver:
+            raise exceptions.InvalidVersionError("%s is not %s" % \
+                                                     (self.version, startver))
+        # Run the change
+        change.run(self.engine, step)
+
+        # Update/refresh database version
+        self.update_repository_table(startver, endver)
+        self.load()
+
+    def update_repository_table(self, startver, endver):
+        """Update version_table with new information"""
+        update = self.table.update(and_(self.table.c.version == int(startver),
+             self.table.c.repository_id == str(self.repository.id)))
+        self.engine.execute(update, version=int(endver))
+
+    def upgrade(self, version=None):
         """
-        # TODO: no guessing yet; for now, a repository must be supplied
-        raise NotImplementedError()
+        Upgrade (or downgrade) to a specified version, or latest version.
+        """
+        changeset = self.changeset(version)
+        for ver, change in changeset:
+            self.runchange(ver, change, changeset.step)
+
+    def update_db_from_model(self, model):
+        """
+        Modify the database to match the structure of the current Python model.
+        """
+        model = load_model(model)
+
+        diff = schemadiff.getDiffOfModelAgainstDatabase(
+            model, self.engine, excludeTables=[self.repository.version_table])
+        genmodel.ModelGenerator(diff).applyModel()
+
+        self.update_repository_table(self.version, int(self.repository.latest))
+
+        self.load()
 
     @classmethod
     def create(cls, engine, repository, version=None):
         """
         Declare a database to be under a repository's version control.
 
+        :raises: :exc:`DatabaseAlreadyControlledError`
         :returns: :class:`ControlledSchema`
         """
         # Confirm that the version # is valid: positive, integer,
         # exists in repos
-        if isinstance(repository, str):
+        if isinstance(repository, basestring):
             repository = Repository(repository)
         version = cls._validate_version(repository, version)
         table = cls._create_table_version(engine, repository, version)
@@ -76,7 +133,7 @@ class ControlledSchema(object):
         """
         Ensures this is a valid version number for this repository.
 
-        :raises: :exc:`ControlledSchema.InvalidVersionError` if invalid
+        :raises: :exc:`InvalidVersionError` if invalid
         :return: valid version number
         """
         if version is None:
@@ -93,6 +150,8 @@ class ControlledSchema(object):
     def _create_table_version(cls, engine, repository, version):
         """
         Creates the versioning table in a database.
+
+        :raises: :exc:`DatabaseAlreadyControlledError`
         """
         # Create tables
         tname = repository.version_table
@@ -104,17 +163,21 @@ class ControlledSchema(object):
             Column('repository_path', Text),
             Column('version', Integer), )
 
+        # there can be multiple repositories/schemas in the same db
         if not table.exists():
             table.create()
 
+        # test for existing repository_id
+        s = table.select(table.c.repository_id == bindparam("repository_id"))
+        result = engine.execute(s, repository_id=repository.id)
+        if result.fetchone():
+            raise exceptions.DatabaseAlreadyControlledError
+
         # Insert data
-        try:
-            engine.execute(table.insert(), repository_id=repository.id,
+        engine.execute(table.insert().values(
+                           repository_id=repository.id,
                            repository_path=repository.path,
-                           version=int(version))
-        except sa_exceptions.IntegrityError:
-            # An Entry for this repo already exists.
-            raise exceptions.DatabaseAlreadyControlledError()
+                           version=int(version)))
         return table
 
     @classmethod
@@ -123,8 +186,9 @@ class ControlledSchema(object):
         Compare the current model against the current database.
         """
         if isinstance(repository, basestring):
-            repository=Repository(repository)
+            repository = Repository(repository)
         model = load_model(model)
+
         diff = schemadiff.getDiffOfModelAgainstDatabase(
             model, engine, excludeTables=[repository.version_table])
         return diff
@@ -135,66 +199,8 @@ class ControlledSchema(object):
         Dump the current database as a Python model.
         """
         if isinstance(repository, basestring):
-            repository=Repository(repository)
+            repository = Repository(repository)
+
         diff = schemadiff.getDiffOfModelAgainstDatabase(
             MetaData(), engine, excludeTables=[repository.version_table])
         return genmodel.ModelGenerator(diff, declarative).toPython()
-
-    def update_db_from_model(self, model):
-        """
-        Modify the database to match the structure of the current Python model.
-        """
-        if isinstance(self.repository, basestring):
-            self.repository=Repository(self.repository)
-        model = load_model(model)
-        diff = schemadiff.getDiffOfModelAgainstDatabase(
-            model, self.engine, excludeTables=[self.repository.version_table])
-        genmodel.ModelGenerator(diff).applyModel()
-        update = self.table.update(
-            self.table.c.repository_id == str(self.repository.id))
-        self.engine.execute(update, version=int(self.repository.latest))
-
-    def drop(self):
-        """
-        Remove version control from a database.
-        """
-        try:
-            self.table.drop()
-        except (sa_exceptions.SQLError):
-            raise exceptions.DatabaseNotControlledError(str(self.table))
-
-    def _engine_db(self, engine):
-        """
-        Returns the database name of an engine - ``postgres``, ``sqlite`` ...
-        """
-        return engine.name
-
-    def changeset(self, version=None):
-        database = self._engine_db(self.engine)
-        start_ver = self.version
-        changeset = self.repository.changeset(database, start_ver, version)
-        return changeset
-
-    def runchange(self, ver, change, step):
-        startver = ver
-        endver = ver + step
-        # Current database version must be correct! Don't run if corrupt!
-        if self.version != startver:
-            raise exceptions.InvalidVersionError("%s is not %s" % \
-                                                     (self.version, startver))
-        # Run the change
-        change.run(self.engine, step)
-        # Update/refresh database version
-        update = self.table.update(
-            and_(self.table.c.version == int(startver),
-                 self.table.c.repository_id == str(self.repository.id)))
-        self.engine.execute(update, version=int(endver))
-        self.load()
-
-    def upgrade(self, version=None):
-        """
-        Upgrade (or downgrade) to a specified version, or latest version.
-        """
-        changeset = self.changeset(version)
-        for ver, change in changeset:
-            self.runchange(ver, change, changeset.step)

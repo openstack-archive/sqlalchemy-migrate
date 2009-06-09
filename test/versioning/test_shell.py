@@ -16,8 +16,6 @@ from migrate.versioning.exceptions import *
 from test import fixture
 
 
-python_version = sys.version[:3]
-
 class Shell(fixture.Shell):
 
     _cmd = os.path.join('python migrate', 'versioning', 'shell.py')
@@ -400,7 +398,7 @@ class TestShellDatabase(Shell, fixture.DB):
         self._run_test_sqlfile(upgrade_script,downgrade_script)
 
     @fixture.usedb()
-    def test_test(self):
+    def test_command_test(self):
         repos_name = 'repos_name'
         repos_path = self.tmp()
 

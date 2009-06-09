@@ -21,7 +21,10 @@ class Pathed(base.Base):
 
     def tearDown(self):
         super(Pathed, self).tearDown()
-        sys.path.remove(self.temp_usable_dir)
+        try:
+            sys.path.remove(self.temp_usable_dir)
+        except:
+            pass # w00t?
         Pathed.purge(self.temp_usable_dir)
 
     @classmethod

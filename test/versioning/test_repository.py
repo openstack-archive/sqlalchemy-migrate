@@ -6,6 +6,7 @@ import shutil
 
 from migrate.versioning import exceptions
 from migrate.versioning.repository import *
+from migrate.versioning.script import *
 from nose.tools import raises
 
 from test import fixture
@@ -164,6 +165,9 @@ class TestVersionedRepository(fixture.Pathed):
         check_changeset((9,), 1)
         check_changeset((10,), 0)
 
+        # run changes
+        cs.run('postgres', 'upgrade')
+
         # Can't request a changeset of higher/lower version than this repository
         self.assertRaises(Exception, repos.changeset, 'postgres', 11)
         self.assertRaises(Exception, repos.changeset, 'postgres', -1)
@@ -186,6 +190,7 @@ class TestVersionedRepository(fixture.Pathed):
         # since we normally create 3 digit ones, let's see if we blow up
         self.assert_(os.path.exists('%s/versions/1000.py' % self.path_repos))
         self.assert_(os.path.exists('%s/versions/1001.py' % self.path_repos))
+
         
 # TODO: test manage file
 # TODO: test changeset

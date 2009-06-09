@@ -9,9 +9,9 @@ class TestPathed(fixture.Base):
         self.assert_(os.path.exists(path))
     def test_repository(self):
         """We can find the path to the default repository"""
-        path = template.get_repository() 
+        path = template.get_repository()
         self.assert_(os.path.exists(path))
     def test_script(self):
         """We can find the path to the default migration script"""
-        path = template.get_script() 
+        path = template.get_script()
         self.assert_(os.path.exists(path))

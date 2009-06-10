@@ -25,14 +25,14 @@ Column
 
 Given a standard SQLAlchemy table::
 
- table = Table('mytable',meta,
-    Column('id',Integer,primary_key=True),
+ table = Table('mytable', meta,
+    Column('id', Integer, primary_key=True),
  )
  table.create()
 
 Create a column::
 
- col = Column('col1',String)
+ col = Column('col1', String)
  col.create(table)
 
  # Column is added to table based on its name
@@ -92,7 +92,7 @@ SQLAlchemy supports creating/dropping constraints at the same time a table is cr
 
 Primary key constraints::
 
- cons = PrimaryKeyConstraint(col1,col2)
+ cons = PrimaryKeyConstraint(col1, col2)
  # Create the constraint
  cons.create()
  # Drop the constraint
@@ -100,7 +100,7 @@ Primary key constraints::
 
 Note that Oracle requires that you state the name of the primary key constraint to be created/dropped. SQLAlchemy Migrate will try to guess the name of the PK constraint for other databases, but if it's something other than the default, you'll need to give its name::
 
- PrimaryKeyConstraint(col1,col2,name='my_pk_constraint')
+ PrimaryKeyConstraint(col1, col2, name='my_pk_constraint')
 
 Foreign key constraints::
 
@@ -112,4 +112,4 @@ Foreign key constraints::
 
 Names are specified just as with primary key constraints::
  
- ForeignKeyConstraint([table.c.fkey], [othertable.c.id],name='my_fk_constraint')
+ ForeignKeyConstraint([table.c.fkey], [othertable.c.id], name='my_fk_constraint')

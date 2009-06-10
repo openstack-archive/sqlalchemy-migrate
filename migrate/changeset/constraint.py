@@ -106,9 +106,7 @@ class PrimaryKeyConstraint(ConstraintChangeset, schema.PrimaryKeyConstraint):
 
     def autoname(self):
         """Mimic the database's automatic constraint names"""
-        ret = "%(table)s_pkey"%dict(
-            table=self.table.name,
-        )
+        ret = "%(table)s_pkey" % dict(table=self.table.name)
         return ret
 
     def drop(self, *args, **kwargs):

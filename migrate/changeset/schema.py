@@ -2,7 +2,9 @@
    Schema module providing common schema operations.
 """
 import re
+
 import sqlalchemy
+
 from migrate.changeset.databases.visitor import get_engine_visitor
 
 __all__ = [
@@ -15,35 +17,17 @@ __all__ = [
 
 
 def create_column(column, table=None, *p, **k):
+    """Create a column, given the table"""
     if table is not None:
         return table.create_column(column, *p, **k)
     return column.create(*p, **k)
 
 
 def drop_column(column, table=None, *p, **k):
+    """Drop a column, given the table"""
     if table is not None:
         return table.drop_column(column, *p, **k)
     return column.drop(*p, **k)
-
-
-def _to_table(table, engine=None):
-    if isinstance(table, sqlalchemy.Table):
-        return table
-    # Given: table name, maybe an engine
-    meta = sqlalchemy.MetaData()
-    if engine is not None:
-        meta.bind = engine
-    return sqlalchemy.Table(table, meta)
-
-
-def _to_index(index, table=None, engine=None):
-    if isinstance(index, sqlalchemy.Index):
-        return index
-    # Given: index name; table name required
-    table = _to_table(table, engine)
-    ret = sqlalchemy.Index(index)
-    ret.table = table
-    return ret
 
 
 def rename_table(table, name, engine=None):
@@ -62,16 +46,6 @@ def rename_index(index, name, table=None, engine=None):
     """
     index = _to_index(index, table, engine)
     index.rename(name)
-
-
-def _engine_run_visitor(engine, visitorcallable, element, **kwargs):
-    conn = engine.connect()
-    try:
-        element.accept_schema_visitor(visitorcallable(engine.dialect,
-                                                      connection=conn))
-    finally:
-        conn.close()
-
 
 def alter_column(*p, **k):
     """Alter a column.
@@ -112,6 +86,35 @@ def alter_column(*p, **k):
         # Change all other attrs
         for key, val in delta.iteritems():
             setattr(col, key, val)
+
+
+def _to_table(table, engine=None):
+    if isinstance(table, sqlalchemy.Table):
+        return table
+    # Given: table name, maybe an engine
+    meta = sqlalchemy.MetaData()
+    if engine is not None:
+        meta.bind = engine
+    return sqlalchemy.Table(table, meta)
+
+
+def _to_index(index, table=None, engine=None):
+    if isinstance(index, sqlalchemy.Index):
+        return index
+    # Given: index name; table name required
+    table = _to_table(table, engine)
+    ret = sqlalchemy.Index(index)
+    ret.table = table
+    return ret
+
+
+def _engine_run_visitor(engine, visitorcallable, element, **kwargs):
+    conn = engine.connect()
+    try:
+        element.accept_schema_visitor(visitorcallable(engine.dialect,
+                                                      connection=conn))
+    finally:
+        conn.close()
 
 
 def _normalize_table(column, table):

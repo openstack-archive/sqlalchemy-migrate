@@ -87,7 +87,7 @@ def create(repository, name, **opts):
 
 @catch_known_errors
 def script(description, repository, **opts):
-    """%prog script [--repository=REPOSITORY_PATH] DESCRIPTION
+    """%prog script DESCRIPTION REPOSITORY_PATH
 
     Create an empty change script using the next unused version number
     appended with the given description.
@@ -101,7 +101,7 @@ def script(description, repository, **opts):
 
 @catch_known_errors
 def script_sql(database, repository, **opts):
-    """%prog script_sql [--repository=REPOSITORY_PATH] DATABASE
+    """%prog script_sql DATABASE REPOSITORY_PATH
 
     Create empty change SQL scripts for given DATABASE, where DATABASE
     is either specific ('postgres', 'mysql', 'oracle', 'sqlite', etc.)
@@ -115,29 +115,6 @@ def script_sql(database, repository, **opts):
     repo.create_script_sql(database, **opts)
 
 
-def test(repository, url=None, **opts):
-    """%prog test REPOSITORY_PATH URL [VERSION]
-
-    Performs the upgrade and downgrade option on the given
-    database. This is not a real test and may leave the database in a
-    bad state. You should therefore better run the test on a copy of
-    your database.
-    """
-    engine = construct_engine(url, **opts)
-    repos = Repository(repository)
-    script = repos.version(None).script()
-
-    # Upgrade
-    print "Upgrading...",
-    script.run(engine, 1)
-    print "done"
-
-    print "Downgrading...",
-    script.run(engine, -1)
-    print "done"
-    print "Success"
-
-
 def version(repository, **opts):
     """%prog version REPOSITORY_PATH
 
@@ -145,6 +122,20 @@ def version(repository, **opts):
     """
     repo = Repository(repository)
     return repo.latest
+
+
+def db_version(url, repository, **opts):
+    """%prog db_version URL REPOSITORY_PATH
+
+    Show the current version of the repository with the given
+    connection string, under version control of the specified
+    repository.
+
+    The url should be any valid SQLAlchemy connection string.
+    """
+    engine = construct_engine(url, **opts)
+    schema = ControlledSchema(engine, repository)
+    return schema.version
 
 
 def source(version, dest=None, repository=None, **opts):
@@ -164,43 +155,6 @@ def source(version, dest=None, repository=None, **opts):
         dest.close()
         ret = None
     return ret
-
-
-def version_control(url, repository, version=None, **opts):
-    """%prog version_control URL REPOSITORY_PATH [VERSION]
-
-    Mark a database as under this repository's version control.
-
-    Once a database is under version control, schema changes should
-    only be done via change scripts in this repository.
-
-    This creates the table version_table in the database.
-
-    The url should be any valid SQLAlchemy connection string.
-
-    By default, the database begins at version 0 and is assumed to be
-    empty.  If the database is not empty, you may specify a version at
-    which to begin instead. No attempt is made to verify this
-    version's correctness - the database schema is expected to be
-    identical to what it would be if the database were created from
-    scratch.
-    """
-    engine = construct_engine(url, **opts)
-    ControlledSchema.create(engine, repository, version)
-
-
-def db_version(url, repository, **opts):
-    """%prog db_version URL REPOSITORY_PATH
-
-    Show the current version of the repository with the given
-    connection string, under version control of the specified
-    repository.
-
-    The url should be any valid SQLAlchemy connection string.
-    """
-    engine = construct_engine(url, **opts)
-    schema = ControlledSchema(engine, repository)
-    return schema.version
 
 
 def upgrade(url, repository, version=None, **opts):
@@ -236,6 +190,51 @@ def downgrade(url, repository, version, **opts):
         "Try 'upgrade' instead."
     return _migrate(url, repository, version, upgrade=False, err=err, **opts)
     
+def test(repository, url, **opts):
+    """%prog test REPOSITORY_PATH URL [VERSION]
+
+    Performs the upgrade and downgrade option on the given
+    database. This is not a real test and may leave the database in a
+    bad state. You should therefore better run the test on a copy of
+    your database.
+    """
+    engine = construct_engine(url, **opts)
+    repos = Repository(repository)
+    script = repos.version(None).script()
+
+    # Upgrade
+    print "Upgrading...",
+    script.run(engine, 1)
+    print "done"
+
+    print "Downgrading...",
+    script.run(engine, -1)
+    print "done"
+    print "Success"
+
+
+def version_control(url, repository, version=None, **opts):
+    """%prog version_control URL REPOSITORY_PATH [VERSION]
+
+    Mark a database as under this repository's version control.
+
+    Once a database is under version control, schema changes should
+    only be done via change scripts in this repository.
+
+    This creates the table version_table in the database.
+
+    The url should be any valid SQLAlchemy connection string.
+
+    By default, the database begins at version 0 and is assumed to be
+    empty.  If the database is not empty, you may specify a version at
+    which to begin instead. No attempt is made to verify this
+    version's correctness - the database schema is expected to be
+    identical to what it would be if the database were created from
+    scratch.
+    """
+    engine = construct_engine(url, **opts)
+    ControlledSchema.create(engine, repository, version)
+
 
 def drop_version_control(url, repository, **opts):
     """%prog drop_version_control URL REPOSITORY_PATH
@@ -279,7 +278,7 @@ def compare_model_to_db(url, model, repository, **opts):
 
 
 def create_model(url, repository, **opts):
-    """%prog create_model URL REPOSITORY_PATH
+    """%prog create_model URL REPOSITORY_PATH [DECLERATIVE=True]
 
     Dump the current database as a Python model to stdout.
 

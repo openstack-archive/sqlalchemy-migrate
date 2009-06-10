@@ -33,7 +33,7 @@ class RawAlterTableVisitor(object):
 
     def _do_quote_table_identifier(self, identifier):
         """Returns a quoted version of the given table identifier."""
-        return '"%s"'%identifier
+        return '"%s"' % identifier
 
     def start_alter_table(self, param):
         """Returns the start of an ``ALTER TABLE`` SQL-Statement.

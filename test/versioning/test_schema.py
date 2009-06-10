@@ -151,6 +151,9 @@ class TestControlledSchema(fixture.Pathed, fixture.DB):
 
         dbschema.upgrade(10)
 
+        self.assertRaises(ValueError, dbschema.upgrade, 'a')
+        self.assertRaises(exceptions.InvalidVersionError, dbschema.runchange, 20, '', 1)
+
         # TODO: test for table version in db
 
         # cleanup

@@ -10,19 +10,11 @@ MySQLSchemaGenerator = sa_base.MySQLSchemaGenerator
 
 
 class MySQLColumnGenerator(MySQLSchemaGenerator, ansisql.ANSIColumnGenerator):
-
-    def _do_quote_table_identifier(self, identifier):
-        return '%s'%identifier
     pass
 
 
 class MySQLColumnDropper(ansisql.ANSIColumnDropper):
-
-    def _do_quote_table_identifier(self, identifier):
-        return '%s'%identifier
-
-    def _do_quote_column_identifier(self, identifier):
-        return '%s'%identifier
+    pass
 
 
 class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
@@ -49,9 +41,10 @@ class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
         if not column.table:
             column.table = delta.table
         colspec = self.get_column_specification(column)
-        self.start_alter_table(table_name)
+        # TODO: we need table formating here
+        self.start_alter_table(self.preparer.quote(table_name, True))
         self.append("CHANGE COLUMN ")
-        self.append(col_name)
+        self.append(self.preparer.quote(col_name, True))
         self.append(' ')
         self.append(colspec)
 
@@ -59,14 +52,9 @@ class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
         # If MySQL can do this, I can't find how
         raise exceptions.NotSupportedError("MySQL cannot rename indexes")
 
-    def _do_quote_table_identifier(self, identifier):
-        return '%s'%identifier
-
 
 class MySQLConstraintGenerator(ansisql.ANSIConstraintGenerator):
-
-    def _do_quote_table_identifier(self, identifier):
-        return '%s'%identifier
+    pass
 
 
 class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
@@ -85,11 +73,8 @@ class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
     def visit_migrate_foreign_key_constraint(self, constraint):
         self.start_alter_table(constraint)
         self.append("DROP FOREIGN KEY ")
-        self.append(constraint.name)
+        self.append(self.preparer.format_constraint(constraint))
         self.execute()
-
-    def _do_quote_table_identifier(self, identifier):
-        return '%s'%identifier
 
 
 class MySQLDialect(ansisql.ANSIDialect):

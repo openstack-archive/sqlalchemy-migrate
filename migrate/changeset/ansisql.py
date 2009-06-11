@@ -31,10 +31,6 @@ class RawAlterTableVisitor(object):
             ret = ret.fullname
         return ret
 
-    def _do_quote_table_identifier(self, identifier):
-        """Returns a quoted version of the given table identifier."""
-        return '"%s"' % identifier
-
     def start_alter_table(self, param):
         """Returns the start of an ``ALTER TABLE`` SQL-Statement.
 
@@ -47,9 +43,7 @@ class RawAlterTableVisitor(object):
           or string (table name)
         """
         table = self._to_table(param)
-        table_name = self._to_table_name(table)
-        self.append('\nALTER TABLE %s ' % \
-                        self._do_quote_table_identifier(table_name))
+        self.append('\nALTER TABLE %s ' % self.preparer.format_table(table))
         return table
 
     def _pk_constraint(self, table, column, status):
@@ -91,7 +85,7 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         :type column: :class:`sqlalchemy.Column`
         """
         table = self.start_alter_table(column)
-        self.append(" ADD ")
+        self.append("ADD ")
         colspec = self.get_column_specification(column)
         self.append(colspec)
         self.execute()
@@ -107,7 +101,8 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
 
 class ANSIColumnDropper(AlterTableVisitor):
     """Extends ANSI SQL dropper for column dropping (``ALTER TABLE
-    DROP COLUMN``)."""
+    DROP COLUMN``).
+    """
 
     def visit_column(self, column):
         """Drop a column from its table.
@@ -116,8 +111,7 @@ class ANSIColumnDropper(AlterTableVisitor):
         :type column: :class:`sqlalchemy.Column`
         """
         table = self.start_alter_table(column)
-        self.append(' DROP COLUMN %s' % \
-                        self._do_quote_column_identifier(column.name))
+        self.append(' DROP COLUMN %s' % self.preparer.format_column(column))
         self.execute()
 
 
@@ -136,18 +130,11 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     name. NONE means the name is unchanged.
     """
 
-    def _do_quote_column_identifier(self, identifier):
-        """override this function to define how identifiers (table and
-        column names) should be written in the SQL.  For instance, in
-        PostgreSQL, double quotes should surround the identifier
-        """
-        return identifier
-
     def visit_table(self, param):
         """Rename a table. Other ops aren't supported."""
         table, newname = param
         self.start_alter_table(table)
-        self.append("RENAME TO %s"%newname)
+        self.append("RENAME TO %s" % self.preparer.quote(newname, table.quote))
         self.execute()
 
     def visit_column(self, delta):
@@ -200,8 +187,8 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         nullable = delta['nullable']
         table = self._to_table(delta)
         self.start_alter_table(table_name)
-        self.append("ALTER COLUMN %s " % \
-                        self._do_quote_column_identifier(col_name))
+        # TODO: use preparer.format_column
+        self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
         if nullable:
             self.append("DROP NOT NULL")
         else:
@@ -214,10 +201,11 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         dummy = sa.Column(None, None, server_default=server_default)
         default_text = self.get_column_default_string(dummy)
         self.start_alter_table(table_name)
-        self.append("ALTER COLUMN %s " % \
-                        self._do_quote_column_identifier(col_name))
+        # TODO: use preparer.format_column
+        self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
         if default_text is not None:
-            self.append("SET DEFAULT %s"%default_text)
+            # TODO: format needed?
+            self.append("SET DEFAULT %s" % default_text)
         else:
             self.append("DROP DEFAULT")
 
@@ -229,21 +217,25 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
             type = type()
         type_text = type.dialect_impl(self.dialect).get_col_spec()
         self.start_alter_table(table_name)
-        self.append("ALTER COLUMN %s TYPE %s" % \
-                        (self._do_quote_column_identifier(col_name),
-                         type_text))
+        # TODO: does type need formating?
+        # TODO: use preparer.format_column
+        self.append("ALTER COLUMN %s TYPE %s" %
+            (self.preparer.quote_identifier(col_name), type_text))
 
     def _visit_column_name(self, table_name, col_name, delta):
         new_name = delta['name']
         self.start_alter_table(table_name)
+        # TODO: use preparer.format_column
         self.append('RENAME COLUMN %s TO %s' % \
-                        (self._do_quote_column_identifier(col_name),
-                         self._do_quote_column_identifier(new_name)))
+                        (self.preparer.quote_identifier(col_name),
+                         self.preparer.quote_identifier(new_name)))
 
     def visit_index(self, param):
         """Rename an index; #36"""
         index, newname = param
-        self.append("ALTER INDEX %s RENAME TO %s" % (index.name, newname))
+        self.append("ALTER INDEX %s RENAME TO %s" %
+            (self.preparer.quote(self._validate_identifier(index.name, True), index.quote),
+             self.preparer.quote(self._validate_identifier(newname, True) , index.quote)))
         self.execute()
 
 
@@ -269,24 +261,24 @@ class ANSIConstraintCommon(AlterTableVisitor):
             ret = cons.name
         else:
             ret = cons.name = cons.autoname()
-        return ret
+        return self.preparer.quote(ret, cons.quote)
 
 
 class ANSIConstraintGenerator(ANSIConstraintCommon):
 
     def get_constraint_specification(self, cons, **kwargs):
         if isinstance(cons, constraint.PrimaryKeyConstraint):
-            col_names = ','.join([i.name for i in cons.columns])
+            col_names = ', '.join([self.preparer.format_column(col) for col in cons.columns])
             ret = "PRIMARY KEY (%s)" % col_names
             if cons.name:
                 # Named constraint
-                ret = ("CONSTRAINT %s " % cons.name)+ret
+                ret = ("CONSTRAINT %s " % self.preparer.format_constraint(cons)) + ret
         elif isinstance(cons, constraint.ForeignKeyConstraint):
             params = dict(
-                columns=','.join([c.name for c in cons.columns]),
-                reftable=cons.reftable,
-                referenced=','.join([c.name for c in cons.referenced]),
-                name=self.get_constraint_name(cons),
+                columns = ', '.join(map(self.preparer.format_column, cons.columns)),
+                reftable = self.preparer.format_table(cons.reftable),
+                referenced = ', '.join(map(self.preparer.format_column, cons.referenced)),
+                name = self.get_constraint_name(cons),
             )
             ret = "CONSTRAINT %(name)s FOREIGN KEY (%(columns)s) "\
                 "REFERENCES %(reftable)s (%(referenced)s)" % params
@@ -350,7 +342,7 @@ class ANSIFKGenerator(AlterTableVisitor, SchemaGenerator):
         if self.fk:
             self.add_foreignkey(self.fk.constraint)
 
-        if self.buffer.getvalue() !='':
+        if self.buffer.getvalue() != '':
             self.execute()
 
     def visit_table(self, table):

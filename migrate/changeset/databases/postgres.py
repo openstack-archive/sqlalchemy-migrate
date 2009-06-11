@@ -11,40 +11,27 @@ from sqlalchemy.databases import postgres as sa_base
 PGSchemaGenerator = sa_base.PGSchemaGenerator
 
 
-class PGSchemaGeneratorMixin(object):
-    """Common code used by the PostgreSQL specific classes."""
-
-    def _do_quote_table_identifier(self, identifier):
-        return identifier
-
-    def _do_quote_column_identifier(self, identifier):
-        return '"%s"'%identifier
-
-
-class PGColumnGenerator(PGSchemaGenerator, ansisql.ANSIColumnGenerator,
-                        PGSchemaGeneratorMixin):
+class PGColumnGenerator(PGSchemaGenerator, ansisql.ANSIColumnGenerator):
     """PostgreSQL column generator implementation."""
     pass
 
 
-class PGColumnDropper(ansisql.ANSIColumnDropper, PGSchemaGeneratorMixin):
+class PGColumnDropper(ansisql.ANSIColumnDropper):
     """PostgreSQL column dropper implementation."""
     pass
 
 
-class PGSchemaChanger(ansisql.ANSISchemaChanger, PGSchemaGeneratorMixin):
+class PGSchemaChanger(ansisql.ANSISchemaChanger):
     """PostgreSQL schema changer implementation."""
     pass
 
 
-class PGConstraintGenerator(ansisql.ANSIConstraintGenerator,
-                            PGSchemaGeneratorMixin):
+class PGConstraintGenerator(ansisql.ANSIConstraintGenerator):
     """PostgreSQL constraint generator implementation."""
     pass
 
 
-class PGConstraintDropper(ansisql.ANSIConstraintDropper,
-                          PGSchemaGeneratorMixin):
+class PGConstraintDropper(ansisql.ANSIConstraintDropper):
     """PostgreSQL constaint dropper implementation."""
     pass
 

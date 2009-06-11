@@ -1,34 +1,40 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from sqlalchemy import *
 from sqlalchemy.util import *
-from test import fixture
+
 from migrate.changeset import *
 
+from test import fixture
+
 class TestConstraint(fixture.DB):
-    level=fixture.DB.CONNECT
+    level = fixture.DB.CONNECT
+
     def _setup(self, url):
         super(TestConstraint, self)._setup(url)
         self._create_table()
+
     def _teardown(self):
-        if hasattr(self,'table') and self.engine.has_table(self.table.name):
+        if hasattr(self, 'table') and self.engine.has_table(self.table.name):
             self.table.drop()
         super(TestConstraint, self)._teardown()
 
     def _create_table(self):
         self._connect(self.url)
         self.meta = MetaData(self.engine)
-        self.table = Table('mytable',self.meta,
-            Column('id',Integer),
-            Column('fkey',Integer),
-            mysql_engine='InnoDB'
-        )
+        self.table = Table('mytable', self.meta,
+            Column('id', Integer),
+            Column('fkey', Integer),
+            mysql_engine='InnoDB')
         if self.engine.has_table(self.table.name):
             self.table.drop()
         self.table.create()
-        #self.assertEquals(self.table.primary_key,[])
-        self.assertEquals(len(self.table.primary_key),0)
+        self.assertEquals(len(self.table.primary_key), 0)
         self.assert_(isinstance(self.table.primary_key,
-            schema.PrimaryKeyConstraint),self.table.primary_key.__class__)
-    def _define_pk(self,*cols):
+            schema.PrimaryKeyConstraint), self.table.primary_key.__class__)
+
+    def _define_pk(self, *cols):
         # Add a pk by creating a PK constraint
         pk = PrimaryKeyConstraint(table=self.table, *cols)
         self.assertEquals(list(pk.columns),list(cols))
@@ -38,7 +44,7 @@ class TestConstraint(fixture.DB):
         pk.create()
         self.refresh_table()
         if not self.url.startswith('sqlite'):
-            self.assertEquals(list(self.table.primary_key),list(cols))
+            self.assertEquals(list(self.table.primary_key), list(cols))
         #self.assert_(self.table.primary_key.name is not None)
 
         # Drop the PK constraint
@@ -99,19 +105,19 @@ class TestConstraint(fixture.DB):
     def test_define_pk_multi(self):
         """Multicolumn PK constraints can be defined, created, and dropped"""
         #self.engine.echo=True
-        self._define_pk(self.table.c.id,self.table.c.fkey)
+        self._define_pk(self.table.c.id, self.table.c.fkey)
 
 
 class TestAutoname(fixture.DB):
-    level=fixture.DB.CONNECT
+    level = fixture.DB.CONNECT
 
     def _setup(self, url):
         super(TestAutoname, self)._setup(url)
         self._connect(self.url)
         self.meta = MetaData(self.engine)
         self.table = Table('mytable',self.meta,
-            Column('id',Integer),
-            Column('fkey',String(40)),
+            Column('id', Integer),
+            Column('fkey', String(40)),
         )
         if self.engine.has_table(self.table.name):
             self.table.drop()
@@ -129,6 +135,7 @@ class TestAutoname(fixture.DB):
         cons = PrimaryKeyConstraint(self.table.c.id)
         cons.create()
         self.refresh_table()
+        # TODO: test for index for sqlite
         if not self.url.startswith('sqlite'):
             self.assertEquals(list(cons.columns),list(self.table.primary_key))
 
@@ -136,4 +143,4 @@ class TestAutoname(fixture.DB):
         cons.name = None
         cons.drop()
         self.refresh_table()
-        self.assertEquals(list(),list(self.table.primary_key))
+        self.assertEquals(list(), list(self.table.primary_key))

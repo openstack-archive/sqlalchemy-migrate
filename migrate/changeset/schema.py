@@ -8,23 +8,29 @@ import sqlalchemy
 from migrate.changeset.databases.visitor import get_engine_visitor
 
 __all__ = [
-'create_column',
-'drop_column',
-'alter_column',
-'rename_table',
-'rename_index',
+    'create_column',
+    'drop_column',
+    'alter_column',
+    'rename_table',
+    'rename_index',
 ]
 
 
 def create_column(column, table=None, *p, **k):
-    """Create a column, given the table"""
+    """Create a column, given the table
+    
+    API to :meth:`column.create`
+    """
     if table is not None:
         return table.create_column(column, *p, **k)
     return column.create(*p, **k)
 
 
 def drop_column(column, table=None, *p, **k):
-    """Drop a column, given the table"""
+    """Drop a column, given the table
+    
+    API to :meth:`column.drop`
+    """
     if table is not None:
         return table.drop_column(column, *p, **k)
     return column.drop(*p, **k)
@@ -32,7 +38,10 @@ def drop_column(column, table=None, *p, **k):
 
 def rename_table(table, name, engine=None):
     """Rename a table, given the table's current name and the new
-    name."""
+    name.
+    
+    API to :meth:`table.rename`
+    """
     table = _to_table(table, engine)
     table.rename(name)
 
@@ -43,6 +52,8 @@ def rename_index(index, name, table=None, engine=None):
     Takes an index name/object, a table name/object, and an
     engine. Engine and table aren't required if an index object is
     given.
+
+    API to :meth:`index.rename`
     """
     index = _to_index(index, table, engine)
     index.rename(name)
@@ -52,6 +63,8 @@ def alter_column(*p, **k):
 
     Parameters: column name, table name, an engine, and the properties
     of that column to change
+
+    API to :meth:`column.alter`
     """
     if len(p) and isinstance(p[0], sqlalchemy.Column):
         col = p[0]
@@ -170,6 +183,7 @@ class _ColumnDelta(dict):
         # Things are initialized differently depending on how many column
         # parameters are given. Figure out how many and call the appropriate
         # method.
+
         if len(p) >= 1 and isinstance(p[0], sqlalchemy.Column):
             # At least one column specified
             if len(p) >= 2 and isinstance(p[1], sqlalchemy.Column):
@@ -183,25 +197,28 @@ class _ColumnDelta(dict):
             func = self._init_0col
         diffs = func(*p, **k)
         self._set_diffs(diffs)
-    # Column attributes that can be altered
-    diff_keys = ('name', 'type', 'nullable', 'default', 'server_default',
-                 'primary_key', 'foreign_key')
 
-    def _get_table_name(self):
+    # Column attributes that can be altered
+    diff_keys = ('name',
+                 'type',
+                 'nullable',
+                 'default',
+                 'server_default',
+                 'primary_key',
+                 'foreign_key')
+
+    @property
+    def table_name(self):
         if isinstance(self._table, basestring):
             ret = self._table
         else:
             ret = self._table.name
         return ret
-    table_name = property(_get_table_name)
 
-    def _get_table(self):
-        if isinstance(self._table, basestring):
-            ret = None
-        else:
-            ret = self._table
-        return ret
-    table = property(_get_table)
+    @property
+    def table(self):
+        if isinstance(self._table, sqlalchemy.Table):
+            return self._table
 
     def _init_0col(self, current_name, *p, **k):
         p, k = self._init_normalize_params(p, k)
@@ -324,7 +341,7 @@ class ChangesetTable(object):
         """Fullname should always be up to date"""
         # Copied from Table constructor
         if self.schema is not None:
-            ret = "%s.%s"%(self.schema, self.name)
+            ret = "%s.%s" % (self.schema, self.name)
         else:
             ret = self.name
         return ret

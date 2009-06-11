@@ -18,7 +18,14 @@ dialects = {
 def get_engine_visitor(engine, name):
     """
     Get the visitor implementation for the given database engine.
+
+    :param engine: SQLAlchemy Engine
+    :param name: Name of the visitor
+    :type name: string
+    :type engine: Engine
+    :returns: visitor
     """
+    # TODO: link to supported visitors
     return get_dialect_visitor(engine.dialect, name)
 
 
@@ -28,7 +35,16 @@ def get_dialect_visitor(sa_dialect, name):
 
     Finds the visitor implementation based on the dialect class and
     returns and instance initialized with the given name.
+
+    Binds dialect specific preparer to visitor.
     """
+
+    # map sa dialect to migrate dialect and return visitor
     sa_dialect_cls = sa_dialect.__class__
     migrate_dialect_cls = dialects[sa_dialect_cls]
-    return migrate_dialect_cls.visitor(name)
+    visitor = migrate_dialect_cls.visitor(name)
+
+    # bind preparer
+    visitor.preparer = sa_dialect.preparer(sa_dialect)
+
+    return visitor

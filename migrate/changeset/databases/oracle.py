@@ -67,8 +67,8 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
             column.server_default = sa.PassiveDefault(sa.sql.null())
         if notnull_hack:
             column.nullable = True
-        colspec=self.get_column_specification(column,
-                                              override_nullable=null_hack)
+        colspec = self.get_column_specification(column,
+            override_nullable=null_hack)
         if null_hack:
             colspec += ' NULL'
         if notnull_hack:
@@ -76,7 +76,8 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
         if dropdefault_hack:
             column.server_default = None
 
-        self.start_alter_table(table_name)
+        # TODO: format from table
+        self.start_alter_table(self.preparer.quote(table_name, True))
         self.append("MODIFY ")
         self.append(colspec)
 

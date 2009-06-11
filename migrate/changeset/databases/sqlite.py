@@ -19,7 +19,7 @@ class SQLiteHelper(object):
         except:
             table = self._to_table(param)
             raise
-        table_name = self._to_table_name(table)
+        table_name = self.preparer.format_table(table)
         self.append('ALTER TABLE %s RENAME TO migration_tmp' % table_name)
         self.execute()
 
@@ -41,7 +41,7 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
 
     def _modify_table(self, table, column):
         del table.columns[column.name]
-        columns = ','.join([c.name for c in table.columns])
+        columns = ' ,'.join(map(self.preparer.format_column, table.columns))
         return 'INSERT INTO %(table_name)s SELECT ' + columns + \
             ' from migration_tmp'
 
@@ -50,7 +50,7 @@ class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
 
     def _not_supported(self, op):
         raise exceptions.NotSupportedError("SQLite does not support "
-            "%s; see http://www.sqlite.org/lang_altertable.html"%op)
+            "%s; see http://www.sqlite.org/lang_altertable.html" % op)
 
     def _modify_table(self, table, delta):
         column = table.columns[delta.current_name]
@@ -61,17 +61,14 @@ class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
     def visit_index(self, param):
         self._not_supported('ALTER INDEX')
 
-    def _do_quote_column_identifier(self, identifier):
-        return '"%s"'%identifier
-
 
 class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
 
     def visit_migrate_primary_key_constraint(self, constraint):
         tmpl = "CREATE UNIQUE INDEX %s ON %s ( %s )"
-        cols = ','.join([c.name for c in constraint.columns])
-        tname = constraint.table.name
-        name = constraint.name
+        cols = ', '.join(map(self.preparer.format_column, constraint.columns))
+        tname = self.preparer.format_table(constraint.table)
+        name = self.get_constraint_name(constraint)
         msg = tmpl % (name, tname, cols)
         self.append(msg)
         self.execute()
@@ -84,15 +81,15 @@ class SQLiteFKGenerator(SQLiteSchemaChanger, ansisql.ANSIFKGenerator):
         if self.fk:
             self._not_supported("ALTER TABLE ADD FOREIGN KEY")
 
-        if self.buffer.getvalue() !='':
+        if self.buffer.getvalue() != '':
             self.execute()
 
 
-class SQLiteConstraintDropper(ansisql.ANSIColumnDropper):
+class SQLiteConstraintDropper(ansisql.ANSIColumnDropper, ansisql.ANSIConstraintCommon):
 
     def visit_migrate_primary_key_constraint(self, constraint):
         tmpl = "DROP INDEX %s "
-        name = constraint.name
+        name = self.get_constraint_name(constraint)
         msg = tmpl % (name)
         self.append(msg)
         self.execute()

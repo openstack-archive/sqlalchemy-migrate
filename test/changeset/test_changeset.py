@@ -1,15 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sqlalchemy
 from sqlalchemy import *
-from test import fixture
-from migrate import changeset
-from migrate.changeset import *
-from migrate.changeset.schema import _ColumnDelta
 from sqlalchemy.databases import information_schema
 
 import migrate
+from migrate import changeset
+from migrate.changeset import *
+from migrate.changeset.schema import _ColumnDelta
+
+from test import fixture
+
+
+# TODO: add sqlite unique constraints (indexes), test quoting
 
 class TestAddDropColumn(fixture.DB):
-    level=fixture.DB.CONNECT
+    level = fixture.DB.CONNECT
     meta = MetaData()
     # We'll be adding the 'data' column
     table_name = 'tmp_adddropcol'

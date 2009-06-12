@@ -7,6 +7,7 @@ import sqlalchemy
 
 from migrate.changeset.databases.visitor import get_engine_visitor
 
+
 __all__ = [
     'create_column',
     'drop_column',
@@ -37,10 +38,18 @@ def drop_column(column, table=None, *p, **k):
 
 
 def rename_table(table, name, engine=None):
-    """Rename a table, given the table's current name and the new
-    name.
-    
+    """Rename a table.
+
+    If Table instance is given, engine is not used.
+
     API to :meth:`table.rename`
+
+    :param table: Table to be renamed
+    :param name: new name
+    :param engine: Engine instance
+    :type table: string or Table instance
+    :type name: string
+    :type engine: obj
     """
     table = _to_table(table, engine)
     table.rename(name)
@@ -49,14 +58,23 @@ def rename_table(table, name, engine=None):
 def rename_index(index, name, table=None, engine=None):
     """Rename an index.
 
-    Takes an index name/object, a table name/object, and an
-    engine. Engine and table aren't required if an index object is
-    given.
+    If Index and Table object instances are given,
+    table and engine are not used.
 
     API to :meth:`index.rename`
+
+    :param index: Index to be renamed
+    :param name: new name
+    :param table: Table to which Index is reffered
+    :param engine: Engine instance
+    :type index: string or Index instance
+    :type name: string
+    :type table: string or Table instance
+    :type engine: obj
     """
     index = _to_index(index, table, engine)
     index.rename(name)
+
 
 def alter_column(*p, **k):
     """Alter a column.
@@ -70,10 +88,12 @@ def alter_column(*p, **k):
         col = p[0]
     else:
         col = None
+
     if 'table' not in k:
         k['table'] = col.table
     if 'engine' not in k:
         k['engine'] = k['table'].bind
+
     engine = k['engine']
     delta = _ColumnDelta(*p, **k)
     visitorcallable = get_engine_visitor(engine, 'schemachanger')
@@ -102,8 +122,10 @@ def alter_column(*p, **k):
 
 
 def _to_table(table, engine=None):
+    """Return if instance of Table, else construct new with metadata"""
     if isinstance(table, sqlalchemy.Table):
         return table
+
     # Given: table name, maybe an engine
     meta = sqlalchemy.MetaData()
     if engine is not None:
@@ -112,8 +134,10 @@ def _to_table(table, engine=None):
 
 
 def _to_index(index, table=None, engine=None):
+    """Return if instance of Index, else construct new with metadata"""
     if isinstance(index, sqlalchemy.Index):
         return index
+
     # Given: index name; table name required
     table = _to_table(table, engine)
     ret = sqlalchemy.Index(index)
@@ -149,13 +173,10 @@ class _WrapRename(object):
         self.name = name
 
     def accept_schema_visitor(self, visitor):
-        if isinstance(self.item, sqlalchemy.Table):
-            suffix = 'table'
-        elif isinstance(self.item, sqlalchemy.Column):
-            suffix = 'column'
-        elif isinstance(self.item, sqlalchemy.Index):
-            suffix = 'index'
+        """Map Class (Table, Index, Column) to visitor function"""
+        suffix = self.item.__class__.__name__.lower()
         funcname = 'visit_%s' % suffix
+
         func = getattr(visitor, funcname)
         param = self.item, self.name
         return func(param)
@@ -206,14 +227,6 @@ class _ColumnDelta(dict):
                  'server_default',
                  'primary_key',
                  'foreign_key')
-
-    @property
-    def table_name(self):
-        if isinstance(self._table, basestring):
-            ret = self._table
-        else:
-            ret = self._table.name
-        return ret
 
     @property
     def table(self):
@@ -310,16 +323,6 @@ class ChangesetTable(object):
                 column = sqlalchemy.Column(str(column))
         column.drop(table=self)
 
-    def _meta_key(self):
-        return sqlalchemy.schema._get_table_key(self.name, self.schema)
-
-    def deregister(self):
-        """Remove this table from its metadata"""
-        key = self._meta_key()
-        meta = self.metadata
-        if key in meta.tables:
-            del meta.tables[key]
-
     def rename(self, name, *args, **kwargs):
         """Rename this table.
 
@@ -337,16 +340,15 @@ class ChangesetTable(object):
         self.name = name
         self._set_parent(meta)
 
-    def _get_fullname(self):
-        """Fullname should always be up to date"""
-        # Copied from Table constructor
-        if self.schema is not None:
-            ret = "%s.%s" % (self.schema, self.name)
-        else:
-            ret = self.name
-        return ret
+    def _meta_key(self):
+        return sqlalchemy.schema._get_table_key(self.name, self.schema)
 
-    fullname = property(_get_fullname, (lambda self, val: None))
+    def deregister(self):
+        """Remove this table from its metadata"""
+        key = self._meta_key()
+        meta = self.metadata
+        if key in meta.tables:
+            del meta.tables[key]
 
 
 class ChangesetColumn(object):
@@ -384,7 +386,7 @@ class ChangesetColumn(object):
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
 
-        #add in foreign keys
+        # add in foreign keys
         if self.foreign_keys:
             for fk in self.foreign_keys:
                 visitorcallable = get_engine_visitor(engine,

@@ -2,9 +2,10 @@
    MySQL database specific implementations of changeset classes.
 """
 
-from migrate.changeset import ansisql, exceptions
 from sqlalchemy.databases import mysql as sa_base
-#import sqlalchemy as sa
+
+from migrate.changeset import ansisql, exceptions
+
 
 MySQLSchemaGenerator = sa_base.MySQLSchemaGenerator
 

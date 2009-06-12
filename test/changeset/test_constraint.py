@@ -8,6 +8,7 @@ from migrate.changeset import *
 
 from test import fixture
 
+
 class TestConstraint(fixture.DB):
     level = fixture.DB.CONNECT
 
@@ -37,7 +38,7 @@ class TestConstraint(fixture.DB):
     def _define_pk(self, *cols):
         # Add a pk by creating a PK constraint
         pk = PrimaryKeyConstraint(table=self.table, *cols)
-        self.assertEquals(list(pk.columns),list(cols))
+        self.assertEquals(list(pk.columns), list(cols))
         if self.url.startswith('oracle'):
             # Can't drop Oracle PKs without an explicit name
             pk.name = 'fgsfds'
@@ -54,7 +55,7 @@ class TestConstraint(fixture.DB):
         pk.drop()
         self.refresh_table()
         #self.assertEquals(list(self.table.primary_key),list())
-        self.assertEquals(len(self.table.primary_key),0)
+        self.assertEquals(len(self.table.primary_key), 0)
         self.assert_(isinstance(self.table.primary_key,
             schema.PrimaryKeyConstraint),self.table.primary_key.__class__)
         return pk
@@ -75,7 +76,7 @@ class TestConstraint(fixture.DB):
 
         if self.url.startswith('mysql'):
             # MySQL FKs need an index
-            index = Index('index_name',self.table.c.fkey)
+            index = Index('index_name', self.table.c.fkey)
             index.create()
         if self.url.startswith('oracle'):
             # Oracle constraints need a name

@@ -116,12 +116,14 @@ Module :mod:`repository <migrate.versioning.repository>`
 .. automodule:: migrate.versioning.repository
    :members:
    :synopsis: SQLAlchemy migrate repository management
+   :member-order: groupwise
 
 Module :mod:`schema <migrate.versioning.schema>`
 ------------------------------------------------
 
 .. automodule:: migrate.versioning.schema
    :members:
+   :member-order: groupwise
    :synopsis: Database schema management
 
 Module :mod:`schemadiff <migrate.versioning.schemadiff>`
@@ -136,15 +138,18 @@ Module :mod:`script <migrate.versioning.script>`
 
 .. automodule:: migrate.versioning.script.base
    :synopsis: Script utilities
+   :member-order: groupwise
    :members:
 
 .. automodule:: migrate.versioning.script.py
    :members:
+   :member-order: groupwise
    :inherited-members:
    :show-inheritance:
 
 .. automodule:: migrate.versioning.script.sql
    :members:
+   :member-order: groupwise
    :show-inheritance:
    :inherited-members:
 
@@ -167,4 +172,5 @@ Module :mod:`version <migrate.versioning.version>`
 
 .. automodule:: migrate.versioning.version
    :members:
+   :member-order: groupwise
    :synopsis: Version management

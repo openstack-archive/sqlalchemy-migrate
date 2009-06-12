@@ -13,7 +13,7 @@ from migrate.changeset import constraint, exceptions
 SchemaIterator = sa.engine.SchemaIterator
 
 
-class RawAlterTableVisitor(object):
+class AlterTableVisitor(SchemaIterator):
     """Common operations for ``ALTER TABLE`` statements."""
 
     def _to_table(self, param):
@@ -22,13 +22,6 @@ class RawAlterTableVisitor(object):
             ret = param.table
         else:
             ret = param
-        return ret
-
-    def _to_table_name(self, param):
-        """Returns the table name for the given param object."""
-        ret = self._to_table(param)
-        if isinstance(ret, sa.Table):
-            ret = ret.fullname
         return ret
 
     def start_alter_table(self, param):
@@ -70,11 +63,6 @@ class RawAlterTableVisitor(object):
         return ret
 
 
-class AlterTableVisitor(SchemaIterator, RawAlterTableVisitor):
-    """Common operations for ``ALTER TABLE`` statements"""
-    pass
-
-
 class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
     """Extends ansisql generator for column creation (alter table add col)"""
 
@@ -82,7 +70,7 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         """Create a column (table already exists).
 
         :param column: column object
-        :type column: :class:`sqlalchemy.Column`
+        :type column: :class:`sqlalchemy.Column` instance
         """
         table = self.start_alter_table(column)
         self.append("ADD ")
@@ -94,7 +82,7 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         """Default table visitor, does nothing.
 
         :param table: table object
-        :type table: :class:`sqlalchemy.Table`
+        :type table: :class:`sqlalchemy.Table` instance
         """
         pass
 
@@ -124,7 +112,7 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     All items may be renamed. Columns can also have many of their properties -
     type, for example - changed.
 
-    Each function is passed a tuple, containing (object,name); where
+    Each function is passed a tuple, containing (object, name); where
     object is a type of object you'd expect for that function
     (ie. table for visit_table) and name is the object's new
     name. NONE means the name is unchanged.
@@ -135,6 +123,14 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         table, newname = param
         self.start_alter_table(table)
         self.append("RENAME TO %s" % self.preparer.quote(newname, table.quote))
+        self.execute()
+
+    def visit_index(self, param):
+        """Rename an index"""
+        index, newname = param
+        self.append("ALTER INDEX %s RENAME TO %s" %
+            (self.preparer.quote(self._validate_identifier(index.name, True), index.quote),
+             self.preparer.quote(self._validate_identifier(newname, True) , index.quote)))
         self.execute()
 
     def visit_column(self, delta):
@@ -152,14 +148,12 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         if 'name' in keys:
             self._run_subvisit(delta, self._visit_column_name)
 
-    def _run_subvisit(self, delta, func, col_name=None, table_name=None):
-        if table_name is None:
-            table_name = self._to_table(delta.table)
-        if col_name is None:
-            col_name = delta.current_name
-        ret = func(table_name, col_name, delta)
+    def _run_subvisit(self, delta, func):
+        """Runs visit method based on what needs to be changed on column"""
+        table = self._to_table(delta.table)
+        col_name = delta.current_name
+        ret = func(table, col_name, delta)
         self.execute()
-        return ret
 
     def _visit_column_foreign_key(self, delta):
         table = delta.table
@@ -183,10 +177,10 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         cons.drop()
         cons.create()
 
-    def _visit_column_nullable(self, table_name, col_name, delta):
+    def _visit_column_nullable(self, table, col_name, delta):
         nullable = delta['nullable']
-        table = self._to_table(delta)
-        self.start_alter_table(table_name)
+        table = self._to_table(table)
+        self.start_alter_table(table)
         # TODO: use preparer.format_column
         self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
         if nullable:
@@ -194,49 +188,40 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         else:
             self.append("SET NOT NULL")
 
-    def _visit_column_default(self, table_name, col_name, delta):
+    def _visit_column_default(self, table, col_name, delta):
         server_default = delta['server_default']
         # Dummy column: get_col_default_string needs a column for some
         # reason
         dummy = sa.Column(None, None, server_default=server_default)
         default_text = self.get_column_default_string(dummy)
-        self.start_alter_table(table_name)
+        self.start_alter_table(table)
         # TODO: use preparer.format_column
         self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
         if default_text is not None:
-            # TODO: format needed?
             self.append("SET DEFAULT %s" % default_text)
         else:
             self.append("DROP DEFAULT")
 
-    def _visit_column_type(self, table_name, col_name, delta):
-        type = delta['type']
-        if not isinstance(type, sa.types.AbstractType):
+    def _visit_column_type(self, table, col_name, delta):
+        type_ = delta['type']
+        if not isinstance(type_, sa.types.AbstractType):
             # It's the class itself, not an instance... make an
             # instance
-            type = type()
-        type_text = type.dialect_impl(self.dialect).get_col_spec()
-        self.start_alter_table(table_name)
+            type_ = type_()
+        type_text = type_.dialect_impl(self.dialect).get_col_spec()
+        self.start_alter_table(table)
         # TODO: does type need formating?
         # TODO: use preparer.format_column
         self.append("ALTER COLUMN %s TYPE %s" %
             (self.preparer.quote_identifier(col_name), type_text))
 
-    def _visit_column_name(self, table_name, col_name, delta):
+    def _visit_column_name(self, table, col_name, delta):
         new_name = delta['name']
-        self.start_alter_table(table_name)
+        self.start_alter_table(table)
         # TODO: use preparer.format_column
         self.append('RENAME COLUMN %s TO %s' % \
                         (self.preparer.quote_identifier(col_name),
                          self.preparer.quote_identifier(new_name)))
-
-    def visit_index(self, param):
-        """Rename an index; #36"""
-        index, newname = param
-        self.append("ALTER INDEX %s RENAME TO %s" %
-            (self.preparer.quote(self._validate_identifier(index.name, True), index.quote),
-             self.preparer.quote(self._validate_identifier(newname, True) , index.quote)))
-        self.execute()
 
 
 class ANSIConstraintCommon(AlterTableVisitor):
@@ -250,12 +235,10 @@ class ANSIConstraintCommon(AlterTableVisitor):
         """Gets a name for the given constraint.
 
         If the name is already set it will be used otherwise the
-        constraint's :meth:`autoname
-        <migrate.changeset.constraint.ConstraintChangeset.autoname>`
+        constraint's :meth:`autoname <migrate.changeset.constraint.ConstraintChangeset.autoname>`
         method is used.
 
         :param cons: constraint object
-        :type cons: :class:`migrate.changeset.constraint.ConstraintChangeset`
         """
         if cons.name is not None:
             ret = cons.name
@@ -331,9 +314,7 @@ class ANSIFKGenerator(AlterTableVisitor, SchemaGenerator):
     """Extends ansisql generator for column creation (alter table add col)"""
 
     def __init__(self, *args, **kwargs):
-        self.fk = kwargs.get('fk', None)
-        if self.fk:
-            del kwargs['fk']
+        self.fk = kwargs.pop('fk', None)
         super(ANSIFKGenerator, self).__init__(*args, **kwargs)
 
     def visit_column(self, column):

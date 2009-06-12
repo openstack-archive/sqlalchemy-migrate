@@ -9,8 +9,7 @@ import sqlalchemy as sa
 OracleSchemaGenerator = sa_base.OracleSchemaGenerator
 
 
-class OracleColumnGenerator(OracleSchemaGenerator,
-                            ansisql.ANSIColumnGenerator):
+class OracleColumnGenerator(OracleSchemaGenerator, ansisql.ANSIColumnGenerator):
     pass
 
 
@@ -40,7 +39,7 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
         if 'name' in keys:
             self._run_subvisit(delta, self._visit_column_name)
 
-    def _visit_column_change(self, table_name, col_name, delta):
+    def _visit_column_change(self, table, col_name, delta):
         if not hasattr(delta, 'result_column'):
             # Oracle needs the whole column definition, not just a
             # lone name/type
@@ -76,8 +75,7 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
         if dropdefault_hack:
             column.server_default = None
 
-        # TODO: format from table
-        self.start_alter_table(self.preparer.quote(table_name, True))
+        self.start_alter_table(self.preparer.format_table(table))
         self.append("MODIFY ")
         self.append(colspec)
 

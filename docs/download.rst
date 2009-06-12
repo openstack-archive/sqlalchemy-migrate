@@ -1,9 +1,6 @@
 Download
 --------
 
-SQLAlchemy-Migrate builds on SQLAlchemy_, so you should install that
-first.
-
 You can get the latest version of SQLAlchemy Migrate from the
 `project's download page`_, the `cheese shop`_, or via easy_install_::
 
@@ -38,5 +35,8 @@ To get the latest trunk::
 
 Patches should be submitted to the `issue tracker`_.
 
+We use `buildbot`_ to help us run tests on all databases that migrate supports.
+
 .. _subversion: http://subversion.tigris.org/
 .. _issue tracker: http://code.google.com/p/sqlalchemy-migrate/issues/list
+.. _buildbot: http://buildbot.fubar.si

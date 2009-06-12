@@ -24,9 +24,12 @@
 	project`_. During the hosting change the project was renamed to
 	SQLAlchemy Migrate.
 
+	Currently, sqlalchemy-migrate supports Python versions from 2.4 to 2.6.
+	SQLAlchemy >=0.5 is supported only.
+
 .. warning::
 
-	 **0.5.5** release breaks backward compatability, please read :ref:`changelog <backwards-055>` for more info.
+	 Version **0.5.5** breaks backward compatability, please read :ref:`changelog <backwards-055>` for more info.
 
 Download and Development of SQLAlchemy Migrate
 ----------------------------------------------
@@ -41,7 +44,7 @@ Documentation
 SQLAlchemy is split into two parts, database schema versioning and
 database changeset management. This is represented by two python
 packages :mod:`migrate.versioning` and :mod:`migrate.changeset`. The
-versioning API is available as the :command:`migrate` command.
+versioning API is available as the :ref:`migrate <command-line-usage>` command.
 
 .. toctree::
 

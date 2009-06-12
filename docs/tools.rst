@@ -1,9 +1,7 @@
 SQLAlchemy migrate tools
 ========================
 
-The most commonly used tool is the :command:`migrate` script that is
-discussed in depth in the :ref:`Database schema versioning
-<versioning-system>` part of the documentation.
+The most commonly used tool is the :ref:`migrate <command-line-usage>`.
 
 .. index:: repository migration
 

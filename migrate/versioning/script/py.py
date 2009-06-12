@@ -137,7 +137,10 @@ class PythonScript(base.BaseScript):
         funcname = base.operations[op]
         
         func = self._func(funcname)
-        func(engine)
+        try:
+            func(engine)
+        except TypeError:
+            print "upgrade/downgrade functions must accept one parameter (migrate_engine)"
 
     @property
     def module(self):

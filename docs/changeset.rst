@@ -1,8 +1,8 @@
 .. _changeset-system:
 
-**********************
-Database changeset API
-**********************
+******************
+Database changeset
+******************
 
 .. currentmodule:: migrate.changeset
 

@@ -1,13 +1,17 @@
 .. _versioning-system:
+.. currentmodule:: migrate.versioning
+.. highlight:: bash
 
-**************************
-Database schema versioning
-**************************
+***********************************
+Database schema versioning workflow
+***********************************
 
 SQLAlchemy migrate provides the :mod:`migrate.versioning` API that is
-also available as the :command:`migrate` command.
+also available as the :ref:`migrate <command-line-usage>` command.
 
-.. program:: migrate
+Purpose of this package is frontend for migrations. It provides commands
+to manage migrate repository and database selection aswell as script versioning.
+
 
 Project Setup
 =============
@@ -28,16 +32,16 @@ repository we're working with.
 All work with repositories is done using the migrate command. Let's
 create our project's repository::
 
- % migrate create my_repository "Example project"
+ $ migrate create my_repository "Example project"
 
-This creates an initially empty repository in the current directory at
-my_repository/ named Example project. The repository directory
+This creates an initially empty repository relative to current directory at
+my_repository/ named `Example project`. The repository directory
 contains a sub directory versions that will store the schema versions,
 a configuration file :file:`migrate.cfg` that contains
 :ref:`repository configuration <repository_configuration>`, a
 :file:`README` file containing information that the directory is an
-sqlalchemy-migrate repository and a script :file:`manage.py` that has
-the same functionality as the :command:`migrate` command but is
+sqlalchemy-migrate repository and a script :ref:`manage.py <project_management_script>`
+that has the same functionality as the :ref:`migrate <command-line-usage>` command but is
 preconfigured with the repository.
 
 Version-control a database
@@ -56,7 +60,7 @@ The database is specified as a `SQLAlchemy database url`_.
 
 ::
 
- % python my_repository/manage.py version_control sqlite:///project.db
+ $ python my_repository/manage.py version_control sqlite:///project.db
 
 We can have any number of databases under this repository's version
 control.
@@ -65,7 +69,7 @@ Each schema has a version that SQLAlchemy Migrate manages. Each change
 script applied to the database increments this version number. You can
 see a database's current version::
 
- % python my_repository/manage.py db_version sqlite:///project.db
+ $ python my_repository/manage.py db_version sqlite:///project.db
  0 
 
 A freshly versioned database begins at version 0 by default. This
@@ -77,7 +81,7 @@ and applying change scripts changes the database's version number.
 Similarly, we can also see the latest version available in a
 repository with the command::
 
- % python my_repository/manage.py version
+ $ python my_repository/manage.py version
  0
 
 We've entered no changes so far, so our repository cannot upgrade a
@@ -93,8 +97,8 @@ path - typing them each time is tedious. We can create a script for
 our project that remembers the database and repository we're using,
 and use it to perform commands::
 
- % migrate manage manage.py --repository=my_repository --url=sqlite:///project.db
- % python manage.py db_version
+ $ migrate manage manage.py --repository=my_repository --url=sqlite:///project.db
+ $ python manage.py db_version
  0
 
 The script manage.py was created. All commands we perform with it are
@@ -117,17 +121,19 @@ helps ensure multiple databases you're working with are consistent.
 Create a change script
 ----------------------
 
-Our first change script will create a simple table::
+Our first change script will create a simple table
 
- account = Table('account',meta,
-     Column('id',Integer,primary_key=True),
-     Column('login',String(40)),
-     Column('passwd',String(40)),
- )
+.. code-block:: python
+
+	 account = Table('account', meta,
+			 Column('id', Integer, primary_key=True),
+			 Column('login', String(40)),
+			 Column('passwd', String(40)),
+	 )
 
 This table should be created in a change script. Let's create one::
 
- % python manage.py script "Add account table"
+ $ python manage.py script "Add account table"
 
 This creates an empty change script at
 :file:`my_repository/versions/001_Add_account_table.py`. Next, we'll
@@ -137,34 +143,38 @@ Edit the change script
 ----------------------
 
 Our change script defines two functions, currently empty:
-``upgrade()`` and ``downgrade()``. We'll fill those in::
+:func:`upgrade`` and :func:`downgrade`. We'll fill those in
+
+.. code-block:: python
 
   from sqlalchemy import *
   from migrate import *
   
-  meta = MetaData(migrate_engine)
+  meta = MetaData()
   account = Table('account', meta,
                   Column('id', Integer, primary_key=True),
                   Column('login', String(40)),
                   Column('passwd', String(40)),
                   )
   
-  def upgrade():
+  def upgrade(migrate_engine):
+		  meta.bind(migrate_engine)
       account.create()
   
-  def downgrade():
+  def downgrade(migrate_engine):
+		  meta.bind(migrate_engine)
       account.drop()
 
-As you might have guessed, upgrade() upgrades the database to the next
+As you might have guessed, :func:`upgrade` upgrades the database to the next
 version. This function should contain the changes we want to perform;
-here, we're creating a table. downgrade() should reverse changes made
-by upgrade(). You'll need to write both functions for every change
-script. (Well, you don't *have* to write downgrade(), but you won't be
+here, we're creating a table. :func:`downgrade` should reverse changes made
+by :func:`upgrade`. You'll need to write both functions for every change
+script. (Well, you don't *have* to write downgrade, but you won't be
 able to revert to an older version of the database or test your
 scripts without it.)
 
-``from migrate import *`` imports a special SQLAlchemy engine named
-'migrate_engine'. You should use this in your change scripts, rather
+As you can see, **migrate_engine** is passed to both functions.
+You should use this in your change scripts, rather
 than creating your own engine.
 
 You should be very careful about importing files from the rest of your
@@ -175,17 +185,15 @@ Test the change script
 ------------------------
 
 Change scripts should be tested before they are committed. Testing a
-script will run its upgrade() and downgrade() functions on a specified
+script will run its :func:`upgrade` and :func:`downgrade` functions on a specified
 database; you can ensure the script runs without error. You should be
 testing on a test database - if something goes wrong here, you'll need
 to correct it by hand. If the test is successful, the database should
 appear unchanged after upgrade() and downgrade() run.
 
-To test the script:
+To test the script::
 
-.. code-block:: none
- 
- % python manage.py test
+ $ python manage.py test
  Upgrading... done
  Downgrading... done
  Success
@@ -195,28 +203,31 @@ specified in manage.py) without any errors.
 
 Our repository's version now is::
 
- % python manage.py version
+ $ python manage.py version
  1
+
+.. warning::
+
+	 test command exectues actual script, be sure you are NOT doing this on production database.
+
 
 Upgrade the database
 --------------------
 
 Now, we can apply this change script to our database::
 
- % python manage.py upgrade
+ $ python manage.py upgrade
  0 -> 1... done
 
 This upgrades the database (``sqlite:///project.db``, as specified
 when we created manage.py above) to the latest available version. (We
-could also specify a version number if we wished, using the --version
+could also specify a version number if we wished, using the ``--version``
 option.) We can see the database's version number has changed, and our
-table has been created:
+table has been created::
 
-.. code-block:: none
-
- % python manage.py db_version
+ $ python manage.py db_version
  1
- % sqlite3 project.db
+ $ sqlite3 project.db
  sqlite> .tables
  account migrate_version
 
@@ -243,54 +254,58 @@ every time, despite any changes to your app's source code. You don't
 want your change scripts' behavior changing when your source code
 does.
 
-Consider the following example of what can go wrong (i.e. what NOT to
-do):
+**Consider the following example of what can go wrong (i.e. what NOT to
+do)**:
 
 Your application defines a table in the model.py file:
 
-::
+.. code-block:: python
 
  from sqlalchemy import *
  
  meta = MetaData()
- table = Table('mytable',meta,
-     Column('id',Integer,primary_key=True),
+ table = Table('mytable', meta,
+     Column('id', Integer, primary_key=True),
  )
 
-...and uses this file to create a table in a change script:
+... and uses this file to create a table in a change script:
 
-::
+.. code-block:: python
  
  from sqlalchemy import *
  from migrate import *
  import model
- model.meta.connect(migrate_engine)
 
- def upgrade():
-     model.table.create()
- def downgrade():
+ def upgrade(migrate_engine):
+     model.meta.bind(migrate_engine)
+
+ def downgrade(migrate_engine):
+     model.meta.bind(migrate_engine)
      model.table.drop()
 
 This runs successfully the first time. But what happens if we change
 the table definition?
 
-::
+.. code-block:: python
 
- table = Table('mytable',meta,
-     Column('id',Integer,primary_key=True),
-     Column('data',String(42)),
+ table = Table('mytable', meta,
+     Column('id', Integer, primary_key=True),
+     Column('data', String(42)),
  )
 
-We'll create a new column with a matching change script::
+We'll create a new column with a matching change script
+
+.. code-block:: python
 
  from sqlalchemy import *
  from migrate import *
  import model
- model.meta.connect(migrate_engine)
 
- def upgrade():
+ def upgrade(migrate_engine):
+     model.meta.bind(migrate_engine)
      model.table.data.create()
- def downgrade():
+ def downgrade(migrate_engine):
+     model.meta.bind(migrate_engine)
      model.table.data.drop()
 
 This appears to run fine when upgrading an existing database - but the
@@ -309,7 +324,9 @@ Writing for a specific database
 Sometimes you need to write code for a specific database. Migrate
 scripts can run under any database, however - the engine you're given
 might belong to any database. Use engine.name to get the name of the
-database you're working with::
+database you're working with
+
+.. code-block:: python
 
  >>> from sqlalchemy import *
  >>> from migrate import *
@@ -322,11 +339,13 @@ Writings .sql scripts
 ---------------------
 
 You might prefer to write your change scripts in SQL, as .sql files,
-rather than as Python scripts. SQLAlchemy-migrate can work with that::
+rather than as Python scripts. SQLAlchemy-migrate can work with that
 
- % python manage.py version
+.. code-block:: python
+
+ $ python manage.py version
  1
- % python manage.py script_sql postgres
+ $ python manage.py script_sql postgres
 
 This creates two scripts
 :file:`my_repository/versions/002_postgresql_upgrade.sql` and
@@ -338,27 +357,29 @@ database defined by SQLAlchemy may be used here - ex. sqlite,
 postgres, oracle, mysql...
 
 
+.. _command-line-usage:
+
 Command line usage
 ==================
 
 .. currentmodule:: migrate.versioning.shell
 
-:command:`migrate` command is used for API interface. For list of commands and help use
+:command:`migrate` command is used for API interface. For list of commands and help use::
 
-::
+	$ migrate --help
 
-	migrate --help
-
-:program:`migrate` command uses :func:`migrate.versioning.shell.main` function.
+:program:`migrate` command exectues :func:`main` function.
 For ease of usage, generate your own :ref:`project management script <project_management_script>`,
-which calls :func:`shell.main` function with keywords arguments.
-You may want to specify `url` and `repository` arguments which almost all API functions require as positional arguments.
+which calls :func:`main` function with keywords arguments.
+You may want to specify `url` and `repository` arguments which almost all API functions require.
 
 If api command looks like::
 
-	migrate downgrade URL REPOSITORY VERSION [--preview_sql|--preview_py]
+	$ migrate downgrade URL REPOSITORY VERSION [--preview_sql|--preview_py]
 
-and you have a project management script that looks like::
+and you have a project management script that looks like
+
+.. code-block:: python
 
 	from migrate.versioning.shell import main
 
@@ -366,7 +387,7 @@ and you have a project management script that looks like::
 
 you have first two slots filed, and command line usage would look like::
 
-	# downgrade to version 2 and preview Python file
+	# preview Python script
 	migrate downgrade 2 --preview_py
 
 	# downgrade to version 2
@@ -376,7 +397,7 @@ you have first two slots filed, and command line usage would look like::
 	Command line parsing refactored: positional parameters usage
 
 Whole command line parsing was rewriten from scratch with use of OptionParser.
-Options passed as kwargs to :func:`migrate.versioning.shell.main` are now parsed correctly.
+Options passed as kwargs to :func:`~migrate.versioning.shell.main` are now parsed correctly.
 Options are passed to commands in the following priority (starting from highest):
 
 - optional (given by ``--some_option`` in commandline)
@@ -387,11 +408,11 @@ Options are passed to commands in the following priority (starting from highest)
 Python API
 ==========
 
-.. currentmodule:: migrate.versioning
+.. currentmodule:: migrate.versioning.api
 
 All commands available from the command line are also available for
-your Python scripts by importing :mod:`migrate.versioning`. See the
-:mod:`migrate.versioning` documentation for a list of functions;
+your Python scripts by importing :mod:`migrate.versioning.api`. See the
+:mod:`migrate.versioning.api` documentation for a list of functions;
 function names match equivalent shell commands. You can use this to
 help integrate SQLAlchemy Migrate with your existing update process.
 
@@ -399,12 +420,14 @@ For example, the following commands are similar:
  
 *From the command line*::
 
- % migrate help help
+ $ migrate help help
  /usr/bin/migrate help COMMAND
 
      Displays help on a given command.
 
-*From Python*::
+*From Python*
+
+.. code-block:: python
 
  import migrate.versioning.api
  migrate.versioning.api.help('help')
@@ -469,4 +492,4 @@ currently:
   successfully during a commit, or the entire commit will fail. List
   the databases your application will actually be using to ensure your
   updates to that database work properly. This must be a list;
-  example: `['postgres','sqlite']`
+  example: `['postgres', 'sqlite']`

@@ -55,15 +55,19 @@ class TestSchemaDiff(fixture.DB):
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
         self.assertEqualsIgnoreWhitespace(decls, '''
-        meta = MetaData(migrate_engine)
+        meta = MetaData()
         tmp_schemadiff = Table('tmp_schemadiff',meta,
             Column('id',Integer(),primary_key=True,nullable=False),
             Column('name',UnicodeText(length=None)),
             Column('data',UnicodeText(length=None)),
         )
         ''')
-        self.assertEqualsIgnoreWhitespace(upgradeCommands, '''tmp_schemadiff.create()''')
-        self.assertEqualsIgnoreWhitespace(downgradeCommands, '''tmp_schemadiff.drop()''')
+        self.assertEqualsIgnoreWhitespace(upgradeCommands,
+            '''meta.bind(migrate_engine)
+            tmp_schemadiff.create()''')
+        self.assertEqualsIgnoreWhitespace(downgradeCommands,
+            '''meta.bind(migrate_engine)
+            tmp_schemadiff.drop()''')
         
         # Create table in database, now model should match database.
         self._applyLatestModel()

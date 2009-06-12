@@ -74,7 +74,7 @@ class PythonScript(base.BaseScript):
         f.close()
 
         # generate source
-        search = 'def upgrade():'
+        search = 'def upgrade(migrate_engine):'
         contents = contents.replace(search, '\n\n'.join((decls, search)), 1)
         if upgradeCommands:
             contents = contents.replace('    pass', upgradeCommands, 1)
@@ -136,12 +136,8 @@ class PythonScript(base.BaseScript):
             raise exceptions.ScriptError("%d is not a valid step" % step)
         funcname = base.operations[op]
         
-        migrate.migrate_engine = engine
-        #migrate.run.migrate_engine = migrate.migrate_engine = engine
         func = self._func(funcname)
-        func()
-        migrate.migrate_engine = None
-        #migrate.run.migrate_engine = migrate.migrate_engine = None
+        func(engine)
 
     @property
     def module(self):

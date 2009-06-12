@@ -1,5 +1,11 @@
-Changelog
-=========
+0.5.5
+-----
+
+.. _backwards-055:
+
+**Backward incompatible changes**:
+
+- python upgrade/downgrade scripts do not import migrate_engine magically, but recieve engine as the only parameter to function
 
 0.5.4
 -----

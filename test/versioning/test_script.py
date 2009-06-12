@@ -90,15 +90,15 @@ class TestPyScript(fixture.Pathed, fixture.DB):
 from migrate import *
 from sqlalchemy import *
 
-metadata = MetaData(migrate_engine)
+metadata = MetaData()
 
 UserGroup = Table('Link', metadata,
     Column('link1ID', Integer),
     Column('link2ID', Integer),
     UniqueConstraint('link1ID', 'link2ID'))
 
-def upgrade():
-    metadata.create_all()
+def upgrade(migrate_engine):
+    metadata.create_all(migrate_engine)
         """
         f.write(content)
         f.close()

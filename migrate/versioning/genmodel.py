@@ -127,7 +127,7 @@ class ModelGenerator(object):
     def toUpgradeDowngradePython(self, indent='    '):
         ''' Assume model is most current and database is out-of-date. '''
 
-        decls = ['meta = MetaData(migrate_engine)']
+        decls = ['meta = MetaData()']
         for table in self.diff.tablesMissingInModel + \
                 self.diff.tablesMissingInDatabase:
             decls.extend(self.getTableDefn(table))
@@ -143,10 +143,12 @@ class ModelGenerator(object):
             upgradeCommands.append("%(table)s.create()" % {'table': tableName})
             downgradeCommands.append("%(table)s.drop()" % {'table': tableName})
 
+        pre_command = 'meta.bind(migrate_engine)'
+
         return (
             '\n'.join(decls),
-            '\n'.join(['%s%s' % (indent, line) for line in upgradeCommands]),
-            '\n'.join(['%s%s' % (indent, line) for line in downgradeCommands]))
+            '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in upgradeCommands]),
+            '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in downgradeCommands]))
 
     def applyModel(self):
         """Apply model to current database."""

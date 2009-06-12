@@ -1,6 +1,3 @@
-Download and Development of SQLAlchemy Migrate
-==============================================
-
 Download
 --------
 
@@ -17,7 +14,7 @@ line::
 
  migrate
 
-This should list all available commands. *migrate help COMMAND* will
+This should list all available commands. ``migrate help COMMAND`` will
 display more information about each command.
 
 If you'd like to be notified when new versions of SQLAlchemy Migrate

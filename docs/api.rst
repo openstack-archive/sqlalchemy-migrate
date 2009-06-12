@@ -1,7 +1,3 @@
-*****************
-API Documentation
-*****************
-
 Module :mod:`migrate.changeset`
 ===============================
 

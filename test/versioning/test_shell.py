@@ -533,25 +533,28 @@ class TestShellDatabase(Shell, fixture.DB):
         # We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
         output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model' % script_path)  # intentionally omit a parameter
         self.assertEquals('Not enough arguments' in output, True)
-        output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model --oldmodel=oldtestmodel.meta' % script_path)
-        assert  """from sqlalchemy import *
+        output, exitcode = self.output_and_exitcode('python %s make_update_script_for_model --oldmodel=oldtestmodel:meta' % script_path)
+        self.assertEqualsIgnoreWhitespace(output,
+        """from sqlalchemy import *
 from migrate import *
 
-meta = MetaData(migrate_engine)
+meta = MetaData()
 tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
   Column('id', Integer(),  primary_key=True, nullable=False),
   Column('login', String(length=40, convert_unicode=False, assert_unicode=None)),
   Column('passwd', String(length=40, convert_unicode=False, assert_unicode=None)),
 )
 
-def upgrade():
-    # Upgrade operations go here. Don't create your own engine; use the engine
-    # named 'migrate_engine' imported from migrate.
+def upgrade(migrate_engine):
+    # Upgrade operations go here. Don't create your own engine; bind migrate_engine
+    # to your metadata
+    meta.bind(migrate_engine)
     tmp_account_rundiffs.create()
 
-def downgrade():
+def downgrade(migrate_engine):
     # Operations to reverse the above upgrade go here.
-    tmp_account_rundiffs.drop()""" in output, output
+    meta.bind(migrate_engine)
+    tmp_account_rundiffs.drop()""")
     
         # Save the upgrade script.
         self.assertSuccess(self.cmd('script', '--repository=%s' % repos_path, 'Desc'))

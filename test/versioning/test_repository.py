@@ -173,7 +173,7 @@ class TestVersionedRepository(fixture.Pathed):
         self.assertRaises(Exception, repos.changeset, 'postgres', -1)
 
         # Downgrade
-        cs=check_changeset((10, 0),10)
+        cs = check_changeset((10, 0),10)
         self.assertEquals(cs.keys().pop(0), 10) # 10 -> 9
         self.assertEquals(cs.keys().pop(), 1)    # 1 -> 0
         self.assertEquals(cs.start, 10)

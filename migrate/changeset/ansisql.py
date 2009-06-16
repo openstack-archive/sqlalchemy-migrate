@@ -5,10 +5,15 @@
    things that just happen to work with multiple databases.
 """
 import sqlalchemy as sa
-from sqlalchemy.engine.base import Connection, Dialect
-from sqlalchemy.sql.compiler import SchemaGenerator
-from sqlalchemy.schema import ForeignKeyConstraint
-from migrate.changeset import constraint, exceptions
+from sqlalchemy.engine.default import DefaultDialect
+from sqlalchemy.sql.compiler import SchemaGenerator, SchemaDropper
+from sqlalchemy.schema import (ForeignKeyConstraint,
+                               PrimaryKeyConstraint,
+                               CheckConstraint,
+                               UniqueConstraint)
+
+from migrate.changeset import exceptions, constraint
+
 
 SchemaIterator = sa.engine.SchemaIterator
 
@@ -78,6 +83,14 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         self.append(colspec)
         self.execute()
 
+        # add in foreign keys
+        if column.foreign_keys:
+            self.visit_alter_foriegn_keys(column)
+
+    def visit_alter_foriegn_keys(self, column):
+        for fk in column.foreign_keys:
+            self.define_foreign_key(fk.constraint)
+
     def visit_table(self, table):
         """Default table visitor, does nothing.
 
@@ -87,7 +100,8 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         pass
 
 
-class ANSIColumnDropper(AlterTableVisitor):
+
+class ANSIColumnDropper(AlterTableVisitor, SchemaDropper):
     """Extends ANSI SQL dropper for column dropping (``ALTER TABLE
     DROP COLUMN``).
     """
@@ -118,24 +132,23 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     name. NONE means the name is unchanged.
     """
 
-    def visit_table(self, param):
+    def visit_table(self, table):
         """Rename a table. Other ops aren't supported."""
-        table, newname = param
         self.start_alter_table(table)
-        self.append("RENAME TO %s" % self.preparer.quote(newname, table.quote))
+        self.append("RENAME TO %s" % self.preparer.quote(table.new_name, table.quote))
         self.execute()
 
-    def visit_index(self, param):
+    def visit_index(self, index):
         """Rename an index"""
-        index, newname = param
         self.append("ALTER INDEX %s RENAME TO %s" %
             (self.preparer.quote(self._validate_identifier(index.name, True), index.quote),
-             self.preparer.quote(self._validate_identifier(newname, True) , index.quote)))
+             self.preparer.quote(self._validate_identifier(index.new_name, True) , index.quote)))
         self.execute()
 
-    def visit_column(self, delta):
+    def visit_column(self, column):
         """Rename/change a column."""
         # ALTER COLUMN is implemented as several ALTER statements
+        delta = column.delta
         keys = delta.keys()
         if 'type' in keys:
             self._run_subvisit(delta, self._visit_column_type)
@@ -246,99 +259,73 @@ class ANSIConstraintCommon(AlterTableVisitor):
             ret = cons.name = cons.autoname()
         return self.preparer.quote(ret, cons.quote)
 
+    def visit_migrate_primary_key_constraint(self, *p, **k):
+        self._visit_constraint(*p, **k)
 
-class ANSIConstraintGenerator(ANSIConstraintCommon):
+    def visit_migrate_foreign_key_constraint(self, *p, **k):
+        self._visit_constraint(*p, **k)
+
+    def visit_migrate_check_constraint(self, *p, **k):
+        self._visit_constraint(*p, **k)
+
+    def visit_migrate_unique_constraint(self, *p, **k):
+        self._visit_constraint(*p, **k)
+
+
+class ANSIConstraintGenerator(ANSIConstraintCommon, SchemaGenerator):
 
     def get_constraint_specification(self, cons, **kwargs):
-        if isinstance(cons, constraint.PrimaryKeyConstraint):
-            col_names = ', '.join([self.preparer.format_column(col) for col in cons.columns])
-            ret = "PRIMARY KEY (%s)" % col_names
-            if cons.name:
-                # Named constraint
-                ret = ("CONSTRAINT %s " % self.preparer.format_constraint(cons)) + ret
-        elif isinstance(cons, constraint.ForeignKeyConstraint):
-            params = dict(
-                columns = ', '.join(map(self.preparer.format_column, cons.columns)),
-                reftable = self.preparer.format_table(cons.reftable),
-                referenced = ', '.join(map(self.preparer.format_column, cons.referenced)),
-                name = self.get_constraint_name(cons),
-            )
-            ret = "CONSTRAINT %(name)s FOREIGN KEY (%(columns)s) "\
-                "REFERENCES %(reftable)s (%(referenced)s)" % params
-            if cons.onupdate:
-                ret = ret + " ON UPDATE %s" % cons.onupdate
-            if cons.ondelete:
-                ret = ret + " ON DELETE %s" % cons.ondelete
-        elif isinstance(cons, constraint.CheckConstraint):
-            ret = "CHECK (%s)" % cons.sqltext
+        """Constaint SQL generators.
+        
+        We cannot use SA visitors because they append comma.
+        """
+        if isinstance(cons, PrimaryKeyConstraint):
+            if cons.name is not None:
+                self.append("CONSTRAINT %s " % self.preparer.format_constraint(cons))
+            self.append("PRIMARY KEY ")
+            self.append("(%s)" % ', '.join(self.preparer.quote(c.name, c.quote)
+                                           for c in cons))
+            self.define_constraint_deferrability(cons)
+        elif isinstance(cons, ForeignKeyConstraint):
+            self.define_foreign_key(cons)
+        elif isinstance(cons, CheckConstraint):
+            if cons.name is not None:
+                self.append("CONSTRAINT %s " %
+                            self.preparer.format_constraint(cons))
+            self.append(" CHECK (%s)" % cons.sqltext)
+            self.define_constraint_deferrability(cons)
+        elif isinstance(cons, UniqueConstraint):
+            if cons.name is not None:
+                self.append("CONSTRAINT %s " %
+                            self.preparer.format_constraint(cons))
+            self.append(" UNIQUE (%s)" % \
+                (', '.join(self.preparer.quote(c.name, c.quote) for c in cons)))
+            self.define_constraint_deferrability(cons)
         else:
             raise exceptions.InvalidConstraintError(cons)
-        return ret
 
     def _visit_constraint(self, constraint):
         table = self.start_alter_table(constraint)
+        constraint.name = self.get_constraint_name(constraint)
         self.append("ADD ")
-        spec = self.get_constraint_specification(constraint)
-        self.append(spec)
+        self.get_constraint_specification(constraint)
         self.execute()
 
-    def visit_migrate_primary_key_constraint(self, *p, **k):
-        return self._visit_constraint(*p, **k)
 
-    def visit_migrate_foreign_key_constraint(self, *p, **k):
-        return self._visit_constraint(*p, **k)
-
-    def visit_migrate_check_constraint(self, *p, **k):
-        return self._visit_constraint(*p, **k)
-
-
-class ANSIConstraintDropper(ANSIConstraintCommon):
+class ANSIConstraintDropper(ANSIConstraintCommon, SchemaDropper):
 
     def _visit_constraint(self, constraint):
         self.start_alter_table(constraint)
         self.append("DROP CONSTRAINT ")
         self.append(self.get_constraint_name(constraint))
+        if constraint.cascade:
+            self.append(" CASCADE")
         self.execute()
 
-    def visit_migrate_primary_key_constraint(self, *p, **k):
-        return self._visit_constraint(*p, **k)
 
-    def visit_migrate_foreign_key_constraint(self, *p, **k):
-        return self._visit_constraint(*p, **k)
-
-    def visit_migrate_check_constraint(self, *p, **k):
-        return self._visit_constraint(*p, **k)
-
-
-class ANSIFKGenerator(AlterTableVisitor, SchemaGenerator):
-    """Extends ansisql generator for column creation (alter table add col)"""
-
-    def __init__(self, *args, **kwargs):
-        self.fk = kwargs.pop('fk', None)
-        super(ANSIFKGenerator, self).__init__(*args, **kwargs)
-
-    def visit_column(self, column):
-        """Create foreign keys for a column (table already exists); #32"""
-
-        if self.fk:
-            self.add_foreignkey(self.fk.constraint)
-
-        if self.buffer.getvalue() != '':
-            self.execute()
-
-    def visit_table(self, table):
-        pass
-
-
-class ANSIDialect(object):
+class ANSIDialect(DefaultDialect):
     columngenerator = ANSIColumnGenerator
     columndropper = ANSIColumnDropper
     schemachanger = ANSISchemaChanger
-    columnfkgenerator = ANSIFKGenerator
-
-    @classmethod
-    def visitor(self, name):
-        return getattr(self, name)
-
-    def reflectconstraints(self, connection, table_name):
-        raise NotImplementedError()
+    constraintgenerator = ANSIConstraintGenerator
+    constraintdropper = ANSIConstraintDropper

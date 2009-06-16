@@ -3,37 +3,49 @@
 
 from sqlalchemy import *
 from sqlalchemy.util import *
+from sqlalchemy.exc import *
 
 from migrate.changeset import *
 
 from test import fixture
 
 
-class TestConstraint(fixture.DB):
-    level = fixture.DB.CONNECT
+class CommonTestConstraint(fixture.DB):
+    """helper functions to test constraints.
+    
+    we just create a fresh new table and make sure everything is
+    as required.
+    """
 
     def _setup(self, url):
-        super(TestConstraint, self)._setup(url)
+        super(CommonTestConstraint, self)._setup(url)
         self._create_table()
 
     def _teardown(self):
         if hasattr(self, 'table') and self.engine.has_table(self.table.name):
             self.table.drop()
-        super(TestConstraint, self)._teardown()
+        super(CommonTestConstraint, self)._teardown()
 
     def _create_table(self):
         self._connect(self.url)
         self.meta = MetaData(self.engine)
-        self.table = Table('mytable', self.meta,
-            Column('id', Integer),
+        self.tablename = 'mytable'
+        self.table = Table(self.tablename, self.meta,
+            Column('id', Integer, unique=True),
             Column('fkey', Integer),
             mysql_engine='InnoDB')
         if self.engine.has_table(self.table.name):
             self.table.drop()
         self.table.create()
+
+        # make sure we start at zero
         self.assertEquals(len(self.table.primary_key), 0)
         self.assert_(isinstance(self.table.primary_key,
             schema.PrimaryKeyConstraint), self.table.primary_key.__class__)
+
+
+class TestConstraint(CommonTestConstraint):
+    level = fixture.DB.CONNECT
 
     def _define_pk(self, *cols):
         # Add a pk by creating a PK constraint
@@ -46,7 +58,6 @@ class TestConstraint(fixture.DB):
         self.refresh_table()
         if not self.url.startswith('sqlite'):
             self.assertEquals(list(self.table.primary_key), list(cols))
-        #self.assert_(self.table.primary_key.name is not None)
 
         # Drop the PK constraint
         if not self.url.startswith('oracle'):
@@ -54,46 +65,34 @@ class TestConstraint(fixture.DB):
             pk.name = self.table.primary_key.name
         pk.drop()
         self.refresh_table()
-        #self.assertEquals(list(self.table.primary_key),list())
         self.assertEquals(len(self.table.primary_key), 0)
-        self.assert_(isinstance(self.table.primary_key,
-            schema.PrimaryKeyConstraint),self.table.primary_key.__class__)
+        self.assert_(isinstance(self.table.primary_key, schema.PrimaryKeyConstraint))
         return pk
 
     @fixture.usedb(not_supported='sqlite')
     def test_define_fk(self):
         """FK constraints can be defined, created, and dropped"""
         # FK target must be unique
-        pk = PrimaryKeyConstraint(self.table.c.id, table=self.table)
+        pk = PrimaryKeyConstraint(self.table.c.id, table=self.table, name="pkid")
         pk.create()
+
         # Add a FK by creating a FK constraint
         self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
-        fk = ForeignKeyConstraint([self.table.c.fkey],[self.table.c.id], table=self.table)
+        fk = ForeignKeyConstraint([self.table.c.fkey], [self.table.c.id], name="fk_id_fkey")
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
         self.assertEquals(list(fk.columns), [self.table.c.fkey])
-        self.assertEquals([e.column for e in fk.elements],[self.table.c.id])
-        self.assertEquals(list(fk.referenced),[self.table.c.id])
+        self.assertEquals([e.column for e in fk.elements], [self.table.c.id])
+        self.assertEquals(list(fk.referenced), [self.table.c.id])
 
         if self.url.startswith('mysql'):
             # MySQL FKs need an index
             index = Index('index_name', self.table.c.fkey)
             index.create()
-        if self.url.startswith('oracle'):
-            # Oracle constraints need a name
-            fk.name = 'fgsfds'
-        print 'drop...'
-        #self.engine.echo=True
         fk.create()
-        #self.engine.echo=False
-        print 'dropped'
         self.refresh_table()
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
 
-        print 'drop...'
-        #self.engine.echo=True
         fk.drop()
-        #self.engine.echo=False
-        print 'dropped'
         self.refresh_table()
         self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
 
@@ -108,40 +107,123 @@ class TestConstraint(fixture.DB):
         #self.engine.echo=True
         self._define_pk(self.table.c.id, self.table.c.fkey)
 
+    @fixture.usedb()
+    def test_drop_cascade(self):
+        pk = PrimaryKeyConstraint('id', table=self.table, name="id_pkey")
+        pk.create()
+        self.refresh_table()
 
-class TestAutoname(fixture.DB):
+        # Drop the PK constraint forcing cascade
+        pk.drop(cascade=True)
+
+
+class TestAutoname(CommonTestConstraint):
+    """Every method tests for a type of constraint wether it can autoname
+    itself and if you can pass object instance and names to classes.
+    """
     level = fixture.DB.CONNECT
 
-    def _setup(self, url):
-        super(TestAutoname, self)._setup(url)
-        self._connect(self.url)
-        self.meta = MetaData(self.engine)
-        self.table = Table('mytable',self.meta,
-            Column('id', Integer),
-            Column('fkey', String(40)),
-        )
-        if self.engine.has_table(self.table.name):
-            self.table.drop()
-        self.table.create()
-        
-    def _teardown(self):
-        if hasattr(self,'table') and self.engine.has_table(self.table.name):
-            self.table.drop()
-        super(TestAutoname, self)._teardown()
-        
     @fixture.usedb(not_supported='oracle')
-    def test_autoname(self):
-        """Constraints can guess their name if none is given"""
+    def test_autoname_pk(self):
+        """PrimaryKeyConstraints can guess their name if None is given"""
         # Don't supply a name; it should create one
         cons = PrimaryKeyConstraint(self.table.c.id)
         cons.create()
         self.refresh_table()
-        # TODO: test for index for sqlite
         if not self.url.startswith('sqlite'):
-            self.assertEquals(list(cons.columns),list(self.table.primary_key))
+            # TODO: test for index for sqlite
+            self.assertEquals(list(cons.columns), list(self.table.primary_key))
 
         # Remove the name, drop the constraint; it should succeed
         cons.name = None
         cons.drop()
         self.refresh_table()
         self.assertEquals(list(), list(self.table.primary_key))
+
+        # test string names
+        cons = PrimaryKeyConstraint('id', table=self.table)
+        cons.create()
+        self.refresh_table()
+        if not self.url.startswith('sqlite'):
+            # TODO: test for index for sqlite
+            self.assertEquals(list(cons.columns), list(self.table.primary_key))
+        cons.name = None
+        cons.drop()
+
+    @fixture.usedb(not_supported=['oracle', 'sqlite'])
+    def test_autoname_fk(self):
+        """ForeignKeyConstraints can guess their name if None is given"""
+        cons = ForeignKeyConstraint([self.table.c.fkey], [self.table.c.id])
+        if self.url.startswith('mysql'):
+            # MySQL FKs need an index
+            index = Index('index_name', self.table.c.fkey)
+            index.create()
+        cons.create()
+        self.refresh_table()
+        self.table.c.fkey.foreign_keys[0].column is self.table.c.id
+
+        # Remove the name, drop the constraint; it should succeed
+        cons.name = None
+        cons.drop()
+        self.refresh_table()
+        self.assertEquals(self.table.c.fkey.foreign_keys._list, list())
+
+        # test string names
+        cons = ForeignKeyConstraint(['fkey'], ['%s.id' % self.tablename], table=self.table)
+        if self.url.startswith('mysql'):
+            # MySQL FKs need an index
+            index = Index('index_name', self.table.c.fkey)
+            index.create()
+        cons.create()
+        self.refresh_table()
+        self.table.c.fkey.foreign_keys[0].column is self.table.c.id
+
+        # Remove the name, drop the constraint; it should succeed
+        cons.name = None
+        cons.drop()
+
+    @fixture.usedb(not_supported=['oracle', 'sqlite'])
+    def test_autoname_check(self):
+        """CheckConstraints can guess their name if None is given"""
+        cons = CheckConstraint('id > 3', columns=[self.table.c.id])
+        cons.create()
+        self.refresh_table()
+
+    
+        self.table.insert(values={'id': 4}).execute()
+        try:
+            self.table.insert(values={'id': 1}).execute()
+        except IntegrityError:
+            pass
+        else:
+            self.fail()
+
+        # Remove the name, drop the constraint; it should succeed
+        cons.name = None
+        cons.drop()
+        self.refresh_table()
+        self.table.insert(values={'id': 2}).execute()
+        self.table.insert(values={'id': 5}).execute()
+
+    @fixture.usedb(not_supported=['oracle', 'sqlite'])
+    def test_autoname_unique(self):
+        """UniqueConstraints can guess their name if None is given"""
+        cons = UniqueConstraint(self.table.c.fkey)
+        cons.create()
+        self.refresh_table()
+
+    
+        self.table.insert(values={'fkey': 4}).execute()
+        try:
+            self.table.insert(values={'fkey': 4}).execute()
+        except IntegrityError:
+            pass
+        else:
+            self.fail()
+
+        # Remove the name, drop the constraint; it should succeed
+        cons.name = None
+        cons.drop()
+        self.refresh_table()
+        self.table.insert(values={'fkey': 4}).execute()
+        self.table.insert(values={'fkey': 4}).execute()

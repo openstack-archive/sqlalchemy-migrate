@@ -5,7 +5,9 @@ import re
 
 import sqlalchemy
 
-from migrate.changeset.databases.visitor import get_engine_visitor
+from migrate.changeset.databases.visitor import (get_engine_visitor,
+                                                 run_single_visitor)
+from migrate.changeset.exceptions import *
 
 
 __all__ = [
@@ -14,6 +16,9 @@ __all__ = [
     'alter_column',
     'rename_table',
     'rename_index',
+    'ChangesetTable',
+    'ChangesetColumn',
+    'ChangesetIndex',
 ]
 
 
@@ -97,7 +102,12 @@ def alter_column(*p, **k):
     engine = k['engine']
     delta = _ColumnDelta(*p, **k)
     visitorcallable = get_engine_visitor(engine, 'schemachanger')
-    _engine_run_visitor(engine, visitorcallable, delta)
+
+    column = sqlalchemy.Column(delta.current_name)
+    column.delta = delta
+    column.table = delta.table
+    engine._run_visitor(visitorcallable, column)
+    #_engine_run_visitor(engine, visitorcallable, delta)
 
     # Update column
     if col is not None:
@@ -145,15 +155,6 @@ def _to_index(index, table=None, engine=None):
     return ret
 
 
-def _engine_run_visitor(engine, visitorcallable, element, **kwargs):
-    conn = engine.connect()
-    try:
-        element.accept_schema_visitor(visitorcallable(engine.dialect,
-                                                      connection=conn))
-    finally:
-        conn.close()
-
-
 def _normalize_table(column, table):
     if table is not None:
         if table is not column.table:
@@ -164,22 +165,6 @@ def _normalize_table(column, table):
                 del table.primary_key[index]
             table.append_column(column)
     return column.table
-
-
-class _WrapRename(object):
-
-    def __init__(self, item, name):
-        self.item = item
-        self.name = name
-
-    def accept_schema_visitor(self, visitor):
-        """Map Class (Table, Index, Column) to visitor function"""
-        suffix = self.item.__class__.__name__.lower()
-        funcname = 'visit_%s' % suffix
-
-        func = getattr(visitor, funcname)
-        param = self.item, self.name
-        return func(param)
 
 
 class _ColumnDelta(dict):
@@ -330,15 +315,14 @@ class ChangesetTable(object):
         Python object
         """
         engine = self.bind
+        self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
-        param = _WrapRename(self, name)
-        _engine_run_visitor(engine, visitorcallable, param, *args, **kwargs)
+        run_single_visitor(engine, visitorcallable, self, *args, **kwargs)
 
         # Fix metadata registration
-        meta = self.metadata
-        self.deregister()
         self.name = name
-        self._set_parent(meta)
+        self.deregister()
+        self._set_parent(self.metadata)
 
     def _meta_key(self):
         return sqlalchemy.schema._get_table_key(self.name, self.schema)
@@ -368,6 +352,9 @@ class ChangesetColumn(object):
         Column name, type, default, and nullable may be changed
         here. Note that for column defaults, only PassiveDefaults are
         managed by the database - changing others doesn't make sense.
+
+        :param table: Table to be altered
+        :param engine: Engine to be used
         """
         if 'table' not in k:
             k['table'] = self.table
@@ -386,12 +373,6 @@ class ChangesetColumn(object):
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
 
-        # add in foreign keys
-        if self.foreign_keys:
-            for fk in self.foreign_keys:
-                visitorcallable = get_engine_visitor(engine,
-                                                     'columnfkgenerator')
-                engine._run_visitor(visitorcallable, self, fk=fk)
         return self
 
     def drop(self, table=None, *args, **kwargs):
@@ -402,13 +383,14 @@ class ChangesetColumn(object):
         table = _normalize_table(self, table)
         engine = table.bind
         visitorcallable = get_engine_visitor(engine, 'columndropper')
-        engine._run_visitor(lambda dialect, conn: visitorcallable(conn),
-                            self, *args, **kwargs)
+        engine._run_visitor(visitorcallable, self, *args, **kwargs)
         return self
 
 
 class ChangesetIndex(object):
     """Changeset extensions to SQLAlchemy Indexes."""
+
+    __visit_name__ = 'index'
 
     def rename(self, name, *args, **kwargs):
         """Change the name of an index.
@@ -417,15 +399,7 @@ class ChangesetIndex(object):
         name.
         """
         engine = self.table.bind
+        self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
-        param = _WrapRename(self, name)
-        _engine_run_visitor(engine, visitorcallable, param, *args, **kwargs)
+        engine._run_visitor(visitorcallable, self, *args, **kwargs)
         self.name = name
-
-
-def _patch():
-    """All the 'ugly' operations that patch SQLAlchemy's internals."""
-    sqlalchemy.schema.Table.__bases__ += (ChangesetTable, )
-    sqlalchemy.schema.Column.__bases__ += (ChangesetColumn, )
-    sqlalchemy.schema.Index.__bases__ += (ChangesetIndex, )
-_patch()

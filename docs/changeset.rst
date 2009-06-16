@@ -1,4 +1,5 @@
 .. _changeset-system:
+.. highlight:: python
 
 ******************
 Database changeset
@@ -73,6 +74,7 @@ Rename a table::
  table.rename('newtablename')
 
 .. _`table create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#creating-and-dropping-database-tables
+.. currentmodule:: migrate.changeset.constraint
 
 Index
 =====
@@ -88,28 +90,86 @@ Rename an index, given an SQLAlchemy ``Index`` object::
 Constraint
 ==========
 
-SQLAlchemy supports creating/dropping constraints at the same time a table is created/dropped. SQLAlchemy Migrate adds support for creating/dropping primary/foreign key constraints independently.
+SQLAlchemy supports creating/dropping constraints at the same time a table is created/dropped. SQLAlchemy Migrate adds support for creating/dropping :class:`PrimaryKeyConstraint`/:class:`ForeignKeyConstraint`/:class:`CheckConstraint`/:class:`UniqueConstraint` constraints independently. (as ALTER TABLE statements).
+
+The following rundowns are true for all constraints classes:
+
+1. Make sure you do ``from migrate.changeset import *`` after SQLAlchemy imports since `migrate` does not patch SA's Constraints.
+
+2. You can also use Constraints as in SQLAlchemy. In this case passing table argument explicitly is required::
+
+	cons = PrimaryKeyConstraint('id', 'num', table=self.table)
+
+	# Create the constraint
+	cons.create()
+
+	# Drop the constraint
+	cons.drop()
+
+or you can pass column objects (and table argument can be left out).
+
+3. Some dialects support CASCADE option when dropping constraints::
+
+	cons = PrimaryKeyConstraint(col1, col2)
+
+	# Create the constraint
+	cons.create()
+
+	# Drop the constraint
+	cons.drop(cascade=True)
+
+
+.. note::
+	 SQLAlchemy Migrate will try to guess the name of the constraints for databases, but if it's something other than the default, you'll need to give its name. Best practice is to always name your constraints. Note that Oracle requires that you state the name of the constraint to be created/dropped.
+
+
+Examples
+---------
 
 Primary key constraints::
 
+ from migrate.changeset import *
+
  cons = PrimaryKeyConstraint(col1, col2)
+
  # Create the constraint
  cons.create()
+
  # Drop the constraint
  cons.drop()
-
-Note that Oracle requires that you state the name of the primary key constraint to be created/dropped. SQLAlchemy Migrate will try to guess the name of the PK constraint for other databases, but if it's something other than the default, you'll need to give its name::
-
- PrimaryKeyConstraint(col1, col2, name='my_pk_constraint')
 
 Foreign key constraints::
 
+ from migrate.changeset import *
+
  cons = ForeignKeyConstraint([table.c.fkey], [othertable.c.id])
+
  # Create the constraint
  cons.create()
+
  # Drop the constraint
  cons.drop()
 
-Names are specified just as with primary key constraints::
- 
- ForeignKeyConstraint([table.c.fkey], [othertable.c.id], name='my_fk_constraint')
+Check constraints::
+
+	from migrate.changeset import *
+
+	cons = CheckConstraint('id > 3', columns=[table.c.id])
+
+	# Create the constraint
+	cons.create()
+
+	# Drop the constraint
+	cons.drop()
+
+Unique constraints::
+
+	from migrate.changeset import *
+
+	cons = UniqueConstraint('id', 'age', table=self.table)
+
+	# Create the constraint
+	cons.create()
+
+	# Drop the constraint
+	cons.drop()

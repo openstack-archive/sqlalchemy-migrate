@@ -53,18 +53,11 @@ class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
         # If MySQL can do this, I can't find how
         raise exceptions.NotSupportedError("MySQL cannot rename indexes")
 
-
 class MySQLConstraintGenerator(ansisql.ANSIConstraintGenerator):
     pass
 
 
 class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
-    #def visit_constraint(self,constraint):
-    #    if isinstance(constraint,sqlalchemy.schema.PrimaryKeyConstraint):
-    #        return self._visit_constraint_pk(constraint)
-    #    elif isinstance(constraint,sqlalchemy.schema.ForeignKeyConstraint):
-    #        return self._visit_constraint_fk(constraint)
-    #    return super(MySQLConstraintDropper,self).visit_constraint(constraint)
 
     def visit_migrate_primary_key_constraint(self, constraint):
         self.start_alter_table(constraint)
@@ -76,7 +69,6 @@ class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
         self.append("DROP FOREIGN KEY ")
         self.append(self.preparer.format_constraint(constraint))
         self.execute()
-
 
 class MySQLDialect(ansisql.ANSIDialect):
     columngenerator = MySQLColumnGenerator

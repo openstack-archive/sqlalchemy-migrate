@@ -10,6 +10,7 @@ Module :mod:`ansisql <migrate.changeset.ansisql>`
 
 .. automodule:: migrate.changeset.ansisql
    :members:
+   :member-order: groupwise
    :synopsis: Standard SQL implementation for altering database schemas
 
 Module :mod:`constraint <migrate.changeset.constraint>`
@@ -17,6 +18,8 @@ Module :mod:`constraint <migrate.changeset.constraint>`
 
 .. automodule:: migrate.changeset.constraint
    :members:
+   :show-inheritance:
+   :member-order: groupwise
    :synopsis: Standalone schema constraint objects
 
 Module :mod:`databases <migrate.changeset.databases>`
@@ -26,19 +29,27 @@ Module :mod:`databases <migrate.changeset.databases>`
    :members:
    :synopsis: Database specific changeset implementations
 
+.. _mysql-d:
+
 Module :mod:`mysql <migrate.changeset.databases.mysql>`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 .. automodule:: migrate.changeset.databases.mysql
    :members:
    :synopsis: MySQL database specific changeset implementations
 
+.. _oracle-d:
+
 Module :mod:`oracle <migrate.changeset.databases.oracle>`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 .. automodule:: migrate.changeset.databases.oracle
    :members:
    :synopsis: Oracle database specific changeset implementations
+
+.. _postgres-d:
 
 Module :mod:`postgres <migrate.changeset.databases.postgres>`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -47,8 +58,10 @@ Module :mod:`postgres <migrate.changeset.databases.postgres>`
    :members:
    :synopsis: PostgreSQL database specific changeset implementations
 
-Module :mod:`sqlite <migrate.changeset.databases.slite>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _sqlite-d:
+
+Module :mod:`sqlite <migrate.changeset.databases.sqlite>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: migrate.changeset.databases.sqlite
    :members:

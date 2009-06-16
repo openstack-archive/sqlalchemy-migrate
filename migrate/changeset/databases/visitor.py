@@ -42,9 +42,18 @@ def get_dialect_visitor(sa_dialect, name):
     # map sa dialect to migrate dialect and return visitor
     sa_dialect_cls = sa_dialect.__class__
     migrate_dialect_cls = dialects[sa_dialect_cls]
-    visitor = migrate_dialect_cls.visitor(name)
+    visitor = getattr(migrate_dialect_cls, name)
 
     # bind preparer
     visitor.preparer = sa_dialect.preparer(sa_dialect)
 
     return visitor
+
+def run_single_visitor(engine, visitorcallable, element, **kwargs):
+    """Runs only one method on the visitor"""
+    conn = engine.contextual_connect(close_with_result=False)
+    try:
+        visitor = visitorcallable(engine.dialect, conn)
+        getattr(visitor, 'visit_' + element.__visit_name__)(element, **kwargs)
+    finally:
+        conn.close()

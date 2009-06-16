@@ -3,27 +3,33 @@
 
    .. _`SQLite`: http://www.sqlite.org/
 """
-from migrate.changeset import ansisql, constraint, exceptions
+from migrate.changeset import ansisql, exceptions, constraint
 from sqlalchemy.databases import sqlite as sa_base
 from sqlalchemy import Table, MetaData
 #import sqlalchemy as sa
 
 SQLiteSchemaGenerator = sa_base.SQLiteSchemaGenerator
 
+class SQLiteCommon(object):
 
-class SQLiteHelper(object):
+    def _not_supported(self, op):
+        raise exceptions.NotSupportedError("SQLite does not support "
+            "%s; see http://www.sqlite.org/lang_altertable.html" % op)
 
-    def visit_column(self, param):
+
+class SQLiteHelper(SQLiteCommon):
+
+    def visit_column(self, column):
         try:
-            table = self._to_table(param.table)
+            table = self._to_table(column.table)
         except:
-            table = self._to_table(param)
+            table = self._to_table(column)
             raise
         table_name = self.preparer.format_table(table)
         self.append('ALTER TABLE %s RENAME TO migration_tmp' % table_name)
         self.execute()
 
-        insertion_string = self._modify_table(table, param)
+        insertion_string = self._modify_table(table, column)
 
         table.create()
         self.append(insertion_string % {'table_name': table_name})
@@ -32,12 +38,17 @@ class SQLiteHelper(object):
         self.execute()
 
 
-class SQLiteColumnGenerator(SQLiteSchemaGenerator,
+class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon,
                             ansisql.ANSIColumnGenerator):
-    pass
+    """SQLite ColumnGenerator"""
+
+    def visit_alter_foriegn_keys(self, column):
+        """Does not support ALTER TABLE ADD FOREIGN KEY"""
+        self._not_supported("ALTER TABLE ADD CONSTRAINT")
 
 
 class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
+    """SQLite ColumnDropper"""
 
     def _modify_table(self, table, column):
         del table.columns[column.name]
@@ -47,18 +58,17 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
 
 
 class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
+    """SQLite SchemaChanger"""
 
-    def _not_supported(self, op):
-        raise exceptions.NotSupportedError("SQLite does not support "
-            "%s; see http://www.sqlite.org/lang_altertable.html" % op)
-
-    def _modify_table(self, table, delta):
+    def _modify_table(self, table, column):
+        delta = column.delta
         column = table.columns[delta.current_name]
         for k, v in delta.items():
             setattr(column, k, v)
         return 'INSERT INTO %(table_name)s SELECT * from migration_tmp'
 
-    def visit_index(self, param):
+    def visit_index(self, index):
+        """Does not support ALTER INDEX"""
         self._not_supported('ALTER INDEX')
 
 
@@ -74,17 +84,6 @@ class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
         self.execute()
 
 
-class SQLiteFKGenerator(SQLiteSchemaChanger, ansisql.ANSIFKGenerator):
-    def visit_column(self, column):
-        """Create foreign keys for a column (table already exists); #32"""
-
-        if self.fk:
-            self._not_supported("ALTER TABLE ADD FOREIGN KEY")
-
-        if self.buffer.getvalue() != '':
-            self.execute()
-
-
 class SQLiteConstraintDropper(ansisql.ANSIColumnDropper, ansisql.ANSIConstraintCommon):
 
     def visit_migrate_primary_key_constraint(self, constraint):
@@ -94,6 +93,7 @@ class SQLiteConstraintDropper(ansisql.ANSIColumnDropper, ansisql.ANSIConstraintC
         self.append(msg)
         self.execute()
 
+# TODO: add not_supported tags for constraint dropper/generator
 
 class SQLiteDialect(ansisql.ANSIDialect):
     columngenerator = SQLiteColumnGenerator
@@ -101,4 +101,3 @@ class SQLiteDialect(ansisql.ANSIDialect):
     schemachanger = SQLiteSchemaChanger
     constraintgenerator = SQLiteConstraintGenerator
     constraintdropper = SQLiteConstraintDropper
-    columnfkgenerator = SQLiteFKGenerator

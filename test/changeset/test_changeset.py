@@ -13,7 +13,7 @@ from migrate.changeset.schema import _ColumnDelta
 from test import fixture
 
 
-# TODO: add sqlite unique constraints (indexes), test quoting
+# TODO: test quoting
 
 class TestAddDropColumn(fixture.DB):
     level = fixture.DB.CONNECT
@@ -25,8 +25,8 @@ class TestAddDropColumn(fixture.DB):
     def _setup(self, url):
         super(TestAddDropColumn, self)._setup(url)
         self.meta.clear()
-        self.table = Table(self.table_name,self.meta,
-            Column('id',Integer,primary_key=True),
+        self.table = Table(self.table_name, self.meta,
+            Column('id', Integer, primary_key=True),
         )
         self.meta.bind = self.engine
         if self.engine.has_table(self.table.name):
@@ -169,7 +169,7 @@ class TestAddDropColumn(fixture.DB):
         reftable.create()
         def add_func(col):
             self.table.append_column(col)
-            return create_column(col.name,self.table)
+            return create_column(col.name, self.table)
         def drop_func(col):
             ret = drop_column(col.name,self.table)
             if self.engine.has_table(reftable.name):
@@ -180,12 +180,12 @@ class TestAddDropColumn(fixture.DB):
                               self.run_, add_func, drop_func, Integer,
                               ForeignKey(reftable.c.id))
         else:
-            return self.run_(add_func,drop_func,Integer,
+            return self.run_(add_func, drop_func, Integer,
                              ForeignKey(reftable.c.id))
 
 
 class TestRename(fixture.DB):
-    level=fixture.DB.CONNECT
+    level = fixture.DB.CONNECT
     meta = MetaData()
 
     def _setup(self, url):
@@ -195,25 +195,25 @@ class TestRename(fixture.DB):
     @fixture.usedb()
     def test_rename_table(self):
         """Tables can be renamed"""
-        #self.engine.echo=True
+        c_name = 'col_1'
         name1 = 'name_one'
         name2 = 'name_two'
-        xname1 = 'x'+name1
-        xname2 = 'x'+name2
-        self.column = Column(name1,Integer)
+        xname1 = 'x' + name1
+        xname2 = 'x' + name2
+        self.column = Column(c_name, Integer)
         self.meta.clear()
-        self.table = Table(name1,self.meta,self.column)
-        self.index = Index(xname1,self.column,unique=False)
+        self.table = Table(name1, self.meta, self.column)
+        self.index = Index(xname1, self.column, unique=False)
         if self.engine.has_table(self.table.name):
             self.table.drop()
         if self.engine.has_table(name2):
-            tmp = Table(name2,self.meta,autoload=True)
+            tmp = Table(name2, self.meta, autoload=True)
             tmp.drop()
             tmp.deregister()
             del tmp
         self.table.create()
 
-        def assert_table_name(expected,skip_object_check=False):
+        def assert_table_name(expected, skip_object_check=False):
             """Refresh a table via autoload
             SA has changed some since this test was written; we now need to do
             meta.clear() upon reloading a table - clear all rather than a
@@ -245,18 +245,18 @@ class TestRename(fixture.DB):
         try:
             # Table renames
             assert_table_name(name1)
-            rename_table(self.table,name2)
+            rename_table(self.table, name2)
             assert_table_name(name2)
             self.table.rename(name1)
             assert_table_name(name1)
             # ..by just the string
-            rename_table(name1,name2,engine=self.engine)
-            assert_table_name(name2,True)   # object not updated
+            rename_table(name1, name2, engine=self.engine)
+            assert_table_name(name2, True)   # object not updated
     
             # Index renames
             if self.url.startswith('sqlite') or self.url.startswith('mysql'):
                 self.assertRaises(changeset.exceptions.NotSupportedError,
-                    self.index.rename,xname2)
+                    self.index.rename, xname2)
             else:
                 assert_index_name(xname1)
                 rename_index(self.index,xname2,engine=self.engine)

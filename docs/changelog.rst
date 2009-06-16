@@ -1,6 +1,13 @@
 0.5.5
 -----
 
+- code coverage is up to 99%
+- Constraint classes have cascade=True keyword argument to issue CASCADE drop where supported
+- added UniqueConstraint/CheckConstraint and corresponding create/drop methods
+- partial refactoring of changeset package
+- majoy update to documentation
+- dialect support table was added to documentation
+
 .. _backwards-055:
 
 **Backward incompatible changes**:

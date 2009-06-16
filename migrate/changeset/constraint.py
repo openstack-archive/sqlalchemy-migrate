@@ -4,6 +4,8 @@
 import sqlalchemy
 from sqlalchemy import schema
 
+from migrate.changeset.exceptions import *
+
 
 class ConstraintChangeset(object):
     """Base class for Constraint classes."""
@@ -24,55 +26,50 @@ class ConstraintChangeset(object):
             colnames.append(col)
         return colnames, table
 
-    def create(self, *args, **kwargs):
+    def __do_imports(self, visitor_name, *a, **kw):
+        engine = kw.pop('engine', self.table.bind)
+        from migrate.changeset.databases.visitor import (get_engine_visitor,
+                                                         run_single_visitor)
+        visitorcallable = get_engine_visitor(engine, visitor_name)
+        run_single_visitor(engine, visitorcallable, self, *a, **kw)
+
+    def create(self, *a, **kw):
         """Create the constraint in the database.
 
         :param engine: the database engine to use. If this is \
         :keyword:`None` the instance's engine will be used
         :type engine: :class:`sqlalchemy.engine.base.Engine`
         """
-        from migrate.changeset.databases.visitor import get_engine_visitor
-        visitorcallable = get_engine_visitor(self.table.bind,
-                                             'constraintgenerator')
-        _engine_run_visitor(self.table.bind, visitorcallable, self)
+        self.__do_imports('constraintgenerator', *a, **kw)
 
-    def drop(self, *args, **kwargs):
+    def drop(self, *a, **kw):
         """Drop the constraint from the database.
 
         :param engine: the database engine to use. If this is
           :keyword:`None` the instance's engine will be used
+        :param cascade: Issue CASCADE drop if database supports it
         :type engine: :class:`sqlalchemy.engine.base.Engine`
+        :type cascade: bool
+        :returns: Instance with cleared columns
         """
-        from migrate.changeset.databases.visitor import get_engine_visitor
-        visitorcallable = get_engine_visitor(self.table.bind,
-                                             'constraintdropper')
-        _engine_run_visitor(self.table.bind, visitorcallable, self)
+        self.cascade = kw.pop('cascade', False)
+        self.__do_imports('constraintdropper', *a, **kw)
         self.columns.clear()
         return self
 
-    def accept_schema_visitor(self, visitor, *p, **k):
-        """Call the visitor only if it defines the given function"""
-        return getattr(visitor, self._func)(self)
-
-    def autoname(self):
-        """Automatically generate a name for the constraint instance.
-
-        Subclasses must implement this method.
-        """
-
-
-def _engine_run_visitor(engine, visitorcallable, element, **kwargs):
-    conn = engine.connect()
-    try:
-        element.accept_schema_visitor(visitorcallable(conn))
-    finally:
-        conn.close()
-
 
 class PrimaryKeyConstraint(ConstraintChangeset, schema.PrimaryKeyConstraint):
-    """Primary key constraint class."""
+    """Construct PrimaryKeyConstraint
+    
+    Migrate's additional parameters:
 
-    _func = 'visit_migrate_primary_key_constraint'
+    :param cols: Columns in constraint.
+    :param table: If columns are passed as strings, this kw is required
+    :type table: Table instance
+    :type cols: strings or Column instances
+    """
+
+    __visit_name__ = 'migrate_primary_key_constraint'
 
     def __init__(self, *cols, **kwargs):
         colnames, table = self._normalize_columns(cols)
@@ -81,23 +78,34 @@ class PrimaryKeyConstraint(ConstraintChangeset, schema.PrimaryKeyConstraint):
         if table is not None:
             self._set_parent(table)
 
+
     def autoname(self):
         """Mimic the database's automatic constraint names"""
         return "%s_pkey" % self.table.name
 
 
 class ForeignKeyConstraint(ConstraintChangeset, schema.ForeignKeyConstraint):
-    """Foreign key constraint class."""
+    """Construct ForeignKeyConstraint
+    
+    Migrate's additional parameters:
 
-    _func = 'visit_migrate_foreign_key_constraint'
+    :param columns: Columns in constraint
+    :param refcolumns: Columns that this FK reffers to in another table.
+    :param table: If columns are passed as strings, this kw is required
+    :type table: Table instance
+    :type columns: list of strings or Column instances
+    :type refcolumns: list of strings or Column instances
+    """
 
-    def __init__(self, columns, refcolumns, *p, **k):
+    __visit_name__ = 'migrate_foreign_key_constraint'
+
+    def __init__(self, columns, refcolumns, *args, **kwargs):
         colnames, table = self._normalize_columns(columns)
-        table = k.pop('table', table)
+        table = kwargs.pop('table', table)
         refcolnames, reftable = self._normalize_columns(refcolumns,
                                                         table_name=True)
-        super(ForeignKeyConstraint, self).__init__(colnames, refcolnames, *p,
-                                                   **k)
+        super(ForeignKeyConstraint, self).__init__(colnames, refcolnames, *args,
+                                                   **kwargs)
         if table is not None:
             self._set_parent(table)
 
@@ -118,20 +126,60 @@ class ForeignKeyConstraint(ConstraintChangeset, schema.ForeignKeyConstraint):
 
 
 class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
-    """Check constraint class."""
+    """Construct CheckConstraint
 
-    _func = 'visit_migrate_check_constraint'
+    Migrate's additional parameters:
+    
+    :param sqltext: Plain SQL text to check condition
+    :param columns: If not name is applied, you must supply this kw\
+    to autoname constraint
+    :param table: If columns are passed as strings, this kw is required
+    :type table: Table instance
+    :type columns: list of Columns instances
+    :type sqltext: string
+    """
+
+    __visit_name__ = 'migrate_check_constraint'
 
     def __init__(self, sqltext, *args, **kwargs):
-        cols = kwargs.pop('columns')
+        cols = kwargs.pop('columns', False)
+        if not cols and not kwargs.get('name', False):
+            raise InvalidConstraintError('You must either set "name"'
+                'parameter or "columns" to autogenarate it.')
         colnames, table = self._normalize_columns(cols)
         table = kwargs.pop('table', table)
         ConstraintChangeset.__init__(self, *args, **kwargs)
         schema.CheckConstraint.__init__(self, sqltext, *args, **kwargs)
         if table is not None:
+            self.table = table
             self._set_parent(table)
         self.colnames = colnames
 
     def autoname(self):
         return "%(table)s_%(cols)s_check" % \
             dict(table=self.table.name, cols="_".join(self.colnames))
+
+
+class UniqueConstraint(ConstraintChangeset, schema.UniqueConstraint):
+    """Construct UniqueConstraint
+    
+    Migrate's additional parameters:
+
+    :param cols: Columns in constraint.
+    :param table: If columns are passed as strings, this kw is required
+    :type table: Table instance
+    :type cols: strings or Column instances
+    """
+
+    __visit_name__ = 'migrate_unique_constraint'
+
+    def __init__(self, *cols, **kwargs):
+        self.colnames, table = self._normalize_columns(cols)
+        table = kwargs.pop('table', table)
+        super(UniqueConstraint, self).__init__(*self.colnames, **kwargs)
+        if table is not None:
+            self._set_parent(table)
+
+    def autoname(self):
+        """Mimic the database's automatic constraint names"""
+        return "%s_%s_key" % (self.table.name, self.colnames[0])

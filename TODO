@@ -12,3 +12,6 @@ make_update_script_for_model:
 
 - refactor test_shell to test_api and use TestScript for cmd line testing
 - controlledschema.drop() drops whole migrate table, maybe there are some other repositories bound to it!
+
+- document sqlite hacks (unique index for pk constraint)
+- document constraints usage, document all ways then can be used, document cascade,table,columns options

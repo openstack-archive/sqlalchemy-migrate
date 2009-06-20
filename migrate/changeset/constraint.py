@@ -147,7 +147,6 @@ class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
                 'parameter or "columns" to autogenarate it.')
         colnames, table = self._normalize_columns(cols)
         table = kwargs.pop('table', table)
-        ConstraintChangeset.__init__(self, *args, **kwargs)
         schema.CheckConstraint.__init__(self, sqltext, *args, **kwargs)
         if table is not None:
             self.table = table

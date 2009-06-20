@@ -146,8 +146,7 @@ class TestConstraint(CommonTestConstraint):
     @fixture.usedb(not_supported=['sqlite', 'mysql'])
     def test_named_check_constraints(self):
         """Check constraints can be defined, created, and dropped"""
-        self.assertRaises(InvalidConstraintError,
-                          CheckConstraint, 'id > 3')
+        self.assertRaises(InvalidConstraintError, CheckConstraint, 'id > 3')
         cons = CheckConstraint('id > 3', name="id_check", table=self.table)
         cons.create()
         self.refresh_table()

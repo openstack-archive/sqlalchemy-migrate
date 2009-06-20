@@ -1,8 +1,6 @@
 """
    Schema module providing common schema operations.
 """
-import re
-
 import sqlalchemy
 
 from migrate.changeset.databases.visitor import (get_engine_visitor,
@@ -101,13 +99,12 @@ def alter_column(*p, **k):
 
     engine = k['engine']
     delta = _ColumnDelta(*p, **k)
-    visitorcallable = get_engine_visitor(engine, 'schemachanger')
 
-    column = sqlalchemy.Column(delta.current_name)
-    column.delta = delta
-    column.table = delta.table
-    engine._run_visitor(visitorcallable, column)
-    #_engine_run_visitor(engine, visitorcallable, delta)
+    delta.result_column.delta = delta
+    delta.result_column.table = delta.table
+
+    visitorcallable = get_engine_visitor(engine, 'schemachanger')
+    engine._run_visitor(visitorcallable, delta.result_column)
 
     # Update column
     if col is not None:
@@ -153,18 +150,6 @@ def _to_index(index, table=None, engine=None):
     ret = sqlalchemy.Index(index)
     ret.table = table
     return ret
-
-
-def _normalize_table(column, table):
-    if table is not None:
-        if table is not column.table:
-            # This is a bit of a hack: we end up with dupe PK columns here
-            pk_names = map(lambda c: c.name, table.primary_key)
-            if column.primary_key and pk_names.count(column.name):
-                index = pk_names.index(column_name)
-                del table.primary_key[index]
-            table.append_column(column)
-    return column.table
 
 
 class _ColumnDelta(dict):
@@ -223,6 +208,7 @@ class _ColumnDelta(dict):
         table = k.pop('table')
         self.current_name = current_name
         self._table = table
+        self.result_column = table.c.get(current_name, None)
         return k
 
     def _init_1col(self, col, *p, **k):
@@ -277,9 +263,6 @@ class _ColumnDelta(dict):
                        getattr(that, 'length', None))
         return ret
 
-    def accept_schema_visitor(self, visitor):
-        return visitor.visit_column(self)
-
 
 class ChangesetTable(object):
     """Changeset extensions to SQLAlchemy tables."""
@@ -300,7 +283,7 @@ class ChangesetTable(object):
         if not isinstance(column, sqlalchemy.Column):
             # It's a column name
             try:
-                column = getattr(self.c, str(column), None)
+                column = getattr(self.c, str(column))
             except AttributeError:
                 # That column isn't part of the table. We don't need
                 # its entire definition to drop the column, just its
@@ -362,17 +345,23 @@ class ChangesetColumn(object):
             k['engine'] = k['table'].bind
         return alter_column(self, *p, **k)
 
-    def create(self, table=None, *args, **kwargs):
+    def create(self, table=None, index_name=None, unique_name=None,
+               primary_key_name=None, *args, **kwargs):
         """Create this column in the database.
 
         Assumes the given table exists. ``ALTER TABLE ADD COLUMN``,
         for most databases.
         """
-        table = _normalize_table(self, table)
-        engine = table.bind
+        self.index_name = index_name
+        self.unique_name = unique_name
+        self.primary_key_name = primary_key_name
+        for cons in ('index_name', 'unique_name', 'primary_key_name'):
+            self._check_sanity_constraints(cons)
+        
+        self.add_to_table(table)
+        engine = self.table.bind
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
-
         return self
 
     def drop(self, table=None, *args, **kwargs):
@@ -380,11 +369,31 @@ class ChangesetColumn(object):
 
         ``ALTER TABLE DROP COLUMN``, for most databases.
         """
-        table = _normalize_table(self, table)
-        engine = table.bind
+        if table is not None:
+            self.table = table
+        self.remove_from_table(self.table)
+        engine = self.table.bind
         visitorcallable = get_engine_visitor(engine, 'columndropper')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
         return self
+
+    def add_to_table(self, table):
+        if table and not self.table:
+            self._set_parent(table)
+
+    def remove_from_table(self, table):
+        # TODO: remove indexes, primary keys, constraints, etc
+        if table.c.contains_column(self):
+            table.c.remove(self)
+            
+    def _check_sanity_constraints(self, name):
+        obj = getattr(self, name)
+        if (getattr(self, name[:-5]) and not obj):
+            raise InvalidConstraintError("Column.create() accepts index_name,"
+            " primary_key_name and unique_name to generate constraints")
+        if not isinstance(obj, basestring) and obj is not None:
+            raise InvalidConstraintError(
+            "%s argument for column must be constraint name" % name)
 
 
 class ChangesetIndex(object):

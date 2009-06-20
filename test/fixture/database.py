@@ -130,7 +130,7 @@ class DB(Base):
     def _not_supported(self, url):
         return not self._supported(url)
 
-    def refresh_table(self,name=None):
+    def refresh_table(self, name=None):
         """Reload the table from the database
         Assumes we're working with only a single table, self.table, and
         metadata self.meta

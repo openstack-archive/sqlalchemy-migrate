@@ -1,7 +1,6 @@
 """
    This module defines standalone schema constraint classes.
 """
-import sqlalchemy
 from sqlalchemy import schema
 
 from migrate.changeset.exceptions import *
@@ -142,7 +141,7 @@ class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
     __visit_name__ = 'migrate_check_constraint'
 
     def __init__(self, sqltext, *args, **kwargs):
-        cols = kwargs.pop('columns', False)
+        cols = kwargs.pop('columns', [])
         if not cols and not kwargs.get('name', False):
             raise InvalidConstraintError('You must either set "name"'
                 'parameter or "columns" to autogenarate it.')
@@ -169,6 +168,8 @@ class UniqueConstraint(ConstraintChangeset, schema.UniqueConstraint):
     :param table: If columns are passed as strings, this kw is required
     :type table: Table instance
     :type cols: strings or Column instances
+
+    .. versionadded:: 0.5.5
     """
 
     __visit_name__ = 'migrate_unique_constraint'

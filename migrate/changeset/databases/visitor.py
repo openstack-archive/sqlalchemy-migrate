@@ -2,8 +2,10 @@
    Module for visitor class mapping.
 """
 import sqlalchemy as sa
-from migrate.changeset.databases import sqlite, postgres, mysql, oracle
+
 from migrate.changeset import ansisql
+from migrate.changeset.databases import sqlite, postgres, mysql, oracle
+
 
 # Map SA dialects to the corresponding Migrate extensions
 dialects = {

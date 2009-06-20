@@ -1,9 +1,13 @@
 0.5.5
 -----
 
-- code coverage is up to 99%
+- server_defaults passed to column.create are now issued correctly
+- constraints passed to column.create are correctly interpreted (ALTER TABLE ADD CONSTRAINT is issued after ADD COLUMN)
+- column.create accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
 - Constraint classes have cascade=True keyword argument to issue CASCADE drop where supported
 - added UniqueConstraint/CheckConstraint and corresponding create/drop methods
+- use SQLAlchemy quoting system to avoid name conflicts (for issue 32)
+- code coverage is up to 99% with more than 100 tests
 - partial refactoring of changeset package
 - majoy update to documentation
 - dialect support table was added to documentation

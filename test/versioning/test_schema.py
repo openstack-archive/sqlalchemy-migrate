@@ -196,7 +196,7 @@ class TestControlledSchema(fixture.Pathed, fixture.DB):
     def construct_model(self):
         meta = MetaData()
 
-        user = Table('temp_model_schema', meta, Column('id', Integer), Column('user', String))
+        user = Table('temp_model_schema', meta, Column('id', Integer), Column('user', String(245)))
 
         return meta
 

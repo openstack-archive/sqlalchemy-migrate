@@ -6,11 +6,12 @@
 """
 import sqlalchemy as sa
 from sqlalchemy.engine.default import DefaultDialect
-from sqlalchemy.sql.compiler import SchemaGenerator, SchemaDropper
 from sqlalchemy.schema import (ForeignKeyConstraint,
                                PrimaryKeyConstraint,
                                CheckConstraint,
-                               UniqueConstraint)
+                               UniqueConstraint,
+                               Index)
+from sqlalchemy.sql.compiler import SchemaGenerator, SchemaDropper
 
 from migrate.changeset import exceptions, constraint
 
@@ -44,28 +45,29 @@ class AlterTableVisitor(SchemaIterator):
         self.append('\nALTER TABLE %s ' % self.preparer.format_table(table))
         return table
 
-    def _pk_constraint(self, table, column, status):
-        """Create a primary key constraint from a table, column.
+    # DEPRECATED: use plain constraints instead
+    #def _pk_constraint(self, table, column, status):
+    #    """Create a primary key constraint from a table, column.
 
-        Status: true if the constraint is being added; false if being dropped
-        """
-        if isinstance(column, basestring):
-            column = getattr(table.c, name)
+    #    Status: true if the constraint is being added; false if being dropped
+    #    """
+    #    if isinstance(column, basestring):
+    #        column = getattr(table.c, name)
 
-        ret = constraint.PrimaryKeyConstraint(*table.primary_key)
-        if status:
-            # Created PK
-            ret.c.append(column)
-        else:
-            # Dropped PK
-            names = [c.name for c in cons.c]
-            index = names.index(col.name)
-            del ret.c[index]
+    #    ret = constraint.PrimaryKeyConstraint(*table.primary_key)
+    #    if status:
+    #        # Created PK
+    #        ret.c.append(column)
+    #    else:
+    #        # Dropped PK
+    #        names = [c.name for c in cons.c]
+    #        index = names.index(col.name)
+    #        del ret.c[index]
 
-        # Allow explicit PK name assignment
-        if isinstance(pk, basestring):
-            ret.name = pk
-        return ret
+    #    # Allow explicit PK name assignment
+    #    if isinstance(pk, basestring):
+    #        ret.name = pk
+    #    return ret
 
 
 class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
@@ -77,28 +79,36 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         :param column: column object
         :type column: :class:`sqlalchemy.Column` instance
         """
+        if column.default is not None:
+            self.traverse_single(column.default)
+
         table = self.start_alter_table(column)
         self.append("ADD ")
-        colspec = self.get_column_specification(column)
-        self.append(colspec)
+        self.append(self.get_column_specification(column))
+
+        for cons in column.constraints:
+            self.traverse_single(cons)
         self.execute()
 
-        # add in foreign keys
-        if column.foreign_keys:
-            self.visit_alter_foriegn_keys(column)
+        # ALTER TABLE STATEMENTS
 
-    def visit_alter_foriegn_keys(self, column):
+        # add indexes and unique constraints
+        if column.index_name:
+            ix = Index(column.index_name,
+                       column,
+                       unique=bool(column.index_name or column.index))
+            ix.create()
+        elif column.unique_name:
+            constraint.UniqueConstraint(column, name=column.unique_name).create()
+
+        # SA bounds FK constraints to table, add manually
         for fk in column.foreign_keys:
-            self.define_foreign_key(fk.constraint)
+            self.add_foreignkey(fk.constraint)
 
-    def visit_table(self, table):
-        """Default table visitor, does nothing.
-
-        :param table: table object
-        :type table: :class:`sqlalchemy.Table` instance
-        """
-        pass
-
+        # add primary key constraint if needed
+        if column.primary_key_name:
+            cons = constraint.PrimaryKeyConstraint(column, name=column.primary_key_name)
+            cons.create()
 
 
 class ANSIColumnDropper(AlterTableVisitor, SchemaDropper):
@@ -113,7 +123,7 @@ class ANSIColumnDropper(AlterTableVisitor, SchemaDropper):
         :type column: :class:`sqlalchemy.Column`
         """
         table = self.start_alter_table(column)
-        self.append(' DROP COLUMN %s' % self.preparer.format_column(column))
+        self.append('DROP COLUMN %s' % self.preparer.format_column(column))
         self.execute()
 
 
@@ -159,43 +169,25 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
             # are managed by the app, not the db.
             self._run_subvisit(delta, self._visit_column_default)
         if 'name' in keys:
-            self._run_subvisit(delta, self._visit_column_name)
+            self._run_subvisit(delta, self._visit_column_name, start_alter=False)
 
-    def _run_subvisit(self, delta, func):
+    def _run_subvisit(self, delta, func, start_alter=True):
         """Runs visit method based on what needs to be changed on column"""
         table = self._to_table(delta.table)
         col_name = delta.current_name
+        if start_alter:
+            self.start_alter_column(table, col_name)
         ret = func(table, col_name, delta)
         self.execute()
 
-    def _visit_column_foreign_key(self, delta):
-        table = delta.table
-        column = getattr(table.c, delta.current_name)
-        cons = constraint.ForeignKeyConstraint(column, autoload=True)
-        fk = delta['foreign_key']
-        if fk:
-            # For now, cons.columns is limited to one column:
-            # no multicolumn FKs
-            column.foreign_key = ForeignKey(*cons.columns)
-        else:
-            column_foreign_key = None
-        cons.drop()
-        cons.create()
-
-    def _visit_column_primary_key(self, delta):
-        table = delta.table
-        col = getattr(table.c, delta.current_name)
-        pk = delta['primary_key']
-        cons = self._pk_constraint(table, col, pk)
-        cons.drop()
-        cons.create()
-
-    def _visit_column_nullable(self, table, col_name, delta):
-        nullable = delta['nullable']
-        table = self._to_table(table)
+    def start_alter_column(self, table, col_name):
+        """Starts ALTER COLUMN"""
         self.start_alter_table(table)
         # TODO: use preparer.format_column
         self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
+
+    def _visit_column_nullable(self, table, col_name, delta):
+        nullable = delta['nullable']
         if nullable:
             self.append("DROP NOT NULL")
         else:
@@ -207,9 +199,6 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         # reason
         dummy = sa.Column(None, None, server_default=server_default)
         default_text = self.get_column_default_string(dummy)
-        self.start_alter_table(table)
-        # TODO: use preparer.format_column
-        self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
         if default_text is not None:
             self.append("SET DEFAULT %s" % default_text)
         else:
@@ -218,15 +207,10 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     def _visit_column_type(self, table, col_name, delta):
         type_ = delta['type']
         if not isinstance(type_, sa.types.AbstractType):
-            # It's the class itself, not an instance... make an
-            # instance
+            # It's the class itself, not an instance... make an instance
             type_ = type_()
         type_text = type_.dialect_impl(self.dialect).get_col_spec()
-        self.start_alter_table(table)
-        # TODO: does type need formating?
-        # TODO: use preparer.format_column
-        self.append("ALTER COLUMN %s TYPE %s" %
-            (self.preparer.quote_identifier(col_name), type_text))
+        self.append("TYPE %s" % type_text)
 
     def _visit_column_name(self, table, col_name, delta):
         new_name = delta['name']
@@ -292,13 +276,13 @@ class ANSIConstraintGenerator(ANSIConstraintCommon, SchemaGenerator):
             if cons.name is not None:
                 self.append("CONSTRAINT %s " %
                             self.preparer.format_constraint(cons))
-            self.append(" CHECK (%s)" % cons.sqltext)
+            self.append("CHECK (%s)" % cons.sqltext)
             self.define_constraint_deferrability(cons)
         elif isinstance(cons, UniqueConstraint):
             if cons.name is not None:
                 self.append("CONSTRAINT %s " %
                             self.preparer.format_constraint(cons))
-            self.append(" UNIQUE (%s)" % \
+            self.append("UNIQUE (%s)" % \
                 (', '.join(self.preparer.quote(c.name, c.quote) for c in cons)))
             self.define_constraint_deferrability(cons)
         else:
@@ -317,7 +301,8 @@ class ANSIConstraintDropper(ANSIConstraintCommon, SchemaDropper):
     def _visit_constraint(self, constraint):
         self.start_alter_table(constraint)
         self.append("DROP CONSTRAINT ")
-        self.append(self.get_constraint_name(constraint))
+        constraint.name = self.get_constraint_name(constraint)
+        self.append(self.preparer.format_constraint(constraint))
         if constraint.cascade:
             self.append(" CASCADE")
         self.execute()

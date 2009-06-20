@@ -78,7 +78,11 @@ class TestConstraint(CommonTestConstraint):
 
         # Add a FK by creating a FK constraint
         self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
-        fk = ForeignKeyConstraint([self.table.c.fkey], [self.table.c.id], name="fk_id_fkey")
+        fk = ForeignKeyConstraint([self.table.c.fkey],
+                                  [self.table.c.id],
+                                  name="fk_id_fkey",
+                                  onupdate="CASCADE",
+                                  ondelete="CASCADE")
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
         self.assertEquals(list(fk.columns), [self.table.c.fkey])
         self.assertEquals([e.column for e in fk.elements], [self.table.c.id])
@@ -89,6 +93,13 @@ class TestConstraint(CommonTestConstraint):
             index = Index('index_name', self.table.c.fkey)
             index.create()
         fk.create()
+
+        # test for ondelete/onupdate
+        fkey = self.table.c.fkey.foreign_keys._list[0]
+        self.assertEquals(fkey.onupdate, "CASCADE")
+        self.assertEquals(fkey.ondelete, "CASCADE")
+        # TODO: test on real db if it was set
+
         self.refresh_table()
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
 
@@ -109,12 +120,51 @@ class TestConstraint(CommonTestConstraint):
 
     @fixture.usedb()
     def test_drop_cascade(self):
+        """Drop constraint cascaded"""
         pk = PrimaryKeyConstraint('id', table=self.table, name="id_pkey")
         pk.create()
         self.refresh_table()
 
         # Drop the PK constraint forcing cascade
         pk.drop(cascade=True)
+        # TODO: add real assertion if it was added
+
+    @fixture.usedb(supported=['mysql'])
+    def test_fail_mysql_check_constraints(self):
+        """Check constraints raise NotSupported for mysql on drop"""
+        cons = CheckConstraint('id > 3', name="id_check", table=self.table)
+        cons.create()
+        self.refresh_table()
+
+        try:
+            cons.drop()
+        except NotSupportedError:
+            pass
+        else:
+            self.fail()
+
+    @fixture.usedb(not_supported=['sqlite', 'mysql'])
+    def test_named_check_constraints(self):
+        """Check constraints can be defined, created, and dropped"""
+        self.assertRaises(InvalidConstraintError,
+                          CheckConstraint, 'id > 3')
+        cons = CheckConstraint('id > 3', name="id_check", table=self.table)
+        cons.create()
+        self.refresh_table()
+
+        self.table.insert(values={'id': 4}).execute()
+        try:
+            self.table.insert(values={'id': 1}).execute()
+        except IntegrityError:
+            pass
+        else:
+            self.fail()
+
+        # Remove the name, drop the constraint; it should succeed
+        cons.drop()
+        self.refresh_table()
+        self.table.insert(values={'id': 2}).execute()
+        self.table.insert(values={'id': 1}).execute()
 
 
 class TestAutoname(CommonTestConstraint):
@@ -154,10 +204,6 @@ class TestAutoname(CommonTestConstraint):
     def test_autoname_fk(self):
         """ForeignKeyConstraints can guess their name if None is given"""
         cons = ForeignKeyConstraint([self.table.c.fkey], [self.table.c.id])
-        if self.url.startswith('mysql'):
-            # MySQL FKs need an index
-            index = Index('index_name', self.table.c.fkey)
-            index.create()
         cons.create()
         self.refresh_table()
         self.table.c.fkey.foreign_keys[0].column is self.table.c.id
@@ -170,10 +216,6 @@ class TestAutoname(CommonTestConstraint):
 
         # test string names
         cons = ForeignKeyConstraint(['fkey'], ['%s.id' % self.tablename], table=self.table)
-        if self.url.startswith('mysql'):
-            # MySQL FKs need an index
-            index = Index('index_name', self.table.c.fkey)
-            index.create()
         cons.create()
         self.refresh_table()
         self.table.c.fkey.foreign_keys[0].column is self.table.c.id
@@ -182,7 +224,7 @@ class TestAutoname(CommonTestConstraint):
         cons.name = None
         cons.drop()
 
-    @fixture.usedb(not_supported=['oracle', 'sqlite'])
+    @fixture.usedb(not_supported=['oracle', 'sqlite', 'mysql'])
     def test_autoname_check(self):
         """CheckConstraints can guess their name if None is given"""
         cons = CheckConstraint('id > 3', columns=[self.table.c.id])
@@ -190,20 +232,21 @@ class TestAutoname(CommonTestConstraint):
         self.refresh_table()
 
     
-        self.table.insert(values={'id': 4}).execute()
-        try:
-            self.table.insert(values={'id': 1}).execute()
-        except IntegrityError:
-            pass
-        else:
-            self.fail()
+        if not self.engine.name == 'mysql':
+            self.table.insert(values={'id': 4}).execute()
+            try:
+                self.table.insert(values={'id': 1}).execute()
+            except IntegrityError:
+                pass
+            else:
+                self.fail()
 
         # Remove the name, drop the constraint; it should succeed
         cons.name = None
         cons.drop()
         self.refresh_table()
         self.table.insert(values={'id': 2}).execute()
-        self.table.insert(values={'id': 5}).execute()
+        self.table.insert(values={'id': 1}).execute()
 
     @fixture.usedb(not_supported=['oracle', 'sqlite'])
     def test_autoname_unique(self):

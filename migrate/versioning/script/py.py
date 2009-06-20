@@ -140,7 +140,8 @@ class PythonScript(base.BaseScript):
         try:
             func(engine)
         except TypeError:
-            print "upgrade/downgrade functions must accept one parameter (migrate_engine)"
+            print "upgrade/downgrade functions must accept engine parameter (since ver 0.5.5)"
+            raise
 
     @property
     def module(self):

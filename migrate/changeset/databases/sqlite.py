@@ -3,10 +3,10 @@
 
    .. _`SQLite`: http://www.sqlite.org/
 """
-from migrate.changeset import ansisql, exceptions, constraint
 from sqlalchemy.databases import sqlite as sa_base
-from sqlalchemy import Table, MetaData
-#import sqlalchemy as sa
+
+from migrate.changeset import ansisql, exceptions
+
 
 SQLiteSchemaGenerator = sa_base.SQLiteSchemaGenerator
 
@@ -20,12 +20,13 @@ class SQLiteCommon(object):
 class SQLiteHelper(SQLiteCommon):
 
     def visit_column(self, column):
-        try:
-            table = self._to_table(column.table)
-        except:
-            table = self._to_table(column)
-            raise
+        table = self._to_table(column.table)
         table_name = self.preparer.format_table(table)
+
+        # we remove all constraints, indexes so it doesnt recreate them
+        table.indexes = set()
+        table.constraints = set()
+
         self.append('ALTER TABLE %s RENAME TO migration_tmp' % table_name)
         self.execute()
 
@@ -42,7 +43,7 @@ class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon,
                             ansisql.ANSIColumnGenerator):
     """SQLite ColumnGenerator"""
 
-    def visit_alter_foriegn_keys(self, column):
+    def add_foreignkey(self, constraint):
         """Does not support ALTER TABLE ADD FOREIGN KEY"""
         self._not_supported("ALTER TABLE ADD CONSTRAINT")
 
@@ -51,7 +52,6 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
     """SQLite ColumnDropper"""
 
     def _modify_table(self, table, column):
-        del table.columns[column.name]
         columns = ' ,'.join(map(self.preparer.format_column, table.columns))
         return 'INSERT INTO %(table_name)s SELECT ' + columns + \
             ' from migration_tmp'

@@ -31,6 +31,8 @@ Given a standard SQLAlchemy table::
  )
  table.create()
 
+.. _column-create:
+
 Create a column::
 
  col = Column('col1', String)
@@ -39,12 +41,16 @@ Create a column::
  # Column is added to table based on its name
  assert col is table.c.col1
 
-Drop a column (Not supported by SQLite_)::
+.. _column-drop:
+
+Drop a column::
 
  col.drop()
 
 
-Alter a column (Not supported by SQLite_)::
+.. _column-alter:
+
+Alter a column::
 
  col.alter(name='col2')
 
@@ -52,17 +58,19 @@ Alter a column (Not supported by SQLite_)::
  assert col is table.c.col2
 
  # Other properties can be modified as well
- col.alter(type=String(42),
-     default="life, the universe, and everything",
-     nullable=False,
- )
+ col.alter(type=String(42), default="life, the universe, and everything", nullable=False)
 
  # Given another column object, col1.alter(col2), col1 will be changed to match col2
- col.alter(Column('col3',String(77),nullable=True))
+ col.alter(Column('col3', String(77), nullable=True))
  assert col.nullable
  assert table.c.col3 is col
 
-.. _sqlite: http://www.sqlite.org/lang_altertable.html
+
+.. note::
+
+	Since version ``0.5.5`` you can pass primary_key_name, index_name and unique_name to column.create method to issue ALTER TABLE ADD CONSTRAINT after changing the column. Note for multi columns constraints and other advanced configuration, check :ref:`constraint tutorial <constraint-tutorial>`.
+
+.. _table-rename:
 
 Table
 =====
@@ -76,6 +84,9 @@ Rename a table::
 .. _`table create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#creating-and-dropping-database-tables
 .. currentmodule:: migrate.changeset.constraint
 
+
+.. _index-rename:
+
 Index
 =====
 
@@ -86,6 +97,9 @@ Rename an index, given an SQLAlchemy ``Index`` object::
  index.rename('newindexname')
 
 .. _`index create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#indexes
+
+
+.. _constraint-tutorial:
 
 Constraint
 ==========
@@ -106,7 +120,9 @@ The following rundowns are true for all constraints classes:
 	# Drop the constraint
 	cons.drop()
 
-or you can pass column objects (and table argument can be left out).
+or you can pass in column objects (and table argument can be left out)::
+
+	cons = PrimaryKeyConstraint(col1, col2)
 
 3. Some dialects support CASCADE option when dropping constraints::
 

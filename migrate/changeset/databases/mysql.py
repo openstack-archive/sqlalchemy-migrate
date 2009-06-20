@@ -20,38 +20,27 @@ class MySQLColumnDropper(ansisql.ANSIColumnDropper):
 
 class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
 
-    def visit_column(self, delta):
-        keys = delta.keys()
-        if 'type' in keys or 'nullable' in keys or 'name' in keys:
-            self._run_subvisit(delta, self._visit_column_change)
-        if 'server_default' in keys:
-            # Column name might have changed above
-            col_name = delta.get('name', delta.current_name)
-            self._run_subvisit(delta, self._visit_column_default,
-                               col_name=col_name)
-
-    def _visit_column_change(self, table_name, col_name, delta):
-        if not hasattr(delta, 'result_column'):
-            # Mysql needs the whole column definition, not just a lone
-            # name/type
-            raise exceptions.NotSupportedError(
-                "A column object is required to do this")
-
-        column = delta.result_column
-        # needed by get_column_specification
-        if not column.table:
-            column.table = delta.table
+    def visit_column(self, column):
+        delta = column.delta
+        table = column.table
         colspec = self.get_column_specification(column)
-        # TODO: we need table formating here
-        self.start_alter_table(self.preparer.quote(table_name, True))
-        self.append("CHANGE COLUMN ")
-        self.append(self.preparer.quote(col_name, True))
-        self.append(' ')
+
+        if not hasattr(delta, 'result_column'):
+            # Mysql needs the whole column definition, not just a lone name/type
+            raise exceptions.NotSupportedError(
+                "A column object must be present in table to alter it")
+
+        self.start_alter_table(table)
+
+        old_col_name = self.preparer.quote(delta.current_name, column.quote)
+        self.append("CHANGE COLUMN %s " % old_col_name)
         self.append(colspec)
+        self.execute()
 
     def visit_index(self, param):
         # If MySQL can do this, I can't find how
         raise exceptions.NotSupportedError("MySQL cannot rename indexes")
+
 
 class MySQLConstraintGenerator(ansisql.ANSIConstraintGenerator):
     pass
@@ -67,8 +56,21 @@ class MySQLConstraintDropper(ansisql.ANSIConstraintDropper):
     def visit_migrate_foreign_key_constraint(self, constraint):
         self.start_alter_table(constraint)
         self.append("DROP FOREIGN KEY ")
+        constraint.name = self.get_constraint_name(constraint)
         self.append(self.preparer.format_constraint(constraint))
         self.execute()
+
+    def visit_migrate_check_constraint(self, *p, **k):
+        raise exceptions.NotSupportedError("MySQL does not support CHECK"
+            " constraints, use triggers instead.")
+
+    def visit_migrate_unique_constraint(self, constraint, *p, **k):
+        self.start_alter_table(constraint)
+        self.append('DROP INDEX ')
+        constraint.name = self.get_constraint_name(constraint)
+        self.append(self.preparer.format_constraint(constraint))
+        self.execute()
+
 
 class MySQLDialect(ansisql.ANSIDialect):
     columngenerator = MySQLColumnGenerator

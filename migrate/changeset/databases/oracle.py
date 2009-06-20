@@ -1,10 +1,11 @@
 """
    Oracle database specific implementations of changeset classes.
 """
+import sqlalchemy as sa
+from sqlalchemy.databases import oracle as sa_base
 
 from migrate.changeset import ansisql, exceptions
-from sqlalchemy.databases import oracle as sa_base
-import sqlalchemy as sa
+
 
 OracleSchemaGenerator = sa_base.OracleSchemaGenerator
 

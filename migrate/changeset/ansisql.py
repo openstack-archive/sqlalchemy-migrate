@@ -99,7 +99,8 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
                        unique=bool(column.index_name or column.index))
             ix.create()
         elif column.unique_name:
-            constraint.UniqueConstraint(column, name=column.unique_name).create()
+            constraint.UniqueConstraint(column,
+                                        name=column.unique_name).create()
 
         # SA bounds FK constraints to table, add manually
         for fk in column.foreign_keys:
@@ -107,7 +108,8 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
 
         # add primary key constraint if needed
         if column.primary_key_name:
-            cons = constraint.PrimaryKeyConstraint(column, name=column.primary_key_name)
+            cons = constraint.PrimaryKeyConstraint(column,
+                                                   name=column.primary_key_name)
             cons.create()
 
 
@@ -145,14 +147,17 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     def visit_table(self, table):
         """Rename a table. Other ops aren't supported."""
         self.start_alter_table(table)
-        self.append("RENAME TO %s" % self.preparer.quote(table.new_name, table.quote))
+        self.append("RENAME TO %s" % self.preparer.quote(table.new_name,
+                                                         table.quote))
         self.execute()
 
     def visit_index(self, index):
         """Rename an index"""
         self.append("ALTER INDEX %s RENAME TO %s" %
-            (self.preparer.quote(self._validate_identifier(index.name, True), index.quote),
-             self.preparer.quote(self._validate_identifier(index.new_name, True) , index.quote)))
+            (self.preparer.quote(self._validate_identifier(index.name,
+                                                           True), index.quote),
+             self.preparer.quote(self._validate_identifier(index.new_name,
+                                                           True), index.quote)))
         self.execute()
 
     def visit_column(self, column):

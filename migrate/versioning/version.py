@@ -161,7 +161,8 @@ class Version(object):
         # TODO: maybe add force Python parameter?
         ret = self.python
 
-        assert ret is not None, "There is no script for %d version" % self.version
+        assert ret is not None,
+            "There is no script for %d version" % self.version
         return ret
 
     # deprecated?

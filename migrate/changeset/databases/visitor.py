@@ -8,7 +8,7 @@ from migrate.changeset.databases import sqlite, postgres, mysql, oracle
 
 
 # Map SA dialects to the corresponding Migrate extensions
-dialects = {
+DIALECTS = {
     sa.engine.default.DefaultDialect: ansisql.ANSIDialect,
     sa.databases.sqlite.SQLiteDialect: sqlite.SQLiteDialect,
     sa.databases.postgres.PGDialect: postgres.PGDialect,
@@ -43,7 +43,7 @@ def get_dialect_visitor(sa_dialect, name):
 
     # map sa dialect to migrate dialect and return visitor
     sa_dialect_cls = sa_dialect.__class__
-    migrate_dialect_cls = dialects[sa_dialect_cls]
+    migrate_dialect_cls = DIALECTS[sa_dialect_cls]
     visitor = getattr(migrate_dialect_cls, name)
 
     # bind preparer

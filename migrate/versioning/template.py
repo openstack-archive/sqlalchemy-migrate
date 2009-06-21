@@ -24,6 +24,7 @@ class Packaged(pathed.Pathed):
         ret = resource_filename(pkg_name, resource_name)
         return ret
 
+
 class Collection(Packaged):
     """A collection of templates of a specific type"""
 
@@ -35,11 +36,14 @@ class Collection(Packaged):
     def get_pkg(self, file):
         return (self.pkg, str(file))
 
+
 class RepositoryCollection(Collection):
     _default = 'default'
 
+
 class ScriptCollection(Collection):
     _default = 'default.py_tmpl'
+
 
 class Template(Packaged):
     """Finds the paths/packages of various Migrate templates"""
@@ -50,8 +54,9 @@ class Template(Packaged):
 
     def __init__(self, pkg):
         super(Template, self).__init__(pkg)
-        self.repository=RepositoryCollection('.'.join((self.pkg, self._repository)))
-        self.script=ScriptCollection('.'.join((self.pkg, self._script)))
+        self.repository = RepositoryCollection('.'.join((self.pkg,
+                                                         self._repository)))
+        self.script = ScriptCollection('.'.join((self.pkg, self._script)))
 
     def get_item(self, attr, filename=None, as_pkg=None, as_str=None):
         item = getattr(self, attr)
@@ -73,6 +78,7 @@ class Template(Packaged):
 
     def manage(self, **k):
         return (self.pkg, self._manage)
+
 
 template_pkg = 'migrate.versioning.templates'
 template = Template(template_pkg)

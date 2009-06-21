@@ -62,7 +62,9 @@ class ControlledSchema(object):
     def changeset(self, version=None):
         """API to Changeset creation.
         
-        Uses self.version for start version and engine.name to get database name."""
+        Uses self.version for start version and engine.name
+        to get database name.
+        """
         database = self.engine.name
         start_ver = self.version
         changeset = self.repository.changeset(database, start_ver, version)

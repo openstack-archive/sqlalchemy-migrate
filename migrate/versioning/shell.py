@@ -17,8 +17,8 @@ alias = dict(
 
 def alias_setup():
     global alias
-    for key,val in alias.iteritems():
-        setattr(api,key,val)
+    for key, val in alias.iteritems():
+        setattr(api, key, val)
 alias_setup()
 
 
@@ -33,7 +33,8 @@ class PassiveOptionParser(OptionParser):
                 del rargs[0]
                 return
             elif arg[0:2] == "--":
-                # if parser does not know about the option, pass it along (make it anonymous)
+                # if parser does not know about the option
+                # pass it along (make it anonymous)
                 try:
                     opt = arg.split('=', 1)[0]
                     self._match_long_opt(opt)
@@ -49,13 +50,15 @@ class PassiveOptionParser(OptionParser):
                 del rargs[0]
 
 def main(argv=None, **kwargs):
-    """kwargs are default options that can be overriden with passing --some_option to cmdline"""
+    """kwargs are default options that can be overriden with passing
+    --some_option to cmdline
+    """
 
     argv = argv or list(sys.argv[1:])
     commands = list(api.__all__)
     commands.sort()
 
-    usage="""%%prog COMMAND ...
+    usage = """%%prog COMMAND ...
 
     Available commands:
         %s
@@ -129,7 +132,8 @@ def main(argv=None, **kwargs):
         try:
             kw = f_required.pop(0)
         except IndexError:
-            parser.error("Too many arguments for command %s: %s" % (command, arg))
+            parser.error("Too many arguments for command %s: %s" % (command,
+                                                                    arg))
         kwargs[kw] = arg
 
     # apply overrides
@@ -143,7 +147,8 @@ def main(argv=None, **kwargs):
     f_args_default = f_args[len(f_args) - num_defaults:]
     required = list(set(f_required) - set(f_args_default))
     if required:
-        parser.error("Not enough arguments for command %s: %s not specified" % (command, ', '.join(required)))
+        parser.error("Not enough arguments for command %s: %s not specified" \
+            % (command, ', '.join(required)))
 
     # handle command
     try:

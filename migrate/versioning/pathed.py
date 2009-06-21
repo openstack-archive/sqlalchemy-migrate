@@ -52,7 +52,7 @@ class Pathed(KeyedInstance):
         #
         # Treat directories like files...
         if path[-1] == '/':
-            path=path[:-1]
+            path = path[:-1]
         ret = os.path.dirname(path)
         return ret
 

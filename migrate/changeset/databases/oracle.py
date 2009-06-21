@@ -42,16 +42,14 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
 
     def _visit_column_change(self, table, col_name, delta):
         if not hasattr(delta, 'result_column'):
-            # Oracle needs the whole column definition, not just a
-            # lone name/type
+            # Oracle needs the whole column definition, not just a lone name/type
             raise exceptions.NotSupportedError(
                 "A column object is required to do this")
 
         column = delta.result_column
         # Oracle cannot drop a default once created, but it can set it
         # to null.  We'll do that if default=None
-        # http://forums.oracle.com/forums/message.jspa?\
-        # messageID=1273234#1273234
+        # http://forums.oracle.com/forums/message.jspa?messageID=1273234#1273234
         dropdefault_hack = (column.server_default is None \
                                 and 'server_default' in delta.keys())
         # Oracle apparently doesn't like it when we say "not null" if

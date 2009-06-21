@@ -2,7 +2,7 @@
    This module contains database dialect specific changeset
    implementations.
 """
-__all__=[
+__all__ = [
     'postgres',
     'sqlite',
     'mysql',

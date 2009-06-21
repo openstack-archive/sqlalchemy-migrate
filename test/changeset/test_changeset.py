@@ -9,9 +9,6 @@ from migrate.changeset.schema import _ColumnDelta
 from test import fixture
 
 
-# TODO: test quoting
-# TODO: test all other constraints on create column, test defaults
-
 class TestAddDropColumn(fixture.DB):
     """Test add/drop column through all possible interfaces
     also test for constraints"""
@@ -265,7 +262,7 @@ class TestAddDropColumn(fixture.DB):
         col = Column('data', String(244), server_default='foobar')
         col.create(self.table)
 
-        self.table.insert().execute()
+        self.table.insert(values={'id': 10}).execute()
         row = self.table.select(autocommit=True).execute().fetchone()
         self.assertEqual(u'foobar', row['data'])
 
@@ -273,6 +270,8 @@ class TestAddDropColumn(fixture.DB):
 
     # TODO: test sequence
     # TODO: test that if column is appended on creation and removed on deletion
+    # TODO: test column.alter with all changes at one time
+    # TODO: test quoting
 
 
 class TestRename(fixture.DB):
@@ -415,8 +414,6 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_('data' not in self.table.c.keys())
         self.assert_('atad' in self.table.c.keys())
-        #self.assertRaises(AttributeError,getattr,self.table.c,'data')
-        self.table.c.atad   # Should not raise exception
         self.assertEquals(num_rows(self.table.c.atad, content), 1)
 
         # ...as a method, given a new name
@@ -482,13 +479,12 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.id.type, String))
 
-    @fixture.usedb(not_supported='mysql')
+    @fixture.usedb()
     def test_default(self):
         """Can change a column's server_default value (DefaultClauses only)
         Only DefaultClauses are changed here: others are managed by the 
         application / by SA
         """
-        #self.engine.echo=True
         self.assertEquals(self.table.c.data.server_default.arg, 'tluafed')
 
         # Just the new default 

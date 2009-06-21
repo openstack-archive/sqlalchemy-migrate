@@ -32,19 +32,25 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
             column.nullable = orig
         return ret
 
-    def visit_column(self, delta):
+    def visit_column(self, column):
+        delta = column.delta
         keys = delta.keys()
-        if 'type' in keys or 'nullable' in keys or 'default' in keys \
-                or 'server_default' in keys:
-            self._run_subvisit(delta, self._visit_column_change)
+
+        if len(set(('type', 'nullable', 'server_default')).intersection(keys)):
+            self._run_subvisit(delta,
+                               self._visit_column_change,
+                               start_alter=False)
+        # change name as the last action to avoid conflicts
         if 'name' in keys:
-            self._run_subvisit(delta, self._visit_column_name)
+            self._run_subvisit(delta,
+                               self._visit_column_name,
+                               start_alter=False)
 
     def _visit_column_change(self, table, col_name, delta):
         if not hasattr(delta, 'result_column'):
             # Oracle needs the whole column definition, not just a lone name/type
             raise exceptions.NotSupportedError(
-                "A column object is required to do this")
+                "A column object must be present in table to alter it")
 
         column = delta.result_column
         # Oracle cannot drop a default once created, but it can set it
@@ -74,9 +80,10 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
         if dropdefault_hack:
             column.server_default = None
 
-        self.start_alter_table(self.preparer.format_table(table))
-        self.append("MODIFY ")
+        self.start_alter_table(table)
+        self.append("MODIFY (")
         self.append(colspec)
+        self.append(")")
 
 
 class OracleConstraintCommon(object):

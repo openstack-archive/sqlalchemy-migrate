@@ -47,35 +47,36 @@ Dialect support
 | Operation / Dialect                                     | :ref:`sqlite <sqlite-d>` | :ref:`postgres <postgres-d>` | :ref:`mysql <mysql-d>` | :ref:`oracle  <oracle-d>` | firebird | mssql |
 |                                                         |                          |                              |                        |                           |          |       |
 +=========================================================+==========================+==============================+========================+===========================+==========+=======+
-| :ref:`ALTER TABLE RENAME TABLE <table-rename>`          | yes                      | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE RENAME TABLE <table-rename>`          | yes                      | yes                          | yes                    | yes                       |          |       |
 |                                                         |                          |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE RENAME COLUMN <column-alter>`         | yes                      | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE RENAME COLUMN <column-alter>`         | yes                      | yes                          | yes                    | yes                       |          |       |
 |                                                         | (workaround) [#1]_       |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE ADD COLUMN <column-create>`           | yes                      | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE ADD COLUMN <column-create>`           | yes                      | yes                          | yes                    | yes                       |          |       |
 |                                                         | (with limitations) [#2]_ |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE DROP COLUMN <column-drop>`            | yes                      | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE DROP COLUMN <column-drop>`            | yes                      | yes                          | yes                    | yes                       |          |       |
 |                                                         | (workaround) [#1]_       |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE ALTER COLUMN <column-alter>`          | no                       | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE ALTER COLUMN <column-alter>`          | no                       | yes                          | yes                    | yes                       |          |       |
+|                                                         |                          |                              |                        | (with limitations) [#3]_  |          |       |
++---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
+| :ref:`ALTER TABLE ADD CONSTRAINT <constraint-tutorial>` | no                       | yes                          | yes                    | yes                       |          |       |
 |                                                         |                          |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE ADD CONSTRAINT <constraint-tutorial>` | no                       | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE DROP CONSTRAINT <constraint-tutorial>`| no                       | yes                          | yes                    | yes                       |          |       |
 |                                                         |                          |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE DROP CONSTRAINT <constraint-tutorial>`| no                       | yes                          | yes                    |                           |          |       |
-|                                                         |                          |                              |                        |                           |          |       |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`RENAME INDEX <index-rename>`                      | no                       | yes                          | no                     |                           |          |       |
+| :ref:`RENAME INDEX <index-rename>`                      | no                       | yes                          | no                     | yes                       |          |       |
 |                                                         |                          |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
 
 
 .. [#1] Table is renamed to temporary table, new table is created followed by INSERT statements.
 .. [#2] Visit http://www.sqlite.org/lang_altertable.html for more information.
-
+.. [#3] You can not change datatype or rename column if table has NOT NULL data, see http://blogs.x2line.com/al/archive/2005/08/30/1231.aspx for more information.
+ 
 
 Documentation
 -------------

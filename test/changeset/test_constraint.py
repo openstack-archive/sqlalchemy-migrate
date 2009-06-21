@@ -31,7 +31,7 @@ class CommonTestConstraint(fixture.DB):
         self.meta = MetaData(self.engine)
         self.tablename = 'mytable'
         self.table = Table(self.tablename, self.meta,
-            Column('id', Integer, unique=True),
+            Column('id', Integer),
             Column('fkey', Integer),
             mysql_engine='InnoDB')
         if self.engine.has_table(self.table.name):
@@ -81,7 +81,6 @@ class TestConstraint(CommonTestConstraint):
         fk = ForeignKeyConstraint([self.table.c.fkey],
                                   [self.table.c.id],
                                   name="fk_id_fkey",
-                                  onupdate="CASCADE",
                                   ondelete="CASCADE")
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
         self.assertEquals(list(fk.columns), [self.table.c.fkey])
@@ -96,7 +95,6 @@ class TestConstraint(CommonTestConstraint):
 
         # test for ondelete/onupdate
         fkey = self.table.c.fkey.foreign_keys._list[0]
-        self.assertEquals(fkey.onupdate, "CASCADE")
         self.assertEquals(fkey.ondelete, "CASCADE")
         # TODO: test on real db if it was set
 
@@ -110,7 +108,7 @@ class TestConstraint(CommonTestConstraint):
     @fixture.usedb()
     def test_define_pk(self):
         """PK constraints can be defined, created, and dropped"""
-        self._define_pk(self.table.c.id)
+        self._define_pk(self.table.c.fkey)
 
     @fixture.usedb()
     def test_define_pk_multi(self):
@@ -121,7 +119,7 @@ class TestConstraint(CommonTestConstraint):
     @fixture.usedb()
     def test_drop_cascade(self):
         """Drop constraint cascaded"""
-        pk = PrimaryKeyConstraint('id', table=self.table, name="id_pkey")
+        pk = PrimaryKeyConstraint('fkey', table=self.table, name="id_pkey")
         pk.create()
         self.refresh_table()
 
@@ -202,6 +200,9 @@ class TestAutoname(CommonTestConstraint):
     @fixture.usedb(not_supported=['oracle', 'sqlite'])
     def test_autoname_fk(self):
         """ForeignKeyConstraints can guess their name if None is given"""
+        cons = PrimaryKeyConstraint(self.table.c.id)
+        cons.create()
+
         cons = ForeignKeyConstraint([self.table.c.fkey], [self.table.c.id])
         cons.create()
         self.refresh_table()

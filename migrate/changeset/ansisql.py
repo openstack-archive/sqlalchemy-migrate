@@ -220,10 +220,7 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     def _visit_column_name(self, table, col_name, delta):
         new_name = delta['name']
         self.start_alter_table(table)
-        # TODO: use preparer.format_column
-        self.append('RENAME COLUMN %s TO %s' % \
-                        (self.preparer.quote_identifier(col_name),
-                         self.preparer.quote_identifier(new_name)))
+        self.append('RENAME COLUMN %s TO %s' % (col_name, new_name))
 
 
 class ANSIConstraintCommon(AlterTableVisitor):

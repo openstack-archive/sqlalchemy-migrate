@@ -35,7 +35,9 @@ class ControlledSchema(object):
         if not hasattr(self, 'table') or self.table is None:
             try:
                 self.table = Table(tname, self.meta, autoload=True)
-            except sa_exceptions.NoSuchTableError:
+            except (sa_exceptions.NoSuchTableError,
+                    AssertionError):
+                # assertionerror is raised if no table is found in oracle db
                 raise exceptions.DatabaseNotControlledError(tname)
 
         # TODO?: verify that the table is correct (# cols, etc.)

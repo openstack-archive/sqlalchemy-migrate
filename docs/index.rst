@@ -56,7 +56,7 @@ Dialect support
 | :ref:`ALTER TABLE ADD COLUMN <column-create>`           | yes                      | yes                          | yes                    |                           |          |       |
 |                                                         | (with limitations) [#2]_ |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
-| :ref:`ALTER TABLE DROP COLUMN <column-drop`             | yes                      | yes                          | yes                    |                           |          |       |
+| :ref:`ALTER TABLE DROP COLUMN <column-drop>`            | yes                      | yes                          | yes                    |                           |          |       |
 |                                                         | (workaround) [#1]_       |                              |                        |                           |          |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+----------+-------+
 | :ref:`ALTER TABLE ALTER COLUMN <column-alter>`          | no                       | yes                          | yes                    |                           |          |       |

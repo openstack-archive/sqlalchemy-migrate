@@ -39,6 +39,7 @@ class ConstraintChangeset(object):
         :keyword:`None` the instance's engine will be used
         :type engine: :class:`sqlalchemy.engine.base.Engine`
         """
+        # TODO: set the parent here instead of in __init__
         self.__do_imports('constraintgenerator', *a, **kw)
 
     def drop(self, *a, **kw):

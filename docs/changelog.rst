@@ -1,6 +1,7 @@
 0.5.5
 -----
 
+- added support for :ref:`firebird <firebird-d>`
 - server_defaults passed to column.create are now issued correctly
 - constraints passed to column.create are correctly interpreted (ALTER TABLE ADD CONSTRAINT is issued after ADD COLUMN)
 - column.create accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column

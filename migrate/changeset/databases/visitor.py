@@ -4,7 +4,11 @@
 import sqlalchemy as sa
 
 from migrate.changeset import ansisql
-from migrate.changeset.databases import sqlite, postgres, mysql, oracle
+from migrate.changeset.databases import (sqlite,
+                                         postgres,
+                                         mysql,
+                                         oracle,
+                                         firebird)
 
 
 # Map SA dialects to the corresponding Migrate extensions
@@ -14,6 +18,7 @@ DIALECTS = {
     sa.databases.postgres.PGDialect: postgres.PGDialect,
     sa.databases.mysql.MySQLDialect: mysql.MySQLDialect,
     sa.databases.oracle.OracleDialect: oracle.OracleDialect,
+    sa.databases.firebird.FBDialect: firebird.FBDialect,
 }
 
 

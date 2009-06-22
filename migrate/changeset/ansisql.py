@@ -189,7 +189,7 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         """Starts ALTER COLUMN"""
         self.start_alter_table(table)
         # TODO: use preparer.format_column
-        self.append("ALTER COLUMN %s " % self.preparer.quote_identifier(col_name))
+        self.append("ALTER COLUMN %s " % self.preparer.quote(col_name, table.quote))
 
     def _visit_column_nullable(self, table, col_name, delta):
         nullable = delta['nullable']
@@ -306,8 +306,11 @@ class ANSIConstraintDropper(ANSIConstraintCommon, SchemaDropper):
         constraint.name = self.get_constraint_name(constraint)
         self.append(self.preparer.format_constraint(constraint))
         if constraint.cascade:
-            self.append(" CASCADE")
+            self.cascade_constraint(constraint)
         self.execute()
+
+    def cascade_constraint(self, constraint):
+        self.append(" CASCADE")
 
 
 class ANSIDialect(DefaultDialect):

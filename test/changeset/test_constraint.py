@@ -6,6 +6,7 @@ from sqlalchemy.util import *
 from sqlalchemy.exc import *
 
 from migrate.changeset import *
+from migrate.changeset.exceptions import *
 
 from test import fixture
 
@@ -31,8 +32,8 @@ class CommonTestConstraint(fixture.DB):
         self.meta = MetaData(self.engine)
         self.tablename = 'mytable'
         self.table = Table(self.tablename, self.meta,
-            Column('id', Integer),
-            Column('fkey', Integer),
+            Column('id', Integer, nullable=False),
+            Column('fkey', Integer, nullable=False),
             mysql_engine='InnoDB')
         if self.engine.has_table(self.table.name):
             self.table.drop()
@@ -49,20 +50,21 @@ class TestConstraint(CommonTestConstraint):
 
     def _define_pk(self, *cols):
         # Add a pk by creating a PK constraint
-        pk = PrimaryKeyConstraint(table=self.table, *cols)
-        self.assertEquals(list(pk.columns), list(cols))
-        if self.url.startswith('oracle'):
+        if (self.engine.name in ('oracle', 'firebird')):
             # Can't drop Oracle PKs without an explicit name
-            pk.name = 'fgsfds'
+            pk = PrimaryKeyConstraint(table=self.table, name='temp_pk_key', *cols)
+        else:
+            pk = PrimaryKeyConstraint(table=self.table, *cols)
+        self.assertEquals(list(pk.columns), list(cols))
         pk.create()
         self.refresh_table()
         if not self.url.startswith('sqlite'):
             self.assertEquals(list(self.table.primary_key), list(cols))
 
         # Drop the PK constraint
-        if not self.url.startswith('oracle'):
-            # Apparently Oracle PK names aren't introspected
-            pk.name = self.table.primary_key.name
+        #if (self.engine.name in ('oracle', 'firebird')):
+        #    # Apparently Oracle PK names aren't introspected
+        #    pk.name = self.table.primary_key.name
         pk.drop()
         self.refresh_table()
         self.assertEquals(len(self.table.primary_key), 0)
@@ -113,18 +115,23 @@ class TestConstraint(CommonTestConstraint):
     @fixture.usedb()
     def test_define_pk_multi(self):
         """Multicolumn PK constraints can be defined, created, and dropped"""
-        #self.engine.echo=True
         self._define_pk(self.table.c.id, self.table.c.fkey)
 
     @fixture.usedb()
     def test_drop_cascade(self):
         """Drop constraint cascaded"""
+
         pk = PrimaryKeyConstraint('fkey', table=self.table, name="id_pkey")
         pk.create()
         self.refresh_table()
 
         # Drop the PK constraint forcing cascade
-        pk.drop(cascade=True)
+        try:
+            pk.drop(cascade=True)
+        except NotSupportedError:
+            if self.engine.name == 'firebird':
+                pass
+
         # TODO: add real assertion if it was added
 
     @fixture.usedb(supported=['mysql'])
@@ -149,10 +156,10 @@ class TestConstraint(CommonTestConstraint):
         cons.create()
         self.refresh_table()
 
-        self.table.insert(values={'id': 4}).execute()
+        self.table.insert(values={'id': 4, 'fkey': 1}).execute()
         try:
-            self.table.insert(values={'id': 1}).execute()
-        except IntegrityError:
+            self.table.insert(values={'id': 1, 'fkey': 1}).execute()
+        except (IntegrityError, ProgrammingError):
             pass
         else:
             self.fail()
@@ -160,8 +167,8 @@ class TestConstraint(CommonTestConstraint):
         # Remove the name, drop the constraint; it should succeed
         cons.drop()
         self.refresh_table()
-        self.table.insert(values={'id': 2}).execute()
-        self.table.insert(values={'id': 1}).execute()
+        self.table.insert(values={'id': 2, 'fkey': 2}).execute()
+        self.table.insert(values={'id': 1, 'fkey': 2}).execute()
 
 
 class TestAutoname(CommonTestConstraint):
@@ -170,7 +177,7 @@ class TestAutoname(CommonTestConstraint):
     """
     level = fixture.DB.CONNECT
 
-    @fixture.usedb(not_supported='oracle')
+    @fixture.usedb(not_supported=['oracle', 'firebird'])
     def test_autoname_pk(self):
         """PrimaryKeyConstraints can guess their name if None is given"""
         # Don't supply a name; it should create one
@@ -197,7 +204,7 @@ class TestAutoname(CommonTestConstraint):
         cons.name = None
         cons.drop()
 
-    @fixture.usedb(not_supported=['oracle', 'sqlite'])
+    @fixture.usedb(not_supported=['oracle', 'sqlite', 'firebird'])
     def test_autoname_fk(self):
         """ForeignKeyConstraints can guess their name if None is given"""
         cons = PrimaryKeyConstraint(self.table.c.id)
@@ -230,13 +237,12 @@ class TestAutoname(CommonTestConstraint):
         cons = CheckConstraint('id > 3', columns=[self.table.c.id])
         cons.create()
         self.refresh_table()
-
     
         if not self.engine.name == 'mysql':
-            self.table.insert(values={'id': 4}).execute()
+            self.table.insert(values={'id': 4, 'fkey': 1}).execute()
             try:
-                self.table.insert(values={'id': 1}).execute()
-            except IntegrityError:
+                self.table.insert(values={'id': 1, 'fkey': 2}).execute()
+            except (IntegrityError, ProgrammingError):
                 pass
             else:
                 self.fail()
@@ -245,8 +251,8 @@ class TestAutoname(CommonTestConstraint):
         cons.name = None
         cons.drop()
         self.refresh_table()
-        self.table.insert(values={'id': 2}).execute()
-        self.table.insert(values={'id': 1}).execute()
+        self.table.insert(values={'id': 2, 'fkey': 2}).execute()
+        self.table.insert(values={'id': 1, 'fkey': 3}).execute()
 
     @fixture.usedb(not_supported=['oracle', 'sqlite'])
     def test_autoname_unique(self):
@@ -254,12 +260,12 @@ class TestAutoname(CommonTestConstraint):
         cons = UniqueConstraint(self.table.c.fkey)
         cons.create()
         self.refresh_table()
-
     
-        self.table.insert(values={'fkey': 4}).execute()
+        self.table.insert(values={'fkey': 4, 'id': 1}).execute()
         try:
-            self.table.insert(values={'fkey': 4}).execute()
-        except IntegrityError:
+            self.table.insert(values={'fkey': 4, 'id': 2}).execute()
+        except (sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.ProgrammingError):
             pass
         else:
             self.fail()
@@ -268,5 +274,5 @@ class TestAutoname(CommonTestConstraint):
         cons.name = None
         cons.drop()
         self.refresh_table()
-        self.table.insert(values={'fkey': 4}).execute()
-        self.table.insert(values={'fkey': 4}).execute()
+        self.table.insert(values={'fkey': 4, 'id': 2}).execute()
+        self.table.insert(values={'fkey': 4, 'id': 1}).execute()

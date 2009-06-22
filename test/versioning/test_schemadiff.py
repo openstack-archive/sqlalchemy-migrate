@@ -139,20 +139,20 @@ class TestSchemaDiff(fixture.DB):
             # Not even using sqlalchemy.PassiveDefault helps because we're doing explicit column select.
             self.engine.execute(self.table.delete(), id=dataId)
         
-        # Change column nullable in model.
-        self.meta.remove(self.table)
-        self.table = Table(self.table_name,self.meta,
-            Column('id',Integer(),primary_key=True),
-            Column('name',UnicodeText(length=None)),
-            Column('data2',String(255),nullable=False),
-        )
-        assertDiff(True, [], [], [self.table_name])  # TODO test nullable diff
-        
-        # Apply latest model changes and find no more diffs.
-        self._applyLatestModel()
-        assertDiff(False, [], [], [])
-        
-        # Remove table from model.
-        self.meta.remove(self.table)
-        assertDiff(True, [], [self.table_name], [])
-        
+        if not self.engine.name == 'firebird':
+            # Change column nullable in model.
+            self.meta.remove(self.table)
+            self.table = Table(self.table_name,self.meta,
+                Column('id',Integer(),primary_key=True),
+                Column('name',UnicodeText(length=None)),
+                Column('data2',String(255),nullable=False),
+            )
+            assertDiff(True, [], [], [self.table_name])  # TODO test nullable diff
+            
+            # Apply latest model changes and find no more diffs.
+            self._applyLatestModel()
+            assertDiff(False, [], [], [])
+            
+            # Remove table from model.
+            self.meta.remove(self.table)
+            assertDiff(True, [], [self.table_name], [])

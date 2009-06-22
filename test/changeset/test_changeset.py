@@ -183,7 +183,7 @@ class TestAddDropColumn(fixture.DB):
     @fixture.usedb(not_supported='sqlite')
     def test_pk(self):
         """Can create columns with primary key"""
-        col = Column('data', Integer)
+        col = Column('data', Integer, nullable=False)
         self.assertRaises(changeset.exceptions.InvalidConstraintError,
             col.create, self.table, primary_key_name=True)
         col.create(self.table, primary_key_name='data_pkey')
@@ -192,7 +192,8 @@ class TestAddDropColumn(fixture.DB):
         self.table.insert(values={'data': 4}).execute()
         try:
             self.table.insert(values={'data': 4}).execute()
-        except sqlalchemy.exc.IntegrityError:
+        except (sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.ProgrammingError):
             pass
         else:
             self.fail()
@@ -211,7 +212,8 @@ class TestAddDropColumn(fixture.DB):
         self.table.insert(values={'data': 5}).execute()
         try:
             self.table.insert(values={'data': 3}).execute()
-        except sqlalchemy.exc.IntegrityError:
+        except (sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.ProgrammingError):
             pass
         else:
             self.fail()
@@ -230,7 +232,8 @@ class TestAddDropColumn(fixture.DB):
         self.table.insert(values={'data': 5}).execute()
         try:
             self.table.insert(values={'data': 5}).execute()
-        except sqlalchemy.exc.IntegrityError:
+        except (sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.ProgrammingError):
             pass
         else:
             self.fail()
@@ -249,11 +252,13 @@ class TestAddDropColumn(fixture.DB):
         self.table.insert(values={'data': 5}).execute()
         try:
             self.table.insert(values={'data': 5}).execute()
-        except sqlalchemy.exc.IntegrityError:
+        except (sqlalchemy.exc.IntegrityError,
+                sqlalchemy.exc.ProgrammingError):
             pass
         else:
             self.fail()
 
+        Index('ix_data', col).drop(bind=self.engine)
         col.drop()
 
     @fixture.usedb()
@@ -272,6 +277,7 @@ class TestAddDropColumn(fixture.DB):
     # TODO: test that if column is appended on creation and removed on deletion
     # TODO: test column.alter with all changes at one time
     # TODO: test quoting
+    # TODO: test drop default
 
 
 class TestRename(fixture.DB):
@@ -283,7 +289,7 @@ class TestRename(fixture.DB):
         super(TestRename, self)._setup(url)
         self.meta.bind = self.engine
 
-    @fixture.usedb()
+    @fixture.usedb(not_supported='firebird')
     def test_rename_table(self):
         """Tables can be renamed"""
         c_name = 'col_1'
@@ -463,21 +469,29 @@ class TestColumnChange(fixture.DB):
         self.table.c.data.alter(Column('data', String(42)))
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.data.type, String))
-        self.assertEquals(self.table.c.data.type.length, 42)
+        if self.engine.name == 'firebird':
+            self.assertEquals(self.table.c.data.type.length, 42 * 4)
+        else:
+            self.assertEquals(self.table.c.data.type.length, 42)
 
         # Just the new type
-        self.table.c.data.alter(type=String(21))
+        self.table.c.data.alter(type=String(43))
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.data.type, String))
-        self.assertEquals(self.table.c.data.type.length, 21)
+        if self.engine.name == 'firebird':
+            self.assertEquals(self.table.c.data.type.length, 43 * 4)
+        else:
+            self.assertEquals(self.table.c.data.type.length, 43)
 
         # Different type
         self.assert_(isinstance(self.table.c.id.type, Integer))
         self.assertEquals(self.table.c.id.nullable, False)
-        self.table.c.id.alter(type=String(20))
-        self.assertEquals(self.table.c.id.nullable, False)
-        self.refresh_table(self.table.name)
-        self.assert_(isinstance(self.table.c.id.type, String))
+
+        if not self.engine.name == 'firebird':
+            self.table.c.id.alter(type=String(20))
+            self.assertEquals(self.table.c.id.nullable, False)
+            self.refresh_table(self.table.name)
+            self.assert_(isinstance(self.table.c.id.type, String))
 
     @fixture.usedb()
     def test_default(self):
@@ -511,14 +525,14 @@ class TestColumnChange(fixture.DB):
         self.assert_(row['data'] is None, row['data'])
         
 
-    @fixture.usedb()
+    @fixture.usedb(not_supported='firebird')
     def test_null(self):
         """Can change a column's null constraint"""
         self.assertEquals(self.table.c.data.nullable, True)
         
         # Column object
         self.table.c.data.alter(Column('data', String(40), nullable=False))
-        self.table.nullable=None
+        self.table.nullable = None
         self.refresh_table(self.table.name)
         self.assertEquals(self.table.c.data.nullable, False)
 

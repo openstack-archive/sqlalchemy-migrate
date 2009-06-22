@@ -39,6 +39,16 @@ Module :mod:`mysql <migrate.changeset.databases.mysql>`
    :members:
    :synopsis: MySQL database specific changeset implementations
 
+.. _firebird-d:
+
+Module :mod:`firebird <migrate.changeset.databases.firebird>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+.. automodule:: migrate.changeset.databases.firebird
+   :members:
+   :synopsis: Firebird database specific changeset implementations
+
 .. _oracle-d:
 
 Module :mod:`oracle <migrate.changeset.databases.oracle>`

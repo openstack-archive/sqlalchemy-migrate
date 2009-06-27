@@ -20,19 +20,13 @@ class MySQLColumnDropper(ansisql.ANSIColumnDropper):
 
 class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
 
-    def visit_column(self, column):
-        delta = column.delta
-        table = column.table
-        colspec = self.get_column_specification(column)
-
-        if not hasattr(delta, 'result_column'):
-            # Mysql needs the whole column definition, not just a lone name/type
-            raise exceptions.NotSupportedError(
-                "A column object must be present in table to alter it")
+    def visit_column(self, delta):
+        table = delta.table
+        colspec = self.get_column_specification(delta.result_column)
+        old_col_name = self.preparer.quote(delta.current_name, table.quote)
 
         self.start_alter_table(table)
 
-        old_col_name = self.preparer.quote(delta.current_name, column.quote)
         self.append("CHANGE COLUMN %s " % old_col_name)
         self.append(colspec)
         self.execute()

@@ -1,7 +1,3 @@
-- better MySQL support
-- fix unit tests for other databases than PostgreSQL (MySQL and SQLite
-  fail at test_changeset.test_fk(..))
-
 - better SQL scripts support (testing, source viewing)
 
 make_update_script_for_model:
@@ -9,9 +5,4 @@ make_update_script_for_model:
 - columns are not compared?
 - even if two "models" are equal, it doesn't yield so
 
-
-- refactor test_shell to test_api and use TestScript for cmd line testing
 - controlledschema.drop() drops whole migrate table, maybe there are some other repositories bound to it!
-
-- document sqlite hacks (unique index for pk constraint)
-- document constraints usage, document all ways then can be used, document cascade,table,columns options

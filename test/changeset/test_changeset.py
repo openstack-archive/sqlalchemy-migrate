@@ -5,13 +5,14 @@ from sqlalchemy import *
 
 from migrate import changeset
 from migrate.changeset import *
-from migrate.changeset.schema import _ColumnDelta
+from migrate.changeset.schema import ColumnDelta
 from test import fixture
 
 
 class TestAddDropColumn(fixture.DB):
     """Test add/drop column through all possible interfaces
-    also test for constraints"""
+    also test for constraints
+    """
     level = fixture.DB.CONNECT
     table_name = 'tmp_adddropcol'
     table_int = 0
@@ -272,12 +273,10 @@ class TestAddDropColumn(fixture.DB):
         self.assertEqual(u'foobar', row['data'])
 
         col.drop()
-
+    
     # TODO: test sequence
-    # TODO: test that if column is appended on creation and removed on deletion
-    # TODO: test column.alter with all changes at one time
     # TODO: test quoting
-    # TODO: test drop default
+    # TODO: test non-autoname constraints
 
 
 class TestRename(fixture.DB):
@@ -445,23 +444,6 @@ class TestColumnChange(fixture.DB):
         self.table.c.data   # Should not raise exception
         self.assertEquals(num_rows(self.table.c.data,content), 1)
         
-    #@fixture.usedb()
-    #def test_fk(self):
-    #    """Can add/drop foreign key constraints to/from a column
-    #    Not supported
-    #    """
-    #    self.assert_(self.table.c.data.foreign_key is None)
-
-    #    # add
-    #    self.table.c.data.alter(foreign_key=ForeignKey(self.table.c.id))
-    #    self.refresh_table(self.table.name)
-    #    self.assert_(self.table.c.data.foreign_key is not None)
-
-    #    # drop
-    #    self.table.c.data.alter(foreign_key=None)
-    #    self.refresh_table(self.table.name)
-    #    self.assert_(self.table.c.data.foreign_key is None)
-
     @fixture.usedb()
     def test_type(self):
         """Can change a column's type"""
@@ -508,6 +490,9 @@ class TestColumnChange(fixture.DB):
         #self.assertEquals(self.table.c.data.server_default.arg,default)
         # TextClause returned by autoload
         self.assert_(default in str(self.table.c.data.server_default.arg))
+        self.engine.execute(self.table.insert(), id=12)
+        row = self.table.select(autocommit=True).execute().fetchone()
+        self.assertEqual(row['data'], default)
 
         # Column object
         default = 'your_default'
@@ -515,13 +500,15 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_(default in str(self.table.c.data.server_default.arg))
 
-        # Remove default
+        # Drop/remove default
         self.table.c.data.alter(server_default=None)
+        self.assertEqual(self.table.c.data.server_default, None)
+
         self.refresh_table(self.table.name)
         # server_default isn't necessarily None for Oracle
         #self.assert_(self.table.c.data.server_default is None,self.table.c.data.server_default)
         self.engine.execute(self.table.insert(), id=11)
-        row = self.table.select().execute().fetchone()
+        row = self.table.select(self.table.c.id == 11, autocommit=True).execute().fetchone()
         self.assert_(row['data'] is None, row['data'])
         
 
@@ -541,80 +528,225 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assertEquals(self.table.c.data.nullable, True)
 
-    #@fixture.usedb()
-    #def test_pk(self):
-    #    """Can add/drop a column to/from its table's primary key
-    #    Not supported
-    #    """
-    #    self.engine.echo = True
-    #    self.assertEquals(len(self.table.primary_key), 1)
+    @fixture.usedb()
+    def test_alter_metadata(self):
+        """Test if alter_metadata is respected"""
 
-    #    # Entire column definition
-    #    self.table.c.data.alter(Column('data', String, primary_key=True))
-    #    self.refresh_table(self.table.name)
-    #    self.assertEquals(len(self.table.primary_key), 2)
+        self.table.c.data.alter(Column('data', String(100)))
 
-    #    # Just the new status
-    #    self.table.c.data.alter(primary_key=False)
-    #    self.refresh_table(self.table.name)
-    #    self.assertEquals(len(self.table.primary_key), 1)
+        self.assert_(isinstance(self.table.c.data.type, String))
+        self.assertEqual(self.table.c.data.type.length, 100)
+
+        # nothing should change
+        self.table.c.data.alter(Column('data', String(200)), alter_metadata=False)
+        self.assert_(isinstance(self.table.c.data.type, String))
+        self.assertEqual(self.table.c.data.type.length, 100)
+
+    @fixture.usedb()
+    def test_alter_all(self):
+        """Tests all alter changes at one time"""
+        # test for each db separately
+        # since currently some dont support everything
+
+        # test pre settings
+        self.assertEqual(self.table.c.data.nullable, True)
+        self.assertEqual(self.table.c.data.server_default.arg, 'tluafed')
+        self.assertEqual(self.table.c.data.name, 'data')
+        self.assertTrue(isinstance(self.table.c.data.type, String))
+        self.assertTrue(self.table.c.data.type.length, 40)
+
+        kw = dict(nullable=False,
+                 server_default='foobar',
+                 name='data_new',
+                 type=String(50),
+                 alter_metadata=True)
+        if self.engine.name == 'firebird':
+            del kw['nullable']
+        self.table.c.data.alter(**kw)
+        
+        # test altered objects
+        self.assertEqual(self.table.c.data.server_default.arg, 'foobar')
+        if not self.engine.name == 'firebird':
+            self.assertEqual(self.table.c.data.nullable, False)
+        self.assertEqual(self.table.c.data.name, 'data_new')
+        self.assertEqual(self.table.c.data.type.length, 50)
+
+        self.refresh_table(self.table.name)
+
+        # test post settings
+        if not self.engine.name == 'firebird':
+            self.assertEqual(self.table.c.data_new.nullable, False)
+        self.assertEqual(self.table.c.data_new.name, 'data_new')
+        self.assertTrue(isinstance(self.table.c.data_new.type, String))
+        self.assertTrue(self.table.c.data_new.type.length, 50)
+
+        # insert data and assert default
+        self.table.insert(values={'id': 10}).execute()
+        row = self.table.select(autocommit=True).execute().fetchone()
+        self.assertEqual(u'foobar', row['data_new'])
 
 
-class TestColumnDelta(fixture.Base):
-    def test_deltas(self):
-        def mkcol(name='id', type=String, *p, **k):
-            return Column(name, type, *p, **k)
+class TestColumnDelta(fixture.DB):
+    """Tests ColumnDelta class"""
 
-        def verify(expected, original, *p, **k):
-            delta = _ColumnDelta(original, *p, **k)
-            result = delta.keys()
-            result.sort()
-            self.assertEquals(expected, result)
-            return delta
+    level = fixture.DB.CONNECT
+    table_name = 'tmp_coldelta'
+    table_int = 0
 
-        col_orig = mkcol(primary_key=True)
+    def _setup(self, url):
+        super(TestColumnDelta, self)._setup(url)
+        self.meta = MetaData()
+        self.table = Table(self.table_name, self.meta,
+            Column('ids', String(10)),
+        )
+        self.meta.bind = self.engine
+        if self.engine.has_table(self.table.name):
+            self.table.drop()
+        self.table.create()
 
-        verify([], col_orig)
-        verify(['name'], col_orig, 'ids')
-        # Parameters are always executed, even if they're 'unchanged'
-        # (We can't assume given column is up-to-date)
-        verify(['name', 'primary_key', 'type'],
-               col_orig, 'id', Integer, primary_key=True)
-        verify(['name', 'primary_key', 'type'],
-               col_orig, name='id', type=Integer, primary_key=True)
+    def _teardown(self):
+        if self.engine.has_table(self.table.name):
+            self.table.drop()
+        self.meta.clear()
+        super(TestColumnDelta,self)._teardown()
 
-        # Can compare two columns and find differences
-        col_new = mkcol(name='ids', primary_key=True)
-        verify([], col_orig, col_orig)
-        verify(['name'], 'ids', table=Table('test', MetaData()), name='hey')
-        verify(['name'], col_orig, col_orig, 'ids')
-        verify(['name'], col_orig, col_orig, name='ids')
-        verify(['name'], col_orig, col_new)
-        verify(['name','type'], col_orig, col_new, type=String)
+    def mkcol(self, name='id', type=String, *p, **k):
+        return Column(name, type, *p, **k)
 
-        # Change name, given an up-to-date definition and the current name
-        delta = verify(['name'], col_new, current_name='id')
-        self.assertEquals(delta.get('name'), 'ids')
+    def verify(self, expected, original, *p, **k):
+        self.delta = ColumnDelta(original, *p, **k)
+        result = self.delta.keys()
+        result.sort()
+        self.assertEquals(expected, result)
+        return self.delta
 
-        # Change other params at the same time
-        verify(['name', 'type'], col_new, current_name='id', type=String)
+    def test_deltas_two_columns(self):
+        """Testing ColumnDelta with two columns"""
+        col_orig = self.mkcol(primary_key=True)
+        col_new = self.mkcol(name='ids', primary_key=True)
+        self.verify([], col_orig, col_orig)
+        self.verify(['name'], col_orig, col_orig, 'ids')
+        self.verify(['name'], col_orig, col_orig, name='ids')
+        self.verify(['name'], col_orig, col_new)
+        self.verify(['name', 'type'], col_orig, col_new, type=String)
 
         # Type comparisons
-        verify([], mkcol(type=String), mkcol(type=String))
-        verify(['type'], mkcol(type=String), mkcol(type=Integer))
-        verify(['type'], mkcol(type=String), mkcol(type=String(42)))
-        verify([], mkcol(type=String(42)), mkcol(type=String(42)))
-        verify(['type'], mkcol(type=String(24)), mkcol(type=String(42)))
+        self.verify([], self.mkcol(type=String), self.mkcol(type=String))
+        self.verify(['type'], self.mkcol(type=String), self.mkcol(type=Integer))
+        self.verify(['type'], self.mkcol(type=String), self.mkcol(type=String(42)))
+        self.verify([], self.mkcol(type=String(42)), self.mkcol(type=String(42)))
+        self.verify(['type'], self.mkcol(type=String(24)), self.mkcol(type=String(42)))
+        self.verify(['type'], self.mkcol(type=String(24)), self.mkcol(type=Text(24)))
 
         # Other comparisons
-        verify(['primary_key'], mkcol(nullable=False), mkcol(primary_key=True))
+        self.verify(['primary_key'], self.mkcol(nullable=False), self.mkcol(primary_key=True))
 
         # PK implies nullable=False
-        verify(['nullable', 'primary_key'],
-               mkcol(nullable=True), mkcol(primary_key=True))
-        verify([], mkcol(primary_key=True), mkcol(primary_key=True))
-        verify(['nullable'], mkcol(nullable=True), mkcol(nullable=False))
-        verify([], mkcol(nullable=True), mkcol(nullable=True))
-        verify(['default'], mkcol(default=None), mkcol(default='42'))
-        verify([], mkcol(default=None), mkcol(default=None))
-        verify([], mkcol(default='42'), mkcol(default='42'))
+        self.verify(['nullable', 'primary_key'], self.mkcol(nullable=True), self.mkcol(primary_key=True))
+        self.verify([], self.mkcol(primary_key=True), self.mkcol(primary_key=True))
+        self.verify(['nullable'], self.mkcol(nullable=True), self.mkcol(nullable=False))
+        self.verify([], self.mkcol(nullable=True), self.mkcol(nullable=True))
+        self.verify([], self.mkcol(server_default=None), self.mkcol(server_default=None))
+        self.verify([], self.mkcol(server_default='42'), self.mkcol(server_default='42'))
+
+        # test server default
+        delta = self.verify(['server_default'], self.mkcol(), self.mkcol('id', String, DefaultClause('foobar')))
+        self.assertEqual(delta['server_default'].arg, 'foobar')
+
+        self.verify([], self.mkcol(server_default='foobar'), self.mkcol('id', String, DefaultClause('foobar')))
+        self.verify(['type'], self.mkcol(server_default='foobar'), self.mkcol('id', Text, DefaultClause('foobar')))
+
+        # test alter_metadata
+        col = self.mkcol(server_default='foobar')
+        self.verify(['type'], col, self.mkcol('id', Text, DefaultClause('foobar')), alter_metadata=True)
+        self.assert_(isinstance(col.type, Text))
+
+        col = self.mkcol()
+        self.verify(['name', 'server_default', 'type'], col, self.mkcol('beep', Text, DefaultClause('foobar')), alter_metadata=True)
+        self.assert_(isinstance(col.type, Text))
+        self.assertEqual(col.name, 'beep')
+        self.assertEqual(col.server_default.arg, 'foobar')
+
+        col = self.mkcol()
+        self.verify(['name', 'server_default', 'type'], col, self.mkcol('beep', Text, DefaultClause('foobar')), alter_metadata=False)
+        self.assertFalse(isinstance(col.type, Text))
+        self.assertNotEqual(col.name, 'beep')
+        self.assertFalse(col.server_default)
+
+    @fixture.usedb()
+    def test_deltas_zero_columns(self):
+        """Testing ColumnDelta with zero columns"""
+
+        self.verify(['name'], 'ids', table=self.table, name='hey')
+
+        # test reflection
+        self.verify(['type'], 'ids', table=self.table.name, type=String(80), engine=self.engine)
+        self.verify(['type'], 'ids', table=self.table.name, type=String(80), metadata=self.meta)
+
+        # check if alter_metadata is respected
+        self.meta.clear()
+        delta = self.verify(['type'], 'ids', table=self.table.name, type=String(80), alter_metadata=True, metadata=self.meta)
+        self.assert_(self.table.name in self.meta)
+        self.assertEqual(delta.result_column.type.length, 80)
+        self.assertEqual(self.meta.tables.get(self.table.name).c.ids.type.length, 80)
+
+        self.meta.clear()
+        self.verify(['type'], 'ids', table=self.table.name, type=String(80), alter_metadata=False, engine=self.engine)
+        self.assert_(self.table.name not in self.meta)
+
+        self.meta.clear()
+        self.verify(['type'], 'ids', table=self.table.name, type=String(80), alter_metadata=False, metadata=self.meta)
+        self.assert_(self.table.name not in self.meta)
+
+        # test defaults
+        self.meta.clear()
+        self.verify(['server_default'], 'ids', table=self.table.name, server_default='foobar', alter_metadata=True, metadata=self.meta)
+        self.meta.tables.get(self.table.name).c.ids.server_default.arg == 'foobar'
+
+        # test missing parameters
+        self.assertRaises(ValueError, ColumnDelta, table=self.table.name)
+        self.assertRaises(ValueError, ColumnDelta, 'ids', table=self.table.name, alter_metadata=True)
+        self.assertRaises(ValueError, ColumnDelta, 'ids', table=self.table.name, alter_metadata=False)
+
+    def test_deltas_one_column(self):
+        """Testing ColumnDelta with one column"""
+        col_orig = self.mkcol(primary_key=True)
+
+        self.verify([], col_orig)
+        self.verify(['name'], col_orig, 'ids')
+        # Parameters are always executed, even if they're 'unchanged'
+        # (We can't assume given column is up-to-date)
+        self.verify(['name', 'primary_key', 'type'], col_orig, 'id', Integer, primary_key=True)
+        self.verify(['name', 'primary_key', 'type'], col_orig, name='id', type=Integer, primary_key=True)
+
+        # Change name, given an up-to-date definition and the current name
+        delta = self.verify(['name'], col_orig, name='blah')
+        self.assertEquals(delta.get('name'), 'blah')
+        self.assertEquals(delta.current_name, 'id')
+
+        # check if alter_metadata is respected
+        col_orig = self.mkcol(primary_key=True)
+        self.verify(['name', 'type'], col_orig, name='id12', type=Text, alter_metadata=True)
+        self.assert_(isinstance(col_orig.type, Text))
+        self.assertEqual(col_orig.name, 'id12')
+
+        col_orig = self.mkcol(primary_key=True)
+        self.verify(['name', 'type'], col_orig, name='id12', type=Text, alter_metadata=False)
+        self.assert_(isinstance(col_orig.type, String))
+        self.assertEqual(col_orig.name, 'id')
+
+        # test server default
+        col_orig = self.mkcol(primary_key=True)
+        delta = self.verify(['server_default'], col_orig, DefaultClause('foobar'))
+        self.assertEqual(delta['server_default'].arg, 'foobar')
+
+        delta = self.verify(['server_default'], col_orig, server_default=DefaultClause('foobar'))
+        self.assertEqual(delta['server_default'].arg, 'foobar')
+
+        # no change
+        col_orig = self.mkcol(server_default=DefaultClause('foobar'))
+        delta = self.verify(['type'], col_orig, DefaultClause('foobar'), type=PickleType)
+        self.assert_(isinstance(delta.result_column.type, PickleType))
+
+        # TODO: test server on update
+        # TODO: test bind metadata

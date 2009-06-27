@@ -30,12 +30,13 @@ class FBSchemaChanger(ansisql.ANSISchemaChanger):
         raise exceptions.NotSupportedError(
             "Firebird does not support renaming tables.")
 
-    def _visit_column_name(self, table, col_name, delta):
-        new_name = delta['name']
+    def _visit_column_name(self, table, column, delta):
         self.start_alter_table(table)
-        self.append('ALTER COLUMN %s TO %s' % ((col_name), (new_name)))
+        col_name = self.preparer.quote(delta.current_name, table.quote)
+        new_name = self.preparer.format_column(delta.result_column)
+        self.append('ALTER COLUMN %s TO %s' % (col_name, new_name))
 
-    def _visit_column_nullable(self, table, col_name, delta):
+    def _visit_column_nullable(self, table, column, delta):
         """Changing NULL is not supported"""
         # TODO: http://www.firebirdfaq.org/faq103/
         raise exceptions.NotSupportedError(
@@ -50,6 +51,7 @@ class FBConstraintDropper(ansisql.ANSIConstraintDropper):
     """Firebird constaint dropper implementation."""
 
     def cascade_constraint(self, constraint):
+        """Cascading constraints is not supported"""
         raise exceptions.NotSupportedError(
             "Firebird does not support cascading constraints")
 

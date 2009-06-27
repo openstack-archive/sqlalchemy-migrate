@@ -59,8 +59,8 @@ Dialect support
 | :ref:`ALTER TABLE DROP COLUMN <column-drop>`            | yes                      | yes                          | yes                    | yes                       | yes                           |       |
 |                                                         | (workaround) [#1]_       |                              |                        |                           |                               |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+-------+
-| :ref:`ALTER TABLE ALTER COLUMN <column-alter>`          | no                       | yes                          | yes                    | yes                       | yes [#4]_                     |       |
-|                                                         |                          |                              |                        | (with limitations) [#3]_  |                               |       |
+| :ref:`ALTER TABLE ALTER COLUMN <column-alter>`          | yes                      | yes                          | yes                    | yes                       | yes [#4]_                     |       |
+|                                                         | (workaround) [#1]_       |                              |                        | (with limitations) [#3]_  |                               |       |
 +---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+-------+
 | :ref:`ALTER TABLE ADD CONSTRAINT <constraint-tutorial>` | no                       | yes                          | yes                    | yes                       | yes                           |       |
 |                                                         |                          |                              |                        |                           |                               |       |

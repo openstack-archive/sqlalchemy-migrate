@@ -3,6 +3,9 @@
 
    .. _`SQLite`: http://www.sqlite.org/
 """
+from UserDict import DictMixin
+from copy import copy
+
 from sqlalchemy.databases import sqlite as sa_base
 
 from migrate.changeset import ansisql, exceptions
@@ -19,24 +22,35 @@ class SQLiteCommon(object):
 
 class SQLiteHelper(SQLiteCommon):
 
-    def visit_column(self, column):
-        table = self._to_table(column.table)
+    def visit_column(self, delta):
+        if isinstance(delta, DictMixin):
+            column = delta.result_column
+            table = self._to_table(delta.table)
+        else:
+            column = delta
+            table = self._to_table(column.table)
         table_name = self.preparer.format_table(table)
 
         # we remove all constraints, indexes so it doesnt recreate them
+        ixbackup = copy(table.indexes)
+        consbackup = copy(table.constraints)
         table.indexes = set()
         table.constraints = set()
 
         self.append('ALTER TABLE %s RENAME TO migration_tmp' % table_name)
         self.execute()
 
-        insertion_string = self._modify_table(table, column)
+        insertion_string = self._modify_table(table, column, delta)
 
         table.create()
         self.append(insertion_string % {'table_name': table_name})
         self.execute()
         self.append('DROP TABLE migration_tmp')
         self.execute()
+
+        # restore indexes, constraints
+        table.indexes = ixbackup
+        table.constraints = consbackup
 
 
 class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon,
@@ -51,7 +65,7 @@ class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon,
 class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
     """SQLite ColumnDropper"""
 
-    def _modify_table(self, table, column):
+    def _modify_table(self, table, column, delta):
         columns = ' ,'.join(map(self.preparer.format_column, table.columns))
         return 'INSERT INTO %(table_name)s SELECT ' + columns + \
             ' from migration_tmp'
@@ -60,11 +74,8 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
 class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
     """SQLite SchemaChanger"""
 
-    def _modify_table(self, table, column):
-        delta = column.delta
+    def _modify_table(self, table, column, delta):
         column = table.columns[delta.current_name]
-        for k, v in delta.items():
-            setattr(column, k, v)
         return 'INSERT INTO %(table_name)s SELECT * from migration_tmp'
 
     def visit_index(self, index):
@@ -94,6 +105,7 @@ class SQLiteConstraintDropper(ansisql.ANSIColumnDropper, ansisql.ANSIConstraintC
         self.execute()
 
 # TODO: add not_supported tags for constraint dropper/generator
+# TODO: technically primary key is a NOT NULL + UNIQUE constraint, should add NOT NULL to index
 
 class SQLiteDialect(ansisql.ANSIDialect):
     columngenerator = SQLiteColumnGenerator

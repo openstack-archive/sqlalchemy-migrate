@@ -1,7 +1,10 @@
 0.5.5
 -----
 
+- alter column constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
+- complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
 - added support for :ref:`firebird <firebird-d>`
+- fixed bug when column.alter(server_default='string') was not properly set
 - server_defaults passed to column.create are now issued correctly
 - constraints passed to column.create are correctly interpreted (ALTER TABLE ADD CONSTRAINT is issued after ADD COLUMN)
 - column.create accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
@@ -18,6 +21,7 @@
 **Backward incompatible changes**:
 
 - python upgrade/downgrade scripts do not import migrate_engine magically, but recieve engine as the only parameter to function
+- alter column does not accept `current_name` anymore, it extracts name from the old column.
 
 0.5.4
 -----

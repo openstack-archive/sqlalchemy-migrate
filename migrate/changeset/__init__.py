@@ -12,3 +12,5 @@ from migrate.changeset.constraint import *
 sqlalchemy.schema.Table.__bases__ += (ChangesetTable, )
 sqlalchemy.schema.Column.__bases__ += (ChangesetColumn, )
 sqlalchemy.schema.Index.__bases__ += (ChangesetIndex, )
+
+sqlalchemy.schema.DefaultClause.__bases__ += (ChangesetDefaultClause, )

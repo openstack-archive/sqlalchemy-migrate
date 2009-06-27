@@ -45,30 +45,6 @@ class AlterTableVisitor(SchemaIterator):
         self.append('\nALTER TABLE %s ' % self.preparer.format_table(table))
         return table
 
-    # DEPRECATED: use plain constraints instead
-    #def _pk_constraint(self, table, column, status):
-    #    """Create a primary key constraint from a table, column.
-
-    #    Status: true if the constraint is being added; false if being dropped
-    #    """
-    #    if isinstance(column, basestring):
-    #        column = getattr(table.c, name)
-
-    #    ret = constraint.PrimaryKeyConstraint(*table.primary_key)
-    #    if status:
-    #        # Created PK
-    #        ret.c.append(column)
-    #    else:
-    #        # Dropped PK
-    #        names = [c.name for c in cons.c]
-    #        index = names.index(col.name)
-    #        del ret.c[index]
-
-    #    # Allow explicit PK name assignment
-    #    if isinstance(pk, basestring):
-    #        ret.name = pk
-    #    return ret
-
 
 class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
     """Extends ansisql generator for column creation (alter table add col)"""
@@ -160,10 +136,9 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
                                                            True), index.quote)))
         self.execute()
 
-    def visit_column(self, column):
+    def visit_column(self, delta):
         """Rename/change a column."""
         # ALTER COLUMN is implemented as several ALTER statements
-        delta = column.delta
         keys = delta.keys()
         if 'type' in keys:
             self._run_subvisit(delta, self._visit_column_type)
@@ -182,44 +157,37 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
         col_name = delta.current_name
         if start_alter:
             self.start_alter_column(table, col_name)
-        ret = func(table, col_name, delta)
+        ret = func(table, delta.result_column, delta)
         self.execute()
 
     def start_alter_column(self, table, col_name):
         """Starts ALTER COLUMN"""
         self.start_alter_table(table)
-        # TODO: use preparer.format_column
         self.append("ALTER COLUMN %s " % self.preparer.quote(col_name, table.quote))
 
-    def _visit_column_nullable(self, table, col_name, delta):
+    def _visit_column_nullable(self, table, column, delta):
         nullable = delta['nullable']
         if nullable:
             self.append("DROP NOT NULL")
         else:
             self.append("SET NOT NULL")
 
-    def _visit_column_default(self, table, col_name, delta):
-        server_default = delta['server_default']
-        # Dummy column: get_col_default_string needs a column for some
-        # reason
-        dummy = sa.Column(None, None, server_default=server_default)
-        default_text = self.get_column_default_string(dummy)
+    def _visit_column_default(self, table, column, delta):
+        default_text = self.get_column_default_string(column)
         if default_text is not None:
             self.append("SET DEFAULT %s" % default_text)
         else:
             self.append("DROP DEFAULT")
 
-    def _visit_column_type(self, table, col_name, delta):
+    def _visit_column_type(self, table, column, delta):
         type_ = delta['type']
-        if not isinstance(type_, sa.types.AbstractType):
-            # It's the class itself, not an instance... make an instance
-            type_ = type_()
         type_text = type_.dialect_impl(self.dialect).get_col_spec()
         self.append("TYPE %s" % type_text)
 
-    def _visit_column_name(self, table, col_name, delta):
-        new_name = delta['name']
+    def _visit_column_name(self, table, column, delta):
         self.start_alter_table(table)
+        col_name = self.preparer.quote(delta.current_name, table.quote)
+        new_name = self.preparer.format_column(delta.result_column)
         self.append('RENAME COLUMN %s TO %s' % (col_name, new_name))
 
 

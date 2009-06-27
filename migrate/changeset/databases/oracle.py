@@ -32,27 +32,20 @@ class OracleSchemaChanger(OracleSchemaGenerator, ansisql.ANSISchemaChanger):
             column.nullable = orig
         return ret
 
-    def visit_column(self, column):
-        delta = column.delta
+    def visit_column(self, delta):
         keys = delta.keys()
 
-        if len(set(('type', 'nullable', 'server_default')).intersection(keys)):
-            self._run_subvisit(delta,
-                               self._visit_column_change,
-                               start_alter=False)
-        # change name as the last action to avoid conflicts
         if 'name' in keys:
             self._run_subvisit(delta,
                                self._visit_column_name,
                                start_alter=False)
 
-    def _visit_column_change(self, table, col_name, delta):
-        if not hasattr(delta, 'result_column'):
-            # Oracle needs the whole column definition, not just a lone name/type
-            raise exceptions.NotSupportedError(
-                "A column object must be present in table to alter it")
+        if len(set(('type', 'nullable', 'server_default')).intersection(keys)):
+            self._run_subvisit(delta,
+                               self._visit_column_change,
+                               start_alter=False)
 
-        column = delta.result_column
+    def _visit_column_change(self, table, column, delta):
         # Oracle cannot drop a default once created, but it can set it
         # to null.  We'll do that if default=None
         # http://forums.oracle.com/forums/message.jspa?messageID=1273234#1273234

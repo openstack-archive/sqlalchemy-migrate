@@ -83,7 +83,7 @@ class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
         self._not_supported('ALTER INDEX')
 
 
-class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
+class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator, SQLiteCommon):
 
     def visit_migrate_primary_key_constraint(self, constraint):
         tmpl = "CREATE UNIQUE INDEX %s ON %s ( %s )"
@@ -94,8 +94,15 @@ class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator):
         self.append(msg)
         self.execute()
 
+    def visit_migrate_foreign_key_constraint(self, *p, **k):
+        self._not_supported('ALTER TABLE ADD CONSTRAINT')
 
-class SQLiteConstraintDropper(ansisql.ANSIColumnDropper, ansisql.ANSIConstraintCommon):
+    def visit_migrate_unique_constraint(self, *p, **k):
+        self._not_supported('ALTER TABLE ADD CONSTRAINT')
+
+class SQLiteConstraintDropper(ansisql.ANSIColumnDropper,
+                              SQLiteCommon,
+                              ansisql.ANSIConstraintCommon):
 
     def visit_migrate_primary_key_constraint(self, constraint):
         tmpl = "DROP INDEX %s "
@@ -104,7 +111,16 @@ class SQLiteConstraintDropper(ansisql.ANSIColumnDropper, ansisql.ANSIConstraintC
         self.append(msg)
         self.execute()
 
-# TODO: add not_supported tags for constraint dropper/generator
+    def visit_migrate_foreign_key_constraint(self, *p, **k):
+        self._not_supported('ALTER TABLE DROP CONSTRAINT')
+
+    def visit_migrate_check_constraint(self, *p, **k):
+        self._not_supported('ALTER TABLE DROP CONSTRAINT')
+
+    def visit_migrate_unique_constraint(self, *p, **k):
+        self._not_supported('ALTER TABLE DROP CONSTRAINT')
+
+
 # TODO: technically primary key is a NOT NULL + UNIQUE constraint, should add NOT NULL to index
 
 class SQLiteDialect(ansisql.ANSIDialect):

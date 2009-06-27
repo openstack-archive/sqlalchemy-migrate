@@ -92,6 +92,7 @@ def alter_column(*p, **k):
     :param table: Table or table name (will issue reflection) 
     :param engine: Will be used for reflection
     :param alter_metadata: Defaults to True. It will alter changes also to objects.
+    :returns: :class:`Columndelta` instance
     """
     
     k.setdefault('alter_metadata', DEFAULT_ALTER_METADATA)
@@ -106,6 +107,8 @@ def alter_column(*p, **k):
 
     visitorcallable = get_engine_visitor(engine, 'schemachanger')
     engine._run_visitor(visitorcallable, delta)
+
+    return delta
 
 
 def _to_table(table, engine=None):

@@ -543,6 +543,13 @@ class TestColumnChange(fixture.DB):
         self.assertEqual(self.table.c.data.type.length, 100)
 
     @fixture.usedb()
+    def test_alter_returns_delta(self):
+        """Test if alter constructs return delta"""
+
+        delta = self.table.c.data.alter(Column('data', String(100)))
+        self.assert_('type' in delta)
+
+    @fixture.usedb()
     def test_alter_all(self):
         """Tests all alter changes at one time"""
         # test for each db separately

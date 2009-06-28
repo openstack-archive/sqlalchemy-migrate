@@ -39,6 +39,7 @@ Download and Development
 
    download
 
+.. _dialect-support:
 
 Dialect support
 ---------------

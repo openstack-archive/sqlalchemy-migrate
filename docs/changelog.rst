@@ -4,24 +4,24 @@
 - alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
 - complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
 - added support for :ref:`firebird <firebird-d>`
-- fixed bug when column.alter(server_default='string') was not properly set
-- server_defaults passed to column.create are now issued correctly
-- constraints passed to column.create are correctly interpreted (ALTER TABLE ADD CONSTRAINT is issued after ADD COLUMN)
-- column.create accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
-- Constraint classes have cascade=True keyword argument to issue CASCADE drop where supported
-- added UniqueConstraint/CheckConstraint and corresponding create/drop methods
+- fixed bug when :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string') was not properly set
+- `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are now issued correctly
+- constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
+- :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
+- Constraint classes have `cascade=True` keyword argument to issue ``DROP CASCADE`` where supported
+- added :class:`~migrate.changeset.constraint.UniqueConstraint`/:class:`~migrate.changeset.constraint.CheckConstraint` and corresponding create/drop methods
 - use SQLAlchemy quoting system to avoid name conflicts (for issue 32)
 - code coverage is up to 99% with more than 100 tests
-- partial refactoring of changeset package
+- partial refactoring of :mod:`changeset` package
 - majoy update to documentation
-- dialect support table was added to documentation
+- :ref:`dialect support <dialect-support>` table was added to documentation
 
 .. _backwards-055:
 
 **Backward incompatible changes**:
 
-- python upgrade/downgrade scripts do not import migrate_engine magically, but recieve engine as the only parameter to function
-- alter column does not accept `current_name` anymore, it extracts name from the old column.
+- python upgrade/downgrade scripts do not import `migrate_engine` magically, but recieve engine as the only parameter to function (eg. ``def upgrade(migrate_engine):``)
+- :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>` does not accept `current_name` anymore, it extracts name from the old column.
 
 0.5.4
 -----

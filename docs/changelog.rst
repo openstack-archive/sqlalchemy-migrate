@@ -1,7 +1,7 @@
 0.5.5
 -----
 
-- alter column constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
+- alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
 - complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
 - added support for :ref:`firebird <firebird-d>`
 - fixed bug when column.alter(server_default='string') was not properly set

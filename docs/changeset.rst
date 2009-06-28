@@ -5,7 +5,7 @@
 Database changeset
 ******************
 
-.. currentmodule:: migrate.changeset
+.. currentmodule:: migrate.changeset.schema
 
 Importing :mod:`migrate.changeset` adds some new methods to existing
 SA objects, as well as creating functions of its own. Most operations
@@ -21,6 +21,10 @@ Changeset operations can be used independently of SQLAlchemy Migrate's
 For more information, see the generated documentation for
 :mod:`migrate.changeset`.
 
+.. note::
+
+	alter_metadata keyword defaults to True.
+
 Column
 ======
 
@@ -33,7 +37,7 @@ Given a standard SQLAlchemy table::
 
 .. _column-create:
 
-Create a column::
+:meth:`Create a column <ChangesetColumn.create>`::
 
  col = Column('col1', String)
  col.create(table)
@@ -43,14 +47,14 @@ Create a column::
 
 .. _column-drop:
 
-Drop a column::
+:meth:`Drop a column <ChangesetColumn.drop>`::
 
  col.drop()
 
 
 .. _column-alter:
 
-Alter a column::
+:meth:`Alter a column <ChangesetColumn.alter>`::
 
  col.alter(name='col2')
 
@@ -75,9 +79,9 @@ Alter a column::
 Table
 =====
 
-SQLAlchemy supports `table create/drop`_
+SQLAlchemy supports `table create/drop`_.
 
-Rename a table::
+:meth:`Rename a table <ChangesetTable.rename>`::
 
  table.rename('newtablename')
 
@@ -90,9 +94,9 @@ Rename a table::
 Index
 =====
 
-SQLAlchemy supports `index create/drop`_
+SQLAlchemy supports `index create/drop`_.
 
-Rename an index, given an SQLAlchemy ``Index`` object::
+:meth:`Rename an index <migrate.changeset.schema.ChangesetIndex.rename>`, given an SQLAlchemy ``Index`` object::
 
  index.rename('newindexname')
 

@@ -25,72 +25,72 @@ __all__ = [
 DEFAULT_ALTER_METADATA = True
 
 
-def create_column(column, table=None, *p, **k):
-    """Create a column, given the table
+def create_column(column, table=None, *p, **kw):
+    """Create a column, given the table.
     
-    API to :meth:`ChangesetColumn.create`
+    API to :meth:`ChangesetColumn.create`.
     """
     if table is not None:
-        return table.create_column(column, *p, **k)
-    return column.create(*p, **k)
+        return table.create_column(column, *p, **kw)
+    return column.create(*p, **kw)
 
 
-def drop_column(column, table=None, *p, **k):
-    """Drop a column, given the table
+def drop_column(column, table=None, *p, **kw):
+    """Drop a column, given the table.
     
-    API to :meth:`ChangesetColumn.drop`
+    API to :meth:`ChangesetColumn.drop`.
     """
     if table is not None:
-        return table.drop_column(column, *p, **k)
-    return column.drop(*p, **k)
+        return table.drop_column(column, *p, **kw)
+    return column.drop(*p, **kw)
 
 
-def rename_table(table, name, engine=None):
+def rename_table(table, name, engine=None, **kw):
     """Rename a table.
 
     If Table instance is given, engine is not used.
 
-    API to :meth:`ChangesetTable.rename`
+    API to :meth:`ChangesetTable.rename`.
 
-    :param table: Table to be renamed
-    :param name: new name
-    :param engine: Engine instance
+    :param table: Table to be renamed.
+    :param name: New name for Table.
+    :param engine: Engine instance.
     :type table: string or Table instance
     :type name: string
     :type engine: obj
     """
     table = _to_table(table, engine)
-    table.rename(name)
+    table.rename(name, **kw)
 
 
-def rename_index(index, name, table=None, engine=None):
+def rename_index(index, name, table=None, engine=None, **kw):
     """Rename an index.
 
-    If Index and Table object instances are given,
+    If Index instance is given,
     table and engine are not used.
 
-    API to :meth:`ChangesetIndex.rename`
+    API to :meth:`ChangesetIndex.rename`.
 
-    :param index: Index to be renamed
-    :param name: new name
-    :param table: Table to which Index is reffered
-    :param engine: Engine instance
+    :param index: Index to be renamed.
+    :param name: New name for index.
+    :param table: Table to which Index is reffered.
+    :param engine: Engine instance.
     :type index: string or Index instance
     :type name: string
     :type table: string or Table instance
     :type engine: obj
     """
     index = _to_index(index, table, engine)
-    index.rename(name)
+    index.rename(name, **kw)
 
 
 def alter_column(*p, **k):
     """Alter a column.
 
-    Direct API to :class:`ColumnDelta`
+    Direct API to :class:`ColumnDelta`.
 
-    :param table: Table or table name (will issue reflection) 
-    :param engine: Will be used for reflection
+    :param table: Table or table name (will issue reflection).
+    :param engine: Will be used for reflection.
     :param alter_metadata: Defaults to True. It will alter changes also to objects.
     :returns: :class:`Columndelta` instance
     """
@@ -378,19 +378,30 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
 class ChangesetTable(object):
     """Changeset extensions to SQLAlchemy tables."""
 
-    def create_column(self, column, **kw):
+    def create_column(self, column, *p, **kw):
         """Creates a column.
 
         The column parameter may be a column definition or the name of
         a column in this table.
+
+        API to :meth:`ChangesetColumn.create`
+
+        :param column: Column to be created
+        :type column: Column instance or string
         """
         if not isinstance(column, sqlalchemy.Column):
             # It's a column name
             column = getattr(self.c, str(column))
-        column.create(table=self)
+        column.create(table=self, *p, **kw)
 
-    def drop_column(self, column, **kw):
-        """Drop a column, given its name or definition."""
+    def drop_column(self, column, *p, **kw):
+        """Drop a column, given its name or definition.
+        
+        API to :meth:`ChangesetColumn.drop`
+
+        :param column: Column to be droped
+        :type column: Column instance or string
+        """
         if not isinstance(column, sqlalchemy.Column):
             # It's a column name
             try:
@@ -400,23 +411,27 @@ class ChangesetTable(object):
                 # its entire definition to drop the column, just its
                 # name, so create a dummy column with the same name.
                 column = sqlalchemy.Column(str(column))
-        column.drop(table=self)
+        column.drop(table=self, *p, **kw)
 
     def rename(self, name, *args, **kwargs):
         """Rename this table.
 
-        This changes both the database name and the name of this
-        Python object
+        :param name: New name of the table.
+        :type name: string
+        :param alter_metadata: If True, table will be removed from metadata
+        :type alter_metadata: bool
         """
+        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         engine = self.bind
         self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
         run_single_visitor(engine, visitorcallable, self, *args, **kwargs)
 
         # Fix metadata registration
-        self.name = name
-        self.deregister()
-        self._set_parent(self.metadata)
+        if self.alter_metadata:
+            self.name = name
+            self.deregister()
+            self._set_parent(self.metadata)
 
     def _meta_key(self):
         return sqlalchemy.schema._get_table_key(self.name, self.schema)
@@ -430,7 +445,7 @@ class ChangesetTable(object):
 
 
 class ChangesetColumn(object):
-    """Changeset extensions to SQLAlchemy columns"""
+    """Changeset extensions to SQLAlchemy columns."""
 
     def alter(self, *p, **k):
         """Alter a column's definition: ``ALTER TABLE ALTER COLUMN``.
@@ -442,7 +457,8 @@ class ChangesetColumn(object):
 
             col.alter(Column('myint', Integer, DefaultClause('foobar')))
             col.alter('myint', Integer, server_default='foobar', nullable=False)
-            col.alter(DefaultClause('foobar'), name='myint', type=Integer, nullable=False)
+            col.alter(DefaultClause('foobar'), name='myint', type=Integer,\
+ nullable=False)
 
         Column name, type, server_default, and nullable may be changed
         here.
@@ -461,14 +477,29 @@ class ChangesetColumn(object):
 
         Assumes the given table exists. ``ALTER TABLE ADD COLUMN``,
         for most databases.
+
+        :param table: Table instance to create on.
+        :param index_name: Creates :class:`ChangesetIndex` on this column.
+        :param unique_name: Creates :class:\
+`~migrate.changeset.constraint.UniqueConstraint` on this column.
+        :param primary_key_name: Creates :class:\
+`~migrate.changeset.constraint.PrimaryKeyConstraint` on this column.
+        :param alter_metadata: If True, column will be added to table object.
+        :type table: Table instance
+        :type index_name: string
+        :type unique_name: string
+        :type primary_key_name: string
+        :type alter_metadata: bool
         """
+        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         self.index_name = index_name
         self.unique_name = unique_name
         self.primary_key_name = primary_key_name
         for cons in ('index_name', 'unique_name', 'primary_key_name'):
             self._check_sanity_constraints(cons)
         
-        self.add_to_table(table)
+        if self.alter_metadata:
+            self.add_to_table(table)
         engine = self.table.bind
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
@@ -478,13 +509,20 @@ class ChangesetColumn(object):
         """Drop this column from the database, leaving its table intact.
 
         ``ALTER TABLE DROP COLUMN``, for most databases.
+
+        :param alter_metadata: If True, column will be removed from table object.
+        :type alter_metadata: bool
         """
+        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         if table is not None:
             self.table = table
         engine = self.table.bind
-        self.remove_from_table(self.table, unset_table=False)
+        if self.alter_metadata:
+            self.remove_from_table(self.table, unset_table=False)
         visitorcallable = get_engine_visitor(engine, 'columndropper')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
+        if self.alter_metadata:
+            self.table = None
         return self
 
     def add_to_table(self, table):
@@ -515,7 +553,7 @@ class ChangesetColumn(object):
             *[c.copy(**kw) for c in self.constraints])
 
     def _check_sanity_constraints(self, name):
-
+        """Check if constraints names are correct"""
         obj = getattr(self, name)
         if (getattr(self, name[:-5]) and not obj):
             raise InvalidConstraintError("Column.create() accepts index_name,"
@@ -533,14 +571,18 @@ class ChangesetIndex(object):
     def rename(self, name, *args, **kwargs):
         """Change the name of an index.
 
-        This changes both the Python object name and the database
-        name.
+        :param name: New name of the Index.
+        :type name: string
+        :param alter_metadata: If True, Index object will be altered.
+        :type alter_metadata: bool
         """
+        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         engine = self.table.bind
         self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
-        self.name = name
+        if self.alter_metadata:
+            self.name = name
 
 
 class ChangesetDefaultClause(object):

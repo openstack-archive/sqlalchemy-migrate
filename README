@@ -16,7 +16,7 @@ and at the Python package index `sqlalchemy-migrate <http://pypi.python.org/pypi
 
 Homepage is located at `code.google.com <http://code.google.com/p/sqlalchemy-migrate/>`_
 
-You can also download `development version <svn://sqlalchemy-migrate.googlecode.com/svn/trunk/#egg=sqlalchemy-migrate-dev>` from SVN trunk.
+You can also download `development version <http://sqlalchemy-migrate.googlecode.com/svn/trunk/#egg=sqlalchemy-migrate-dev>` from SVN trunk.
 
 
 Tests and Bugs

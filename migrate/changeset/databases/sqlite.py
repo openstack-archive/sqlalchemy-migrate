@@ -8,10 +8,12 @@ from copy import copy
 
 from sqlalchemy.databases import sqlite as sa_base
 
-from migrate.changeset import ansisql, exceptions
+from migrate.changeset import ansisql, exceptions, SQLA_06
 
-
-SQLiteSchemaGenerator = sa_base.SQLiteSchemaGenerator
+if not SQLA_06:
+    SQLiteSchemaGenerator = sa_base.SQLiteSchemaGenerator
+else:
+    SQLiteSchemaGenerator = sa_base.SQLiteDDLCompiler
 
 class SQLiteCommon(object):
 
@@ -52,8 +54,7 @@ class SQLiteHelper(SQLiteCommon):
         table.indexes = ixbackup
         table.constraints = consbackup
 
-
-class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon,
+class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon, 
                             ansisql.ANSIColumnGenerator):
     """SQLite ColumnGenerator"""
 

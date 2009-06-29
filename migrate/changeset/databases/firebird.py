@@ -1,13 +1,12 @@
 """
    Firebird database specific implementations of changeset classes.
 """
-from sqlalchemy.databases import firebird as sa_base
 
 from migrate.changeset import ansisql, exceptions
 
-
+# TODO: SQLA 0.6 has not migrated the FB dialect over yet
+from sqlalchemy.databases import firebird as sa_base
 FBSchemaGenerator = sa_base.FBSchemaGenerator
-
 
 class FBColumnGenerator(FBSchemaGenerator, ansisql.ANSIColumnGenerator):
     """Firebird column generator implementation."""

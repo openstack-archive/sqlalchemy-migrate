@@ -13,12 +13,12 @@ from migrate.changeset.databases import (sqlite,
 
 # Map SA dialects to the corresponding Migrate extensions
 DIALECTS = {
-    sa.engine.default.DefaultDialect: ansisql.ANSIDialect,
-    sa.databases.sqlite.SQLiteDialect: sqlite.SQLiteDialect,
-    sa.databases.postgres.PGDialect: postgres.PGDialect,
-    sa.databases.mysql.MySQLDialect: mysql.MySQLDialect,
-    sa.databases.oracle.OracleDialect: oracle.OracleDialect,
-    sa.databases.firebird.FBDialect: firebird.FBDialect,
+    "default": ansisql.ANSIDialect,
+    "sqlite": sqlite.SQLiteDialect,
+    "postgres": postgres.PGDialect,
+    "mysql": mysql.MySQLDialect,
+    "oracle": oracle.OracleDialect,
+    "firebird": firebird.FBDialect,
 }
 
 
@@ -47,8 +47,8 @@ def get_dialect_visitor(sa_dialect, name):
     """
 
     # map sa dialect to migrate dialect and return visitor
-    sa_dialect_cls = sa_dialect.__class__
-    migrate_dialect_cls = DIALECTS[sa_dialect_cls]
+    sa_dialect_name = getattr(sa_dialect, 'name', 'default')
+    migrate_dialect_cls = DIALECTS[sa_dialect_name]
     visitor = getattr(migrate_dialect_cls, name)
 
     # bind preparer
@@ -61,6 +61,10 @@ def run_single_visitor(engine, visitorcallable, element, **kwargs):
     conn = engine.contextual_connect(close_with_result=False)
     try:
         visitor = visitorcallable(engine.dialect, conn)
-        getattr(visitor, 'visit_' + element.__visit_name__)(element, **kwargs)
+        if hasattr(element, '__migrate_visit_name__'):
+            fn = getattr(visitor, 'visit_' + element.__migrate_visit_name__)
+        else:
+            fn = getattr(visitor, 'visit_' + element.__visit_name__)
+        fn(element, **kwargs)
     finally:
         conn.close()

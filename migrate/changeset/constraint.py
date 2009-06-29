@@ -4,7 +4,7 @@
 from sqlalchemy import schema
 
 from migrate.changeset.exceptions import *
-
+from migrate.changeset import SQLA_06
 
 class ConstraintChangeset(object):
     """Base class for Constraint classes."""
@@ -54,7 +54,10 @@ class ConstraintChangeset(object):
         """
         self.cascade = kw.pop('cascade', False)
         self.__do_imports('constraintdropper', *a, **kw)
-        self.columns.clear()
+        # the spirit of Constraint objects is that they
+        # are immutable (just like in a DB.  they're only ADDed
+        # or DROPped).
+        #self.columns.clear()
         return self
 
 
@@ -69,7 +72,7 @@ class PrimaryKeyConstraint(ConstraintChangeset, schema.PrimaryKeyConstraint):
     :type cols: strings or Column instances
     """
 
-    __visit_name__ = 'migrate_primary_key_constraint'
+    __migrate_visit_name__ = 'migrate_primary_key_constraint'
 
     def __init__(self, *cols, **kwargs):
         colnames, table = self._normalize_columns(cols)
@@ -97,7 +100,7 @@ class ForeignKeyConstraint(ConstraintChangeset, schema.ForeignKeyConstraint):
     :type refcolumns: list of strings or Column instances
     """
 
-    __visit_name__ = 'migrate_foreign_key_constraint'
+    __migrate_visit_name__ = 'migrate_foreign_key_constraint'
 
     def __init__(self, columns, refcolumns, *args, **kwargs):
         colnames, table = self._normalize_columns(columns)
@@ -139,7 +142,7 @@ class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
     :type sqltext: string
     """
 
-    __visit_name__ = 'migrate_check_constraint'
+    __migrate_visit_name__ = 'migrate_check_constraint'
 
     def __init__(self, sqltext, *args, **kwargs):
         cols = kwargs.pop('columns', [])
@@ -150,7 +153,8 @@ class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
         table = kwargs.pop('table', table)
         schema.CheckConstraint.__init__(self, sqltext, *args, **kwargs)
         if table is not None:
-            self.table = table
+            if not SQLA_06:
+                self.table = table
             self._set_parent(table)
         self.colnames = colnames
 
@@ -172,7 +176,7 @@ class UniqueConstraint(ConstraintChangeset, schema.UniqueConstraint):
     .. versionadded:: 0.5.5
     """
 
-    __visit_name__ = 'migrate_unique_constraint'
+    __migrate_visit_name__ = 'migrate_unique_constraint'
 
     def __init__(self, *cols, **kwargs):
         self.colnames, table = self._normalize_columns(cols)

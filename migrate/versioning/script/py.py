@@ -112,7 +112,7 @@ class PythonScript(base.BaseScript):
         """
         buf = StringIO()
         args['engine_arg_strategy'] = 'mock'
-        args['engine_arg_executor'] = lambda s, p = '': buf.write(s + p)
+        args['engine_arg_executor'] = lambda s, p = '': buf.write(str(s) + p)
         engine = construct_engine(url, **args)
 
         self.run(engine, step)

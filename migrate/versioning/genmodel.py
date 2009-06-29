@@ -34,10 +34,7 @@ class ModelGenerator(object):
     def __init__(self, diff, declarative=False):
         self.diff = diff
         self.declarative = declarative
-        # is there an easier way to get this?
-        dialectModule = sys.modules[self.diff.conn.dialect.__module__]
-        self.colTypeMappings = dict((v, k) for k, v in \
-                                        dialectModule.colspecs.items())
+
 
     def column_repr(self, col):
         kwarg = []
@@ -63,18 +60,18 @@ class ModelGenerator(object):
         # crs: not sure if this is good idea, but it gets rid of extra
         # u''
         name = col.name.encode('utf8')
-        type = self.colTypeMappings.get(col.type.__class__, None)
-        if type:
-            # Make the column type be an instance of this type.
-            type = type()
-        else:
-            # We must already be a model type, no need to map from the
-            # database-specific types.
-            type = col.type
+
+        type_ = col.type
+        for cls in col.type.__class__.__mro__:
+            if cls.__module__ == 'sqlalchemy.types' and \
+                not cls.__name__.isupper():
+                if cls is not type_.__class__:
+                    type_ = cls()
+                break
 
         data = {
             'name': name,
-            'type': type,
+            'type': type_,
             'constraints': ', '.join([repr(cn) for cn in col.constraints]),
             'args': ks and ks or ''}
 

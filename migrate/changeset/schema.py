@@ -4,6 +4,7 @@
 from UserDict import DictMixin
 import sqlalchemy
 
+from migrate.changeset import SQLA_06
 from migrate.changeset.exceptions import *
 from migrate.changeset.databases.visitor import (get_engine_visitor,
                                                  run_single_visitor)
@@ -310,7 +311,7 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
     def process_column(self, column):
         """Processes default values for column"""
         # XXX: this is a snippet from SA processing of positional parameters
-        if column.args:
+        if not SQLA_06 and column.args:
             toinit = list(column.args)
         else:
             toinit = list()
@@ -328,7 +329,9 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
                                             for_update=True))
         if toinit:
             column._init_items(*toinit)
-        column.args = []
+            
+        if not SQLA_06:
+            column.args = []
 
     def _get_table(self):
         return getattr(self, '_table', None)
@@ -365,9 +368,6 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
             self.current_name = column.name
         if self.alter_metadata:
             self._result_column = column
-            # remove column from table, nothing has changed yet
-            if self.table:
-                column.remove_from_table(self.table)
         else:
             self._result_column = column.copy_fixed()
 

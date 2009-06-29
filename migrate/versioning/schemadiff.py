@@ -2,7 +2,7 @@
    Schema differencing support.
 """
 import sqlalchemy
-
+from migrate.changeset import SQLA_06
 
 def getDiffOfModelAgainstDatabase(model, conn, excludeTables=None):
     """
@@ -55,9 +55,25 @@ class SchemaDiff(object):
         """
         # Setup common variables.
         cc = self.conn.contextual_connect()
-        schemagenerator = self.conn.dialect.schemagenerator(
-            self.conn.dialect, cc)
-
+        if SQLA_06:
+            from sqlalchemy.ext import compiler
+            from sqlalchemy.schema import DDLElement
+            class DefineColumn(DDLElement):
+                def __init__(self, col):
+                    self.col = col
+            
+            @compiler.compiles(DefineColumn)
+            def compile(elem, compiler, **kw):
+                return compiler.get_column_specification(elem.col)
+            
+            def get_column_specification(col):
+                return str(DefineColumn(col).compile(dialect=self.conn.dialect))
+        else:
+            schemagenerator = self.conn.dialect.schemagenerator(
+                self.conn.dialect, cc)
+            def get_column_specification(col):
+                return schemagenerator.get_column_specification(col)
+                
         # For each in model, find missing in database.
         for modelName, modelTable in self.model.tables.items():
             if modelName in self.excludeTables:
@@ -89,15 +105,16 @@ class SchemaDiff(object):
 
                 # Find missing columns in model.
                 for databaseCol in reflectedTable.columns:
+                    
+                    # TODO: no test coverage here?   (mrb)
+                    
                     modelCol = modelTable.columns.get(databaseCol.name, None)
                     if modelCol:
                         # Compare attributes of column.
                         modelDecl = \
-                            schemagenerator.get_column_specification(
-                            modelCol)
+                            get_column_specification(modelCol)
                         databaseDecl = \
-                            schemagenerator.get_column_specification(
-                            databaseCol)
+                            get_column_specification(databaseCol)
                         if modelDecl != databaseDecl:
                             # Unfortunately, sometimes the database
                             # decl won't quite match the model, even

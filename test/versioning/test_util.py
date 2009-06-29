@@ -3,6 +3,8 @@
 
 import os
 
+from sqlalchemy import *
+
 from test import fixture
 from migrate.versioning.util import *
 
@@ -23,6 +25,11 @@ class TestUtil(fixture.Pathed):
         # dict
         engine = construct_engine(url, engine_dict={'assert_unicode': True})
         self.assertTrue(engine.dialect.assert_unicode)
+
+        # engine parameter
+        engine_orig = create_engine('sqlite://')
+        engine = construct_engine(engine_orig)
+        self.assertEqual(engine, engine_orig)
 
         # test precedance
         engine = construct_engine(url, engine_dict={'assert_unicode': False},

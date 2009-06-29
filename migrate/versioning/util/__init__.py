@@ -6,6 +6,7 @@ from decorator import decorator
 from pkg_resources import EntryPoint
 
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 
 from migrate.versioning import exceptions
 from migrate.versioning.util.keyedinstance import KeyedInstance
@@ -84,18 +85,18 @@ def catch_known_errors(f, *a, **kw):
     except exceptions.PathFoundError, e:
         raise exceptions.KnownError("The path %s already exists" % e.args[0])
 
-def construct_engine(url, **opts):
+def construct_engine(engine, **opts):
     """.. versionadded:: 0.5.4
 
     Constructs and returns SQLAlchemy engine.
 
     Currently, there are 2 ways to pass create_engine options to :mod:`migrate.versioning.api` functions:
 
-    :param url: connection string
+    :param engine: connection string or a existing engine
     :param engine_dict: python dictionary of options to pass to `create_engine`
     :param engine_arg_*: keyword parameters to pass to `create_engine` (evaluated with :func:`migrate.versioning.util.guess_obj_type`)
     :type engine_dict: dict
-    :type url: string
+    :type engine: string or Engine instance
     :type engine_arg_*: string
     :returns: SQLAlchemy Engine
 
@@ -104,7 +105,11 @@ def construct_engine(url, **opts):
         keyword parameters override ``engine_dict`` values.
 
     """
-    
+    if isinstance(engine, Engine):
+        return engine
+    elif not isinstance(engine, basestring):
+        raise ValueError("you need to pass either an existing engine or a database uri")
+
     # get options for create_engine
     if opts.get('engine_dict') and isinstance(opts['engine_dict'], dict):
         kwargs = opts['engine_dict']
@@ -124,4 +129,4 @@ def construct_engine(url, **opts):
         if key.startswith('engine_arg_'):
             kwargs[key[11:]] = guess_obj_type(value)
     
-    return create_engine(url, **kwargs)
+    return create_engine(engine, **kwargs)

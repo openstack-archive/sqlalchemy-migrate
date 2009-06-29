@@ -1,6 +1,7 @@
 0.5.5
 -----
 
+- url parameter can also be an Engine instance (this usage is discouraged though sometimes necessary)
 - added support for SQLAlchemy 0.6 (missing oracle and firebird) by Michael Bayer
 - alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
 - complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)

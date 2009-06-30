@@ -1,0 +1,147 @@
+Important to our system is the API used for making database changes. 
+
+=== Raw SQL; .sql script ===
+Require users to write raw SQL. Migration scripts are .sql scripts (with database version information in a header comment). 
+
++ Familiar interface for experienced DBAs. 
+
++ No new API to learn[[br]]
+SQL is used elsewhere; many people know SQL already. Those who are still learning SQL will gain expertise not in the API of a specific tool, but in a language which will help them elsewhere. (On the other hand, those who are familiar with Python with no desire to learn SQL might find a Python API more intuitive.)
+
+- Difficult to extend when necessary[[br]]
+.sql scripts mean that we can't write new functions specific to our migration system when necessary. (We can't always assume that the DBMS supports functions/procedures.)
+
+- Lose the power of Python[[br]]
+Some things are possible in Python that aren't in SQL - for example, suppose we want to use some functions from our application in a migration script. (The user might also simply prefer Python.)
+
+- Loss of database independence.[[br]]
+There isn't much we can do to specify different actions for a particular DBMS besides copying the .sql file, which is obviously bad form. 
+
+=== Raw SQL; Python script ===
+Require users to write raw SQL. Migration scripts are python scripts whose API does little beyond specifying what DBMS(es) a particular statement should apply to. 
+
+For example, 
+{{{
+run("CREATE TABLE test[...]") # runs for all databases
+run("ALTER TABLE test ADD COLUMN varchar2[...]",oracle) # runs for Oracle only
+run("ALTER TABLE test ADD COLUMN varchar[...]",postgres|mysql) # runs for Postgres or MySQL only
+}}}
+
+We could also allow parts of a single statement to apply to a specific DBMS:
+{{{
+run("ALTER TABLE test ADD COLUMN"+sql("varchar",postgres|mysql)+sql("varchar2",oracle))
+}}}
+or, the same thing:
+{{{
+run("ALTER TABLE test ADD COLUMN"+sql("varchar",postgres|mysql,"varchar2",oracle))
+}}}
+
++ Allows the user to write migration scripts for multiple DBMSes.
+
+- The user must manage the conflicts between different databases themselves. [[br]]
+The user can write scripts to deal with conflicts between databases, but they're not really database-independent: the user has to deal with conflicts between databases; our system doesn't help them.
+
++ Minimal new API to learn. [[br]]
+There is a new API to learn, but it is extremely small, depending mostly on SQL DDL. This has the advantages of "no new API" in our first solution. 
+
+- More verbose than .sql scripts. 
+
+=== Raw SQL; automatic translation between each dialect ===
+Same as the above suggestion, but allow the user to specify a 'default' dialect of SQL that we'll interpret and whose quirks we'll deal with. 
+That is, write everything in SQL and try to automatically resolve the conflicts of different DBMSes.
+
+For example, take the following script:
+{{{
+engine=postgres
+
+run("""
+CREATE TABLE test (
+	id serial
+)
+""")
+}}}
+Running this on a Postgres database, surprisingly enough, would generate exactly what we typed:
+{{{
+CREATE TABLE test (
+	id serial
+)
+}}}
+
+Running it on a MySQL database, however, would generate something like
+{{{
+CREATE TABLE test (
+	id integer auto_increment
+)
+}}}
+
++ Database-independence issues of the above SQL solutions are resolved.[[br]] 
+Ideally, this solution would be as database-independent as a Python API for database changes (discussed next), but with all the advantages of writing SQL (no new API).
+
+- Difficult implementation[[br]]
+Obviously, this is not easy to implement - there is a great deal of parsing logic and a great many things that need to be accounted for. In addition, this is a complex operation; any implementation will likely have errors somewhere.
+
+It seems tools for this already exist; an effective tool would trivialize this implementation. I experimented a bit with [http://sqlfairy.sourceforge.net/ SQL::Translator] and [http://xml2ddl.berlios.de/ XML to DDL]; however, I had difficulties with both.
+
+- Database-specific features ensure that this cannot possibly be "complete". [[br]]
+For example, Postgres has an 'interval' type to represent times and (AFAIK) MySQL does not. 
+
+=== Database-independent Python API ===
+Create a Python API through which we may manage database changes. Scripts would be based on the existing SQLAlchemy API when possible.
+
+Scripts would look something like
+{{{
+# Create a table
+test_table = table('test'
+	,Column('id',Integer,notNull=True)
+)
+table.create()
+# Add a column to an existing table
+test_table.add_column('id',Integer,notNull=True)
+# Or, use a column object instead of its parameters
+test_table.add_column(Column('id',Integer,notNull=True))
+# Or, don't use a table object at all
+add_column('test','id',Integer,notNull=True)
+}}}
+This would use engines, similar to SQLAlchemy's, to deal with database-independence issues.
+
+We would, of course, allow users to write raw SQL if they wish. This would be done in the manner outlined in the second solution above; this allows us to write our entire script in SQL and ignore the Python API if we wish, or write parts of our solution in SQL to deal with specific databases. 
+
++ Deals with database-independence thoroughly and with minimal user effort.[[br]]
+SQLAlchemy-style engines would be used for this; issues of different DBMS syntax are resolved with minimal user effort. (Database-specific features would still need handwritten SQL.)
+
++ Familiar interface for SQLAlchemy users.[[br]]
+In addition, we can often cut-and-paste column definitions from SQLAlchemy tables, easing one particular task. 
+
+- Requires that the user learn a new API. [[br]]
+SQL already exists; people know it. SQL newbies might be more comfortable with a Python interface, but folks who already know SQL must learn a whole new API. (On the other hand, the user *can* write things in SQL if they wish, learning only the most minimal of APIs, if they are willing to resolve issues of database-independence themself.)
+
+- More difficult to implement than pure SQL solutions. [[br]]
+SQL already exists/has been tested. A new Python API does not/has not, and much of the work seems to consist of little more than reinventing the wheel.
+
+- Script behavior might change under different versions of the project.[[br]]
+...where .sql scripts behave the same regardless of the project's version. 
+
+=== Generate .sql scripts from a Python API ===
+Attempts to take the best of the first and last solutions. An API similar to the previous solution would be used, but rather than immediately being applied to the database, .sql scripts are generated for each type of database we're interested in. These .sql scripts are what's actually applied to the database.
+
+This would essentially allow users to skip the Python script step entirely if they wished, and write migration scripts in SQL instead, as in solution 1. 
+
++ Database-independence is an option, when needed. 
+
++ A familiar interface/an interface that can interact with other tools is an option, when needed. 
+
++ Easy to inspect the SQL generated by a script, to ensure it's what we're expecting. 
+
++ Migration scripts won't change behavior across different versions of the project. [[br]]
+Once a Python script is translated to a .sql script, its behavior is consistent across different versions of the project, unlike a pure Python solution. 
+
+- Multiple ways to do a single task: not Pythonic.[[br]]
+I never really liked that word - "Pythonic" - but it does apply here. Multiple ways to do a single task has the potential to cause confusion, especially in a large project if many people do the same task different ways. We have to support both ways of doing things, as well. 
+
+----
+
+'''Conclusion''': The last solution, generating .sql scripts from a Python API, seems to be best. 
+
+The first solution (.sql scripts) suffers from a lack of database-independence, but is familiar to experienced database developers, useful with other tools, and shows exactly what will be done to the database. The Python API solution has no trouble with database-independence, but suffers from other problems that the .sql solution doesn't. The last solution resolves both reasonably well. Multiple ways to do a single task might be called "not Pythonic", but IMO, the trade-off is worth this cost. 
+
+Automatic translation between different dialects of SQL might have potential for use in a solution, but existing tools for this aren't reliable enough, as far as I can tell. 

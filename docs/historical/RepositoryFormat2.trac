@@ -1,0 +1,28 @@
+My original plan for Migrate's RepositoryFormat had several problems:
+
+ * Bind parameters: We needed to bind parameters into statements to get something suitable for an .sql file. For some types of parameters, there's no clean way to do this without writing an entire parser - too great a cost for this project. There's a reason why SQLAlchemy's logs display the statement and its parameters separately: the binding is done at a lower level than we have access to. 
+ * Failure: Discussed in #17, the old format had no easy way to find the Python statements associated with an SQL error. This makes it difficult to debug scripts.
+
+A new format will be used to solve this problem instead.
+Similar to our previous solution, where one .sql file was created per version/operation/DBMS (version_1.upgrade.postgres.sql, for example), one file will be created per version/operation/DBMS here.
+These files will contain the following information:
+
+ * The dialect used to perform the logging. Particularly,
+   * The paramstyle expected by the dbapi
+   * The DBMS this log applies to
+ * Information on each logged SQL statement, each of which contains:
+   * The text of the statement
+   * Parameters to be bound to the statement
+   * A Python stack trace at the point the statement was logged - this allows us to tell what Python statements are associated with an SQL statement when there's an error
+
+These files will be created by pickling a Python object with the above information. 
+
+Such files may be executed by loading the log and having SQLAlchemy execute them as it might have before. 
+
+Good:
+ * Since the statements and bind parameters are stored separately and executed as SQLAlchemy would normally execute them, one problem discussed above is eliminated.
+ * Storing the stack trace at the point each statement was logged allows us to identify what Python statements are responsible for an SQL error. This makes it much easier for users to debug their scripts.
+
+Bad:
+ * It's less trivial to commit .sql scripts to our repository, since they're no longer used internally. This isn't a huge loss, and .sql commits can still be implemented later if need be.
+ * There's some danger of script behavior changing if changes are made to the dbapi the script is associated with. The primary place where problems would occur is during parameter binding, but the chance of this changing significantly isn't large. The danger of changes in behavior due to changes in the user's application is not affected.

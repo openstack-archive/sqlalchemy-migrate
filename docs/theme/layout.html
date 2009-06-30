@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<?python
+import pudge
+
+def initialize(t):
+   g = t.generator
+   if not hasattr(t, 'title'):
+       t.title = 'Untitled'
+   t.doc_title = g.index_document['title']
+   t.home_url = g.organization_url or g.blog_url or g.trac_url
+   t.home_title = g.organization
+?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:py="http://purl.org/kid/ns#"
+      py:def="layout">
+  
+  <head>
+    <title>${title}</title>
+    <link rel="stylesheet" type="text/css" href="layout.css"/>
+    <link py:if="generator.syndication_url" 
+          rel="alternate" 
+          type="application/rss+xml" 
+          title="RSS 2.0" href="${generator.syndication_url}"/>
+
+  </head>
+  <body>
+    <div id="page">
+      <h1 class="doc-title"><a href="${home_url}">${home_title}</a></h1>
+      <div id="navcontainer">
+        <ul id="navlist">
+          <li class="pagenav">
+            <ul>
+              <li class="page_item">
+                <a href="index.html"
+                   class="${'index.html'== destfile and 'selected' or ''}"
+                   title="Project Home / Index">${doc_title}</a>
+              </li>
+              <li class="page_item">
+                <a href="module-index.html" 
+                   class="${'module-index.html'== destfile and 'selected' or ''}"
+                   title="${doc_title.lower()} package and module reference">Modules</a>
+              </li>
+              <?python 
+              trac_url = generator.trac_url 
+              mailing_list_url = generator.mailing_list_url
+              ?>
+              <li py:if="trac_url">
+                <a href="${trac_url}"
+                   title="Wiki / Subversion / Roadmap / Bug Tracker"
+                   >Trac</a>
+              </li>
+              <li py:if="generator.blog_url">
+                <a href="${generator.blog_url}">Blog</a>
+              </li>
+              <li py:if="mailing_list_url">
+                <a href="${mailing_list_url}"
+                   class="${mailing_list_url == destfile and 'selected' or ''}"
+                   title="Mailing List">Discuss</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      
+      <hr />
+      
+      <div id="content" py:content="content()"/>
+      
+      <div id="footer">
+        <?python license = generator.get_document('doc-license') ?>
+        
+        <p style="float: left;">
+          built with 
+          <a href="http://lesscode.org/projects/pudge/"
+             >pudge/${pudge.__version__}</a><br />
+             original design by 
+          <a href="http://blog.ratterobert.com/"
+             >ratter / robert</a><br />
+        </p>
+        <p style="float:right;">
+            evan.rosson (at) gmail.com
+        </p>
+      </div>
+    </div>
+  </body>
+
+</html>

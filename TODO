@@ -1,0 +1,8 @@
+- better SQL scripts support (testing, source viewing)
+
+make_update_script_for_model:
+- calculated differences between models are actually differences between metas
+- columns are not compared?
+- even if two "models" are equal, it doesn't yield so
+
+- controlledschema.drop() drops whole migrate table, maybe there are some other repositories bound to it!

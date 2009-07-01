@@ -39,8 +39,8 @@ Given a standard SQLAlchemy table::
 
 :meth:`Create a column <ChangesetColumn.create>`::
 
- col = Column('col1', String)
- col.create(table)
+ col = Column('col1', String, default='foobar')
+ col.create(table, populate_default=True)
 
  # Column is added to table based on its name
  assert col is table.c.col1

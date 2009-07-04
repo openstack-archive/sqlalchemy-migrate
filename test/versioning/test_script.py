@@ -60,7 +60,7 @@ class TestPyScript(fixture.Pathed, fixture.DB):
         """Correctly verify a python migration script: invalid python file"""
         path=self.tmp_py()
         # Create empty file
-        f=open(path,'w')
+        f = open(path,'w')
         f.write("def fail")
         f.close()
         self.assertRaises(Exception,self.cls.verify_module,path)
@@ -175,7 +175,6 @@ User = Table('User', meta,
 
         self.repo = repository.Repository.create(self.repo_path, 'repo')
         self.pyscript = PythonScript.create(self.script_path)
-
 
     def write_file(self, path, contents):
         f = open(path, 'w')

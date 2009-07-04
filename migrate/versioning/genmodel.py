@@ -140,7 +140,7 @@ class ModelGenerator(object):
             upgradeCommands.append("%(table)s.create()" % {'table': tableName})
             downgradeCommands.append("%(table)s.drop()" % {'table': tableName})
 
-        pre_command = 'meta.bind(migrate_engine)'
+        pre_command = '    meta.bind = migrate_engine'
 
         return (
             '\n'.join(decls),

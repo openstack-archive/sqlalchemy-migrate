@@ -130,3 +130,19 @@ def construct_engine(engine, **opts):
             kwargs[key[11:]] = guess_obj_type(value)
     
     return create_engine(engine, **kwargs)
+
+
+class Memoize:
+    """Memoize(fn) - an instance which acts like fn but memoizes its arguments
+       Will only work on functions with non-mutable arguments
+
+       ActiveState Code 52201
+    """
+    def __init__(self, fn):
+        self.fn = fn
+        self.memo = {}
+
+    def __call__(self, *args):
+        if not self.memo.has_key(args):
+            self.memo[args] = self.fn(*args)
+        return self.memo[args]

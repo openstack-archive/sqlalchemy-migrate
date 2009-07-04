@@ -14,7 +14,7 @@ try:
 except ImportError:
     pass
 
-test_requirements = ['nose >= 0.10']
+test_requirements = ['nose >= 0.10', 'ScriptTest']
 required_deps = ['sqlalchemy >= 0.5', 'decorator']
 readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README'))
 

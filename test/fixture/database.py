@@ -7,23 +7,26 @@ from decorator import decorator
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import create_session
 
+from migrate.versioning.util import Memoize
 from test.fixture.base import Base
 from test.fixture.pathed import Pathed
 
 
+@Memoize
 def readurls():
     """read URLs from config file return a list"""
-    filename = 'test_db.cfg'
-    ret = list()
     # TODO: remove tmpfile since sqlite can store db in memory
-    tmpfile = Pathed.tmp()
+    filename = 'test_db.cfg'
     fullpath = os.path.join(os.curdir, filename)
 
     try:
         fd = open(fullpath)
     except IOError:
         raise IOError("""You must specify the databases to use for testing!
-            Copy %(filename)s.tmpl to %(filename)s and edit your database URLs.""" % locals())
+Copy %(filename)s.tmpl to %(filename)s and edit your database URLs.""" % locals())
+
+    ret = list()
+    tmpfile = Pathed.tmp()
 
     for line in fd:
         if line.startswith('#'):
@@ -48,10 +51,6 @@ def is_supported(url, supported, not_supported):
             return not (db in not_supported)
     return True
 
-# we make the engines global, which should make the tests run a bit faster
-urls = readurls()
-engines = dict([(url, create_engine(url, echo=True)) for url in urls])
-
 
 def usedb(supported=None, not_supported=None):
     """Decorates tests to be run with a database connection
@@ -66,6 +65,7 @@ def usedb(supported=None, not_supported=None):
     if supported is not None and not_supported is not None:
         raise AssertionError("Can't specify both supported and not_supported in fixture.db()")
 
+    urls = readurls()
     my_urls = [url for url in urls if is_supported(url, supported, not_supported)]
 
     @decorator
@@ -98,7 +98,7 @@ class DB(Base):
     
     def _connect(self, url):
         self.url = url
-        self.engine = engines[url]
+        self.engine = create_engine(url, echo=True)
         self.meta = MetaData(bind=self.engine)
         if self.level < self.CONNECT: 
             return
@@ -127,6 +127,7 @@ class DB(Base):
             return not (db in func.not_supported)
         # Neither list assigned; assume all are supported
         return True
+
     def _not_supported(self, url):
         return not self._supported(url)
 

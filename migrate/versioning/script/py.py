@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import warnings
 import shutil
 from StringIO import StringIO
 
@@ -11,6 +12,7 @@ from migrate.versioning.template import template
 from migrate.versioning.script import base
 from migrate.versioning.util import import_path, load_model, construct_engine
 
+__all__ = ['PythonScript']
 
 class PythonScript(base.BaseScript):
     """Base for Python scripts"""
@@ -88,16 +90,11 @@ class PythonScript(base.BaseScript):
         
         :param path: Script location
         :type path: string
-
         :raises: :exc:`InvalidScriptError <migrate.versioning.exceptions.InvalidScriptError>`
         :returns: Python module
         """
         # Try to import and get the upgrade() func
-        try:
-            module = import_path(path)
-        except:
-            # If the script itself has errors, that's not our problem
-            raise
+        module = import_path(path)
         try:
             assert callable(module.upgrade)
         except Exception, e:
@@ -134,13 +131,15 @@ class PythonScript(base.BaseScript):
             op = 'downgrade'
         else:
             raise exceptions.ScriptError("%d is not a valid step" % step)
+
         funcname = base.operations[op]
-        
-        func = self._func(funcname)
+        script_func = self._func(funcname)
+
         try:
-            func(engine)
+            script_func(engine)
         except TypeError:
-            print "upgrade/downgrade functions must accept engine parameter (since ver 0.5.5)"
+            warnings.warn("upgrade/downgrade functions must accept engine"
+                " parameter (since version > 0.5.4)")
             raise
 
     @property
@@ -148,7 +147,7 @@ class PythonScript(base.BaseScript):
         """Calls :meth:`migrate.versioning.script.py.verify_module`
         and returns it.
         """
-        if not hasattr(self, '_module'):
+        if not getattr(self, '_module', None):
             self._module = self.verify_module(self.path)
         return self._module
 

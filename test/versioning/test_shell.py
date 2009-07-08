@@ -3,13 +3,14 @@
 
 import os
 import tempfile
+from runpy import run_module
 
 from sqlalchemy import MetaData, Table
 
-from migrate.versioning import genmodel, shell, api
 from migrate.versioning.repository import Repository
 from migrate.versioning.exceptions import *
 from test.fixture import *
+from migrate.versioning import genmodel, shell, api
 
 
 class TestShellCommands(Shell):
@@ -29,6 +30,36 @@ class TestShellCommands(Shell):
             self.assertTrue(isinstance(result.stdout, basestring))
             self.assertTrue(result.stdout)
             self.assertFalse(result.stderr)
+
+    def test_main(self):
+        """Test main() function"""
+        # TODO: test output?
+        try:
+            run_module('migrate.versioning.shell', run_name='__main__')
+        except:
+            pass
+        repos = self.tmp_repos()
+        shell.main(['help'])
+        shell.main(['help', 'create'])
+        shell.main(['create', 'repo_name', '--preview_sql'], repository=repos)
+        shell.main(['version', '--', '--repository=%s' % repos])
+        shell.main(['version', '-d', '--repository=%s' % repos, '--version=2'])
+        try:
+            shell.main(['foobar'])
+        except SystemExit, e:
+            pass
+        try:
+            shell.main(['create', 'f', 'o', 'o'])
+        except SystemExit, e:
+            pass
+        try:
+            shell.main(['create'])
+        except SystemExit, e:
+            pass
+        try:
+            shell.main(['create', 'repo_name'], repository=repos)
+        except SystemExit, e:
+            pass
 
     def test_create(self):
         """Repositories are created successfully"""
@@ -333,7 +364,7 @@ class TestShellDatabase(Shell, DB):
 
         # Empty script should succeed
         result = self.env.run('migrate script Desc %s' % repos_path)
-        result = self.env.run('migrate test %s %s' % (repos_path, self.url))
+        result = self.env.run('migrate test %s %s' % (self.url, repos_path))
         self.assertEquals(self.run_version(repos_path), 1)
         self.assertEquals(self.run_db_version(self.url, repos_path), 0)
 
@@ -355,7 +386,7 @@ class TestShellDatabase(Shell, DB):
         file.write(script_text)
         file.close()
 
-        result = self.env.run('migrate test %s %s bla' % (repos_path, self.url), expect_error=True)
+        result = self.env.run('migrate test %s %s bla' % (self.url, repos_path), expect_error=True)
         self.assertEqual(result.returncode, 2)
         self.assertEquals(self.run_version(repos_path), 1)
         self.assertEquals(self.run_db_version(self.url, repos_path), 0)
@@ -384,7 +415,7 @@ class TestShellDatabase(Shell, DB):
         file = open(script_path, 'w')
         file.write(script_text)
         file.close()
-        result = self.env.run('migrate test %s %s' % (repos_path, self.url))
+        result = self.env.run('migrate test %s %s' % (self.url, repos_path))
         self.assertEquals(self.run_version(repos_path), 1)
         self.assertEquals(self.run_db_version(self.url, repos_path), 0)
         
@@ -426,12 +457,12 @@ class TestShellDatabase(Shell, DB):
         
         # Update db to latest model.
         result = self.env.run('migrate update_db_from_model %s %s %s'\
-            % (self.url, model_module, repos_path))
+            % (self.url, repos_path, model_module))
         self.assertEquals(self.run_version(repos_path), 0)
         self.assertEquals(self.run_db_version(self.url, repos_path), 0)  # version did not get bumped yet because new version not yet created
 
         result = self.env.run('migrate compare_model_to_db %s %s %s'\
-            % (self.url, model_module, repos_path))
+            % (self.url, repos_path, model_module))
         self.assert_("No schema diffs" in result.stdout)
 
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
@@ -448,9 +479,9 @@ class TestShellDatabase(Shell, DB):
         self.assertTrue('Not enough arguments' in result.stderr)
 
         result_script = self.env.run('migrate make_update_script_for_model %s %s %s %s'\
-            % (self.url, old_model_module, model_module, repos_path))
+            % (self.url, repos_path, old_model_module, model_module))
         self.assertEqualsIgnoreWhitespace(result_script.stdout,
-        """from sqlalchemy import *
+        '''from sqlalchemy import *
         from migrate import *
 
         meta = MetaData()
@@ -469,7 +500,7 @@ class TestShellDatabase(Shell, DB):
         def downgrade(migrate_engine):
             # Operations to reverse the above upgrade go here.
             meta.bind = migrate_engine
-            tmp_account_rundiffs.drop()""")
+            tmp_account_rundiffs.drop()''')
     
         # Save the upgrade script.
         result = self.env.run('migrate script Desc %s' % repos_path)
@@ -477,7 +508,7 @@ class TestShellDatabase(Shell, DB):
         open(upgrade_script_path, 'w').write(result_script.stdout)
 
         result = self.env.run('migrate compare_model_to_db %s %s %s'\
-            % (self.url, model_module, repos_path))
+            % (self.url, repos_path, model_module))
         self.assert_("No schema diffs" in result.stdout)
 
         self.meta.drop_all()  # in case junk tables are lying around in the test database

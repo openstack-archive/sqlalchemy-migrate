@@ -81,7 +81,7 @@ def catch_known_errors(f, *a, **kw):
     """
 
     try:
-        f(*a, **kw)
+        return f(*a, **kw)
     except exceptions.PathFoundError, e:
         raise exceptions.KnownError("The path %s already exists" % e.args[0])
 

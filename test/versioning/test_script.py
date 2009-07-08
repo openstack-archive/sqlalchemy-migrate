@@ -10,6 +10,7 @@ from migrate.versioning.script import *
 from migrate.versioning.util import *
 
 from test import fixture
+from test.fixture.models import tmp_sql_table
 
 
 class TestBaseScript(fixture.Pathed):
@@ -47,6 +48,25 @@ class TestPyScript(fixture.Pathed, fixture.DB):
 
         self.assertRaises(exceptions.ScriptError, pyscript.run, self.engine, 0)
         self.assertRaises(exceptions.ScriptError, pyscript._func, 'foobar')
+
+        # clean pyc file
+        os.remove(script_path + 'c')
+
+        # test deprecated upgrade/downgrade with no arguments
+        contents = open(script_path, 'r').read()
+        f = open(script_path, 'w')
+        f.write(contents.replace("upgrade(migrate_engine)", "upgrade()"))
+        f.close()
+
+        pyscript = PythonScript(script_path)
+        pyscript._module = None
+        try:
+            pyscript.run(self.engine, 1)
+            pyscript.run(self.engine, -1)
+        except TypeError:
+            pass
+        else:
+            self.fail()
 
     def test_verify_notfound(self):
         """Correctly verify a python migration script: nonexistant file"""
@@ -86,7 +106,7 @@ class TestPyScript(fixture.Pathed, fixture.DB):
         path = self.tmp_py()
 
         f = open(path, 'w')
-        content = """
+        content = '''
 from migrate import *
 from sqlalchemy import *
 
@@ -99,7 +119,7 @@ UserGroup = Table('Link', metadata,
 
 def upgrade(migrate_engine):
     metadata.create_all(migrate_engine)
-        """
+        '''
         f.write(content)
         f.close()
 
@@ -129,7 +149,6 @@ def upgrade(migrate_engine):
         self.setup_model_params()
         self.write_file(self.first_model_path, self.base_source)
         self.write_file(self.second_model_path, self.base_source + self.model_source)
-
 
         source_script = self.pyscript.make_update_script_for_model(
             engine=self.engine,
@@ -195,3 +214,31 @@ class TestSqlScript(fixture.Pathed, fixture.DB):
 
         sqls = SqlScript(src)
         self.assertRaises(Exception, sqls.run, self.engine)
+
+    @fixture.usedb()
+    def test_success(self):
+        """Test sucessful SQL execution"""
+        # cleanup and prepare python script
+        tmp_sql_table.metadata.drop_all(self.engine, checkfirst=True)
+        script_path = self.tmp_py()
+        pyscript = PythonScript.create(script_path)
+
+        # populate python script
+        contents = open(script_path, 'r').read()
+        contents = contents.replace("pass", "tmp_sql_table.create(migrate_engine)")
+        contents = 'from test.fixture.models import tmp_sql_table\n' + contents
+        f = open(script_path, 'w')
+        f.write(contents)
+        f.close()
+
+        # write SQL script from python script preview
+        pyscript = PythonScript(script_path)
+        src = self.tmp()
+        f = open(src, 'w')
+        f.write(pyscript.preview_sql(self.url, 1))
+        f.close()
+
+        # run the change
+        sqls = SqlScript(src)
+        sqls.run(self.engine, executemany=False)
+        tmp_sql_table.metadata.drop_all(self.engine, checkfirst=True)

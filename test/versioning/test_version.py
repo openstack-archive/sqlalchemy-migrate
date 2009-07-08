@@ -3,6 +3,7 @@
 
 from test import fixture
 from migrate.versioning.version import *
+from migrate.versioning.exceptions import *
 
 
 class TestVerNum(fixture.Base):
@@ -11,6 +12,11 @@ class TestVerNum(fixture.Base):
         versions = ('-1', -1, 'Thirteen', '')
         for version in versions:
             self.assertRaises(ValueError, VerNum, version)
+
+    def test_str(self):
+        """Test str and repr version numbers"""
+        self.assertEqual(str(VerNum(2)), '2')
+        self.assertEqual(repr(VerNum(2)), '<VerNum(2)>')
 
     def test_is(self):
         """Two version with the same number should be equal"""
@@ -62,12 +68,14 @@ class TestVerNum(fixture.Base):
         self.assert_(VerNum(2) >= 1)
         self.assertFalse(VerNum(1) >= 2)
         
+
 class TestVersion(fixture.Pathed):
 
     def setUp(self):
         super(TestVersion, self).setUp()
 
     def test_str_to_filename(self):
+        self.assertEquals(str_to_filename(''), '')
         self.assertEquals(str_to_filename(''), '')
         self.assertEquals(str_to_filename('__'), '_')
         self.assertEquals(str_to_filename('a'), 'a')
@@ -91,12 +99,18 @@ class TestVersion(fixture.Pathed):
         coll2 = Collection(self.temp_usable_dir)
         self.assertEqual(coll.versions, coll2.versions)
 
+        Collection.clear()
+
+    def test_old_repository(self):
+        open(os.path.join(self.temp_usable_dir, '1'), 'w')
+        self.assertRaises(Exception, Collection, self.temp_usable_dir)
+
     #def test_collection_unicode(self):
     #    pass
 
     def test_create_new_python_version(self):
         coll = Collection(self.temp_usable_dir)
-        coll.create_new_python_version("foo bar")
+        coll.create_new_python_version("'")
 
         ver = coll.version()
         self.assert_(ver.script().source())
@@ -140,3 +154,12 @@ class TestVersion(fixture.Pathed):
 
         ver = Version(1, path, [sqlite_upgrade_file, python_file])
         self.assertEquals(os.path.basename(ver.script('postgres', 'upgrade').path), python_file)
+
+    def test_bad_version(self):
+        ver = Version(1, self.temp_usable_dir, [])
+        self.assertRaises(ScriptError, ver.add_script, '123.sql')
+
+        pyscript = os.path.join(self.temp_usable_dir, 'bla.py')
+        open(pyscript, 'w')
+        ver.add_script(pyscript)
+        self.assertRaises(ScriptError, ver.add_script, 'bla.py')

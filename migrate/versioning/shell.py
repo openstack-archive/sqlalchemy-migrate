@@ -69,7 +69,6 @@ def main(argv=None, **kwargs):
     parser = PassiveOptionParser(usage=usage)
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option("-d", "--debug", action="store_true", dest="debug")
-    parser.add_option("-f", "--force", action="store_true", dest="force")
     help_commands = ['help', '-h', '--help']
     HELP = False
 
@@ -156,8 +155,6 @@ def main(argv=None, **kwargs):
         if ret is not None:
             print ret
     except (exceptions.UsageError, exceptions.KnownError), e:
-        if e.args[0] is None:
-            parser.print_help()
         parser.error(e.args[0])
 
 if __name__ == "__main__":

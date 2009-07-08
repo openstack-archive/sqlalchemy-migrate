@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import logging
 
-from migrate.versioning.base import log, operations
+from migrate.versioning.base import operations
 from migrate.versioning import pathed, exceptions
 
+
+log = logging.getLogger(__name__)
 
 class BaseScript(pathed.Pathed):
     """Base class for other types of scripts.
@@ -20,10 +23,10 @@ class BaseScript(pathed.Pathed):
     """ # TODO: sphinxfy this and implement it correctly
 
     def __init__(self, path):
-        log.info('Loading script %s...' % path)
+        log.debug('Loading script %s...' % path)
         self.verify(path)
         super(BaseScript, self).__init__(path)
-        log.info('Script %s loaded successfully' % path)
+        log.debug('Script %s loaded successfully' % path)
     
     @classmethod
     def verify(cls, path):

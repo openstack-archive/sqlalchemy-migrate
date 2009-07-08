@@ -4,12 +4,15 @@
 import os
 import shutil
 import string
+import logging
 from pkg_resources import resource_string, resource_filename
 
 from migrate.versioning import exceptions, script, version, pathed, cfgparse
 from migrate.versioning.template import template
 from migrate.versioning.base import *
 
+
+log = logging.getLogger(__name__)
 
 class Changeset(dict):
     """A collection of changes to be applied to a database.
@@ -67,13 +70,13 @@ class Repository(pathed.Pathed):
     _versions = 'versions'
 
     def __init__(self, path):
-        log.info('Loading repository %s...' % path)
+        log.debug('Loading repository %s...' % path)
         self.verify(path)
         super(Repository, self).__init__(path)
         self.config = cfgparse.Config(os.path.join(self.path, self._config))
         self.versions = version.Collection(os.path.join(self.path,
                                                       self._versions))
-        log.info('Repository %s loaded successfully' % path)
+        log.debug('Repository %s loaded successfully' % path)
         log.debug('Config: %r' % self.config.to_dict())
 
     @classmethod

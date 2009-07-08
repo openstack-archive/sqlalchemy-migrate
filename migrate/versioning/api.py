@@ -28,12 +28,14 @@
 import sys
 import inspect
 import warnings
+import logging
 
 from migrate.versioning import (exceptions, repository, schema, version,
     script as script_) # command name conflict
 from migrate.versioning.util import catch_known_errors, construct_engine
 
 
+log = logging.getLogger(__name__)
 __all__ = [
     'help',
     'create',
@@ -211,14 +213,14 @@ def test(url, repository, **opts):
     script = repos.version(None).script()
 
     # Upgrade
-    print "Upgrading...",
+    log.info("Upgrading...")
     script.run(engine, 1)
-    print "done"
+    log.info("done")
 
-    print "Downgrading...",
+    log.info("Downgrading...")
     script.run(engine, -1)
-    print "done"
-    print "Success"
+    log.info("done")
+    log.info("Success")
 
 
 def version_control(url, repository, version=None, **opts):
@@ -333,13 +335,13 @@ def _migrate(url, repository, version, upgrade, err, **opts):
     changeset = schema.changeset(version)
     for ver, change in changeset:
         nextver = ver + changeset.step
-        print '%s -> %s... ' % (ver, nextver)
+        log.info('%s -> %s... ', ver, nextver)
 
         if opts.get('preview_sql'):
             if isinstance(change, PythonScript):
-                print change.preview_sql(url, changeset.step, **opts)
+                log.info(change.preview_sql(url, changeset.step, **opts))
             elif isinstance(change, SqlScript):
-                print change.source()
+                log.info(change.source())
 
         elif opts.get('preview_py'):
             if not isinstance(change, PythonScript):
@@ -349,10 +351,10 @@ def _migrate(url, repository, version, upgrade, err, **opts):
             module = schema.repository.version(source_ver).script().module
             funcname = upgrade and "upgrade" or "downgrade"
             func = getattr(module, funcname)
-            print inspect.getsource(func)
+            log.info(inspect.getsource(func))
         else:
             schema.runchange(ver, change, changeset.step)
-            print 'done'
+            log.info('done')
 
 
 def _migrate_version(schema, version, upgrade, err):

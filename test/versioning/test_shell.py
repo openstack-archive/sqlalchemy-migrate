@@ -31,6 +31,16 @@ class TestShellCommands(Shell):
             self.assertTrue(result.stdout)
             self.assertFalse(result.stderr)
 
+    def test_shutdown_logging(self):
+        """Try to shutdown logging output"""
+        repos = self.tmp_repos()
+        result = self.env.run('migrate create %s repository_name' % repos)
+        result = self.env.run('migrate version %s --logging=False' % repos)
+        self.assertEqual(result.stdout, '')
+
+        # TODO: assert logging messages to 0
+        shell.main(['version', repos], logging=False)
+
     def test_main(self):
         """Test main() function"""
         # TODO: test output?

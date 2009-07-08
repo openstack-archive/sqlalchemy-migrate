@@ -1,5 +1,13 @@
 """Things that should be imported by all migrate packages"""
 
-#__all__ = ['logging','log','databases','operations']
-from logger import logging, log
-from const import databases, operations
+from sqlalchemy.util import OrderedDict
+
+
+__all__ = ['databases', 'operations']
+
+databases = ('sqlite', 'postgres', 'mysql', 'oracle', 'mssql', 'firebird')
+
+# Map operation names to function names
+operations = OrderedDict()
+operations['upgrade'] = 'upgrade'
+operations['downgrade'] = 'downgrade'

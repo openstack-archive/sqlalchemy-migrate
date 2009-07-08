@@ -4,9 +4,12 @@
 import os
 import re
 import shutil
+import logging
 
 from migrate.versioning import exceptions, pathed, script
 
+
+log = logging.getLogger(__name__)
 
 class VerNum(object):
     """A version number that behaves like a string and int at the same time"""

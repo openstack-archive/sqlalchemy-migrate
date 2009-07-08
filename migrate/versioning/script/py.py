@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import warnings
 import shutil
+import warnings
+import logging
 from StringIO import StringIO
 
 import migrate
@@ -12,6 +13,8 @@ from migrate.versioning.template import template
 from migrate.versioning.script import base
 from migrate.versioning.util import import_path, load_model, construct_engine
 
+
+log = logging.getLogger(__name__)
 __all__ = ['PythonScript']
 
 class PythonScript(base.BaseScript):

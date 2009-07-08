@@ -2,6 +2,7 @@
    Database schema version management.
 """
 import sys
+import logging
 
 from sqlalchemy import (Table, Column, MetaData, String, Text, Integer,
     create_engine)
@@ -14,6 +15,8 @@ from migrate.versioning.repository import Repository
 from migrate.versioning.util import load_model
 from migrate.versioning.version import VerNum
 
+
+log = logging.getLogger(__name__)
 
 class ControlledSchema(object):
     """A database under version control"""

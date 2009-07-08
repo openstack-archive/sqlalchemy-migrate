@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import logging
 
 from migrate.versioning.script import base
 
+
+log = logging.getLogger(__name__)
 
 class SqlScript(base.BaseScript):
     """A file containing plain SQL statements."""

@@ -35,7 +35,9 @@ class TestShellCommands(Shell):
         """Try to shutdown logging output"""
         repos = self.tmp_repos()
         result = self.env.run('migrate create %s repository_name' % repos)
-        result = self.env.run('migrate version %s --logging=False' % repos)
+        result = self.env.run('migrate version %s --disable_logging' % repos)
+        self.assertEqual(result.stdout, '')
+        result = self.env.run('migrate version %s -q' % repos)
         self.assertEqual(result.stdout, '')
 
         # TODO: assert logging messages to 0

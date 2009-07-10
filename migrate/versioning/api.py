@@ -2,9 +2,9 @@
    This module provides an external API to the versioning system.
 
    .. versionchanged:: 0.6.0
-   :func:`migrate.versioning.api.test` and schema diff functions \
-   changed order of positional arguments so all accept `url` and `repository`\
-   as first arguments.
+    :func:`migrate.versioning.api.test` and schema diff functions
+    changed order of positional arguments so all accept `url` and `repository`
+    as first arguments.
 
    .. versionchanged:: 0.5.4 
     ``--preview_sql`` displays source file when using SQL scripts.

@@ -29,7 +29,7 @@
 
 .. warning::
 
-	 Version **0.5.5** breaks backward compatability, please read :ref:`changelog <backwards-055>` for more info.
+	 Version **0.6.0** breaks backward compatability, please read :ref:`changelog <backwards-06>` for more info.
 
 
 Download and Development

@@ -57,8 +57,8 @@ def main(argv=None, **kwargs):
     kwargs are default options that can be overriden with passing
     --some_option as command line option
 
-    :param logging: Let migrate configure logging
-    :type logging: bool
+    :param disable_logging: Let migrate configure logging
+    :type disable_logging: bool
     """
     argv = argv or list(sys.argv[1:])
     commands = list(api.__all__)
@@ -73,8 +73,17 @@ def main(argv=None, **kwargs):
     """ % '\n\t'.join(commands)
 
     parser = PassiveOptionParser(usage=usage)
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
-    parser.add_option("-d", "--debug", action="store_true", dest="debug")
+    #parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
+    parser.add_option("-d", "--debug",
+                     action="store_true",
+                     dest="debug",
+                     default=False,
+                     help="Shortcut to turn on DEBUG mode for logging")
+    parser.add_option("-q", "--disable_logging",
+                      action="store_true",
+                      dest="disable_logging",
+                      default=False,
+                      help="Use this option to disable logging configuration")
     help_commands = ['help', '-h', '--help']
     HELP = False
 
@@ -144,8 +153,12 @@ def main(argv=None, **kwargs):
     # apply overrides
     kwargs.update(override_kwargs)
 
+    # configure options
+    for key, value in options.__dict__.iteritems():
+        kwargs.setdefault(key, value)
+
     # configure logging
-    if asbool(kwargs.pop('logging', True)):
+    if not asbool(kwargs.pop('disable_logging', False)):
         logger = logging.getLogger()
         logger.setLevel(logging.INFO)
         formatter = logging.Formatter("%(message)s")

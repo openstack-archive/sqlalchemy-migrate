@@ -1,7 +1,7 @@
-0.5.5
+0.6.0
 -----
 
-- use Python logging for output, can be shut down by passing ``logging=False`` to :func:`migrate.versioning.shell.main`
+- use Python logging for output, can be shut down by passing ``--disable_logging`` to :func:`migrate.versioning.shell.main`
 - `url` parameter can also be an :class:`Engine` instance (this usage is discouraged though sometimes necessary)
 - added support for SQLAlchemy 0.6 (missing oracle and firebird) by Michael Bayer
 - alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
@@ -20,7 +20,7 @@
 - majoy update to documentation
 - :ref:`dialect support <dialect-support>` table was added to documentation
 
-.. _backwards-055:
+.. _backwards-06:
 
 **Backward incompatible changes**:
 

@@ -6,6 +6,7 @@ from decorator import decorator
 
 from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import create_session
+from sqlalchemy.pool import StaticPool
 
 from test.fixture.base import Base
 from test.fixture.pathed import Pathed
@@ -50,7 +51,7 @@ def is_supported(url, supported, not_supported):
 
 # we make the engines global, which should make the tests run a bit faster
 urls = readurls()
-engines = dict([(url, create_engine(url, echo=True)) for url in urls])
+engines = dict([(url, create_engine(url, echo=True, poolclass=StaticPool)) for url in urls])
 
 
 def usedb(supported=None, not_supported=None):

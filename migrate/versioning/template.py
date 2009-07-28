@@ -4,81 +4,84 @@
 import os
 import shutil
 import sys
+
 from pkg_resources import resource_filename
 
 from migrate.versioning.base import *
 from migrate.versioning import pathed
 
 
-class Packaged(pathed.Pathed):
-    """An object assoc'ed with a Python package"""
-
-    def __init__(self, pkg):
-        self.pkg = pkg
-        path = self._find_path(pkg)
-        super(Packaged, self).__init__(path)
-
-    @classmethod
-    def _find_path(cls, pkg):
-        pkg_name, resource_name = pkg.rsplit('.', 1)
-        ret = resource_filename(pkg_name, resource_name)
-        return ret
-
-
-class Collection(Packaged):
+class Collection(pathed.Pathed):
     """A collection of templates of a specific type"""
-
-    _default = None
+    _mask = None
 
     def get_path(self, file):
         return os.path.join(self.path, str(file))
 
-    def get_pkg(self, file):
-        return (self.pkg, str(file))
-
 
 class RepositoryCollection(Collection):
-    _default = 'default'
-
+    _mask = '%s'
 
 class ScriptCollection(Collection):
-    _default = 'default.py_tmpl'
+    _mask = '%s.py_tmpl'
+
+class ManageCollection(Collection):
+    _mask = '%s.py_tmpl'
 
 
-class Template(Packaged):
-    """Finds the paths/packages of various Migrate templates"""
-
-    _repository = 'repository'
-    _script = 'script'
+class Template(pathed.Pathed):
+    """Finds the paths/packages of various Migrate templates.
+    
+    :param path: Templates are loaded from migrate package
+    if `path` is not provided.
+    """
+    pkg = 'migrate.versioning.templates'
     _manage = 'manage.py_tmpl'
 
-    def __init__(self, pkg):
-        super(Template, self).__init__(pkg)
-        self.repository = RepositoryCollection('.'.join((self.pkg,
-                                                         self._repository)))
-        self.script = ScriptCollection('.'.join((self.pkg, self._script)))
+    def __new__(cls, path=None):
+        if path is None:
+            path = cls._find_path(cls.pkg)
+        return super(Template, cls).__new__(cls, path)
 
-    def get_item(self, attr, filename=None, as_pkg=None, as_str=None):
-        item = getattr(self, attr)
-        if filename is None:
-            filename = getattr(item, '_default')
-        if as_pkg:
-            ret = item.get_pkg(filename)
-            if as_str:
-                ret = '.'.join(ret)
+    def __init__(self, path=None):
+        if path is None:
+            path = Template._find_path(self.pkg)
+        super(Template, self).__init__(path)
+        self.repository = RepositoryCollection(os.path.join(path, 'repository'))
+        self.script = ScriptCollection(os.path.join(path, 'script'))
+        self.manage = ManageCollection(os.path.join(path, 'manage'))
+
+    @classmethod
+    def _find_path(cls, pkg):
+        """Returns absolute path to dotted python package."""
+        tmp_pkg = pkg.rsplit('.', 1)
+
+        if len(tmp_pkg) != 1:
+            return resource_filename(tmp_pkg[0], tmp_pkg[1])
         else:
-            ret = item.get_path(filename)
-        return ret
+            return resource_filename(tmp_pkg[0], '')
 
-    def get_repository(self, filename=None, as_pkg=None, as_str=None):
-        return self.get_item('repository', filename, as_pkg, as_str)
+    def _get_item(self, collection, theme=None):
+        """Locates and returns collection.
+        
+        :param collection: name of collection to locate
+        :param type_: type of subfolder in collection (defaults to "_default")
+        :returns: (package, source)
+        :rtype: str, str
+        """
+        item = getattr(self, collection)
+        theme_mask = getattr(item, '_mask')
+        theme = theme_mask % (theme or 'default')
+        return item.get_path(theme)
+
+    def get_repository(self, *a, **kw):
+        """Calls self._get_item('repository', *a, **kw)"""
+        return self._get_item('repository', *a, **kw)
     
-    def get_script(self, filename=None, as_pkg=None, as_str=None):
-        return self.get_item('script', filename, as_pkg, as_str)
+    def get_script(self, *a, **kw):
+        """Calls self._get_item('script', *a, **kw)"""
+        return self._get_item('script', *a, **kw)
 
-    def manage(self, **k):
-        return (self.pkg, self._manage)
-
-
-template_pkg = 'migrate.versioning.templates'
-template = Template(template_pkg)
+    def get_manage(self, *a, **kw):
+        """Calls self._get_item('manage', *a, **kw)"""
+        return self._get_item('manage', *a, **kw)

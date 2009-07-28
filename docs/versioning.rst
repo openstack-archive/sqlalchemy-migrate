@@ -493,3 +493,25 @@ currently:
   the databases your application will actually be using to ensure your
   updates to that database work properly. This must be a list;
   example: `['postgres', 'sqlite']`
+
+
+.. _custom-templates:
+
+Customize templates
+===================
+
+Users can pass ``templates_path`` to API functions to provide customized templates path.
+Path should be a collection of templates, like ``migrate.versioning.templates`` package directory.
+
+One may also want to specify custom themes. API functions accept ``templates_theme`` for this purpose (which defaults to `default`)
+
+Example::
+	
+	/home/user/templates/manage $ ls
+	default.py_tmpl
+	pylons.py_tmpl
+
+	/home/user/templates/manage $ migrate manage manage.py --templates_path=/home/user/templates --templates_theme=pylons
+
+
+.. versionadded:: 0.6.0

@@ -264,7 +264,7 @@ def manage(file, **opts):
         python manage.py version
         %prog version --repository=/path/to/repository
     """
-    return Repository.create_manage_file(file, **opts)
+    Repository.create_manage_file(file, **opts)
 
 
 def compare_model_to_db(url, model, repository, **opts):

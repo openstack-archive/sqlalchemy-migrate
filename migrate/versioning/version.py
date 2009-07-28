@@ -101,7 +101,7 @@ class Collection(pathed.Pathed):
         if os.path.exists(filepath):
             raise Exception('Script already exists: %s' % filepath)
         else:
-            script.PythonScript.create(filepath)
+            script.PythonScript.create(filepath, **k)
 
         self.versions[ver] = Version(ver, self.path, [filename])
         

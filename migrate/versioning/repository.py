@@ -4,10 +4,10 @@
 import os
 import shutil
 import string
-from pkg_resources import resource_string, resource_filename
+from pkg_resources import resource_filename
 
 from migrate.versioning import exceptions, script, version, pathed, cfgparse
-from migrate.versioning.template import template
+from migrate.versioning.template import Template
 from migrate.versioning.base import *
 
 
@@ -91,11 +91,18 @@ class Repository(pathed.Pathed):
         except exceptions.PathNotFoundError, e:
             raise exceptions.InvalidRepositoryError(path)
 
-    # TODO: what are those options?
     @classmethod
-    def prepare_config(cls, pkg, rsrc, name, **opts):
+    def prepare_config(cls, tmpl_dir, config_file, name, **opts):
         """
         Prepare a project configuration file for a new project.
+
+        :param tmpl_dir: Path to Repository template
+        :param config_file: Name of the config file in Repository template
+        :param name: Repository name
+        :type tmpl_dir: string
+        :type config_file: string
+        :type name: string
+        :returns: Populated config file
         """
         # Prepare opts
         defaults = dict(
@@ -105,7 +112,7 @@ class Repository(pathed.Pathed):
 
         defaults.update(opts)
 
-        tmpl = resource_string(pkg, rsrc)
+        tmpl = open(os.path.join(tmpl_dir, config_file)).read()
         ret = string.Template(tmpl).substitute(defaults)
         return ret
 
@@ -113,14 +120,12 @@ class Repository(pathed.Pathed):
     def create(cls, path, name, **opts):
         """Create a repository at a specified path"""
         cls.require_notfound(path)
-
-        pkg, rsrc = template.get_repository(as_pkg=True)
-        tmplpkg = '.'.join((pkg, rsrc))
-        tmplfile = resource_filename(pkg, rsrc)
-        config_text = cls.prepare_config(tmplpkg, cls._config, name, **opts)
+        theme = opts.get('templates_theme', None)
 
         # Create repository
-        shutil.copytree(tmplfile, path)
+        tmpl_dir = Template(opts.pop('templates_path', None)).get_repository(theme=theme)
+        config_text = cls.prepare_config(tmpl_dir, cls._config, name, **opts)
+        shutil.copytree(tmpl_dir, path)
 
         # Edit config defaults
         fd = open(os.path.join(path, cls._config), 'w')
@@ -129,7 +134,7 @@ class Repository(pathed.Pathed):
 
         # Create a management script
         manager = os.path.join(path, 'manage.py')
-        Repository.create_manage_file(manager, repository=path)
+        Repository.create_manage_file(manager, theme=theme, repository=path)
 
         return cls(path)
 
@@ -205,12 +210,10 @@ class Repository(pathed.Pathed):
         :param file_: Destination file to be written
         :param opts: Options that are passed to template
         """
+        mng_file = Template(opts.pop('templates_path', None)).get_manage(theme=opts.pop('templates_theme', None))
         vars_ = ",".join(["%s='%s'" % var for var in opts.iteritems()])
 
-        pkg, rsrc = template.manage(as_pkg=True)
-        tmpl = resource_string(pkg, rsrc)
-        result = tmpl % dict(defaults=vars_)
-
+        tmpl = open(mng_file).read()
         fd = open(file_, 'w')
-        fd.write(result)
+        fd.write(tmpl % dict(defaults=vars_))
         fd.close()

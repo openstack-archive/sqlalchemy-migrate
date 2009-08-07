@@ -4,7 +4,7 @@
 
 from ConfigParser import ConfigParser
 
-from migrate.versioning.base import *
+from migrate.versioning.config import *
 from migrate.versioning import pathed
 
 

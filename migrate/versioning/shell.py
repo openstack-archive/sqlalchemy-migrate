@@ -7,7 +7,7 @@ import sys
 import inspect
 from optparse import OptionParser, BadOptionError
 
-from migrate.versioning.base import *
+from migrate.versioning.config import *
 from migrate.versioning import api, exceptions
 
 

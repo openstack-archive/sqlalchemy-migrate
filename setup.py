@@ -15,7 +15,7 @@ except ImportError:
     pass
 
 test_requirements = ['nose >= 0.10']
-required_deps = ['sqlalchemy >= 0.5', 'decorator']
+required_deps = ['sqlalchemy >= 0.5', 'decorator', 'tempita']
 readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README'))
 
 setup(

@@ -21,7 +21,7 @@ class TestConfigParser(fixture.Base):
     def test_table_config(self):
         """We should be able to specify the table to be used with a repository"""
         default_text = Repository.prepare_config(Template().get_repository(),
-            Repository._config, 'repository_name')
+            'repository_name', {})
         specified_text = Repository.prepare_config(Template().get_repository(),
-            Repository._config, 'repository_name', version_table='_other_table')
+            'repository_name', {'version_table': '_other_table'})
         self.assertNotEquals(default_text, specified_text)

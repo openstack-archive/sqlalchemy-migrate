@@ -59,5 +59,6 @@ class TestTemplate(fixture.Pathed):
 
         # assert changes
         self.assertEqual(open(new_manage_dest).read(), MANAGE_CONTENTS)
+        self.assertEqual(open(os.path.join(new_repo_dest, 'manage.py')).read(), MANAGE_CONTENTS)
         self.assertEqual(open(os.path.join(new_repo_dest, 'README')).read(), README_CONTENTS)
         self.assertEqual(open(os.path.join(new_repo_dest, 'versions/001_test.py')).read(), SCRIPT_FILE_CONTENTS)

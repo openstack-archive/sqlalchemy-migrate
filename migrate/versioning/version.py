@@ -4,9 +4,12 @@
 import os
 import re
 import shutil
+import logging
 
 from migrate.versioning import exceptions, pathed, script
 
+
+log = logging.getLogger(__name__)
 
 class VerNum(object):
     """A version number that behaves like a string and int at the same time"""
@@ -98,11 +101,7 @@ class Collection(pathed.Pathed):
         filename = '%03d%s.py' % (ver, extra)
         filepath = self._version_path(filename)
 
-        if os.path.exists(filepath):
-            raise Exception('Script already exists: %s' % filepath)
-        else:
-            script.PythonScript.create(filepath, **k)
-
+        script.PythonScript.create(filepath, **k)
         self.versions[ver] = Version(ver, self.path, [filename])
         
     def create_new_sql_version(self, database, **k):
@@ -114,10 +113,7 @@ class Collection(pathed.Pathed):
         for op in ('upgrade', 'downgrade'):
             filename = '%03d_%s_%s.sql' % (ver, database, op)
             filepath = self._version_path(filename)
-            if os.path.exists(filepath):
-                raise Exception('Script already exists: %s' % filepath)
-            else:
-                open(filepath, "w").close()
+            script.SqlScript.create(filepath, **k)
             self.versions[ver].add_script(filepath)
         
     def version(self, vernum=None):
@@ -137,7 +133,14 @@ class Collection(pathed.Pathed):
 
 
 class Version(object):
-    """A single version in a collection """
+    """A single version in a collection
+    :param vernum: Version Number 
+    :param path: Path to script files
+    :param filelist: List of scripts
+    :type vernum: int, VerNum
+    :type path: string
+    :type filelist: list
+    """
 
     def __init__(self, vernum, path, filelist):
         self.version = VerNum(vernum)
@@ -165,22 +168,6 @@ class Version(object):
             "There is no script for %d version" % self.version
         return ret
 
-    # deprecated?
-    @classmethod
-    def create(cls, path):
-        os.mkdir(path)
-        # create the version as a proper Python package
-        initfile = os.path.join(path, "__init__.py")
-        if not os.path.exists(initfile):
-            # just touch the file
-            open(initfile, "w").close()
-        try:
-            ret = cls(path)
-        except:
-            os.rmdir(path)
-            raise
-        return ret
-
     def add_script(self, path):
         """Add script to Collection/Version"""
         if path.endswith(Extensions.py):
@@ -203,9 +190,10 @@ class Version(object):
 
     def _add_script_py(self, path):
         if self.python is not None:
-            raise Exception('You can only have one Python script per version,'
-                ' but you have: %s and %s' % (self.python, path))
+            raise exceptions.ScriptError('You can only have one Python script '
+                'per version, but you have: %s and %s' % (self.python, path))
         self.python = script.PythonScript(path)
+
 
 class Extensions:
     """A namespace for file extensions"""

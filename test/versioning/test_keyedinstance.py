@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 from test import fixture
 from migrate.versioning.util.keyedinstance import *
 
@@ -38,3 +41,5 @@ class TestKeydInstance(fixture.Base):
         Uniq1.clear()
         a12 = Uniq1('a')
         self.assert_(a10 is not a12)
+
+        self.assertRaises(NotImplementedError, KeyedInstance._key)

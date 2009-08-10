@@ -273,7 +273,21 @@ class TestAddDropColumn(fixture.DB):
         self.assertEqual(u'foobar', row['data'])
 
         col.drop()
-    
+
+    @fixture.usedb()
+    def test_populate_default(self):
+        """Test populate_default=True"""
+        def default():
+            return 'foobar'
+        col = Column('data', String(244), default=default)
+        col.create(self.table, populate_default=True)
+
+        self.table.insert(values={'id': 10}).execute()
+        row = self.table.select(autocommit=True).execute().fetchone()
+        self.assertEqual(u'foobar', row['data'])
+
+        col.drop()
+
     # TODO: test sequence
     # TODO: test quoting
     # TODO: test non-autoname constraints

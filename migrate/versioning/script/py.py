@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import shutil
+import warnings
+import logging
 from StringIO import StringIO
 
 import migrate
@@ -11,6 +13,9 @@ from migrate.versioning.template import Template
 from migrate.versioning.script import base
 from migrate.versioning.util import import_path, load_model, construct_engine
 
+
+log = logging.getLogger(__name__)
+__all__ = ['PythonScript']
 
 class PythonScript(base.BaseScript):
     """Base for Python scripts"""
@@ -83,16 +88,11 @@ class PythonScript(base.BaseScript):
         
         :param path: Script location
         :type path: string
-
         :raises: :exc:`InvalidScriptError <migrate.versioning.exceptions.InvalidScriptError>`
         :returns: Python module
         """
         # Try to import and get the upgrade() func
-        try:
-            module = import_path(path)
-        except:
-            # If the script itself has errors, that's not our problem
-            raise
+        module = import_path(path)
         try:
             assert callable(module.upgrade)
         except Exception, e:
@@ -129,13 +129,15 @@ class PythonScript(base.BaseScript):
             op = 'downgrade'
         else:
             raise exceptions.ScriptError("%d is not a valid step" % step)
+
         funcname = base.operations[op]
-        
-        func = self._func(funcname)
+        script_func = self._func(funcname)
+
         try:
-            func(engine)
+            script_func(engine)
         except TypeError:
-            print "upgrade/downgrade functions must accept engine parameter (since ver 0.5.5)"
+            warnings.warn("upgrade/downgrade functions must accept engine"
+                " parameter (since version > 0.5.4)")
             raise
 
     @property
@@ -148,8 +150,7 @@ class PythonScript(base.BaseScript):
         return self._module
 
     def _func(self, funcname):
-        try:
-            return getattr(self.module, funcname)
-        except AttributeError:
-            msg = "The function %s is not defined in this script"
+        if not hasattr(self.module, funcname):
+            msg = "Function '%s' is not defined in this script"
             raise exceptions.ScriptError(msg % funcname)
+        return getattr(self.module, funcname)

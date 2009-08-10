@@ -1,8 +1,13 @@
 """
    Schema differencing support.
 """
+import logging
+
 import sqlalchemy
 from migrate.changeset import SQLA_06
+
+
+log = logging.getLogger(__name__)
 
 def getDiffOfModelAgainstDatabase(model, conn, excludeTables=None):
     """

@@ -485,12 +485,16 @@ class ChangesetColumn(object):
         :param primary_key_name: Creates :class:\
 `~migrate.changeset.constraint.PrimaryKeyConstraint` on this column.
         :param alter_metadata: If True, column will be added to table object.
+        :param populate_default: If True, created column will be \
+populated with defaults
         :type table: Table instance
         :type index_name: string
         :type unique_name: string
         :type primary_key_name: string
         :type alter_metadata: bool
+        :type populate_default: bool
         """
+        self.populate_default = kwargs.pop('populate_default', False)
         self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         self.index_name = index_name
         self.unique_name = unique_name
@@ -503,6 +507,11 @@ class ChangesetColumn(object):
         engine = self.table.bind
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
         engine._run_visitor(visitorcallable, self, *args, **kwargs)
+
+        if self.populate_default and self.default is not None:
+            stmt = table.update().values({self: engine._execute_default(self.default)})
+            engine.execute(stmt)
+
         return self
 
     def drop(self, table=None, *args, **kwargs):

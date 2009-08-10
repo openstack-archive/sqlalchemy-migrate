@@ -16,11 +16,10 @@ class TestControlledSchema(fixture.Pathed, fixture.DB):
     # Transactions break postgres in this test; we'll clean up after ourselves
     level = fixture.DB.CONNECT
 
-    
     def setUp(self):
         super(TestControlledSchema, self).setUp()
-        path_repos = self.temp_usable_dir + '/repo/'
-        self.repos = Repository.create(path_repos, 'repo_name')
+        self.path_repos = self.temp_usable_dir + '/repo/'
+        self.repos = Repository.create(self.path_repos, 'repo_name')
 
     def _setup(self, url):
         self.setUp()
@@ -116,7 +115,7 @@ class TestControlledSchema(fixture.Pathed, fixture.DB):
             #self.assertRaises(ControlledSchema.InvalidVersionError,
             # Can't have custom errors with assertRaises...
             try:
-                ControlledSchema.create(self.engine,self.repos,version)
+                ControlledSchema.create(self.engine, self.repos, version)
                 self.assert_(False, repr(version))
             except exceptions.InvalidVersionError:
                 pass

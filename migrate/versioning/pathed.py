@@ -10,8 +10,8 @@ from migrate.versioning import exceptions
 from migrate.versioning.config import *
 from migrate.versioning.util import KeyedInstance
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 class Pathed(KeyedInstance):
     """

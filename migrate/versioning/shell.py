@@ -1,14 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 """The migrate command-line tool."""
 
 import sys
 import inspect
+import logging
 from optparse import OptionParser, BadOptionError
 
-from migrate.versioning.config import *
 from migrate.versioning import api, exceptions
+from migrate.versioning.config import *
+from migrate.versioning.util import asbool
 
 
 alias = dict(
@@ -53,10 +54,14 @@ class PassiveOptionParser(OptionParser):
                 del rargs[0]
 
 def main(argv=None, **kwargs):
-    """kwargs are default options that can be overriden with passing
-    --some_option to cmdline
-    """
+    """Shell interface to :mod:`migrate.versioning.api`.
 
+    kwargs are default options that can be overriden with passing
+    --some_option as command line option
+
+    :param disable_logging: Let migrate configure logging
+    :type disable_logging: bool
+    """
     argv = argv or list(sys.argv[1:])
     commands = list(api.__all__)
     commands.sort()
@@ -70,9 +75,16 @@ def main(argv=None, **kwargs):
     """ % '\n\t'.join([u"%s — %s" % (command.ljust(28), api.command_desc.get(command)) for command in commands])
 
     parser = PassiveOptionParser(usage=usage)
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
-    parser.add_option("-d", "--debug", action="store_true", dest="debug")
-    parser.add_option("-f", "--force", action="store_true", dest="force")
+    parser.add_option("-d", "--debug",
+                     action="store_true",
+                     dest="debug",
+                     default=False,
+                     help="Shortcut to turn on DEBUG mode for logging")
+    parser.add_option("-q", "--disable_logging",
+                      action="store_true",
+                      dest="disable_logging",
+                      default=False,
+                      help="Use this option to disable logging configuration")
     help_commands = ['help', '-h', '--help']
     HELP = False
 
@@ -142,6 +154,21 @@ def main(argv=None, **kwargs):
     # apply overrides
     kwargs.update(override_kwargs)
 
+    # configure options
+    for key, value in options.__dict__.iteritems():
+        kwargs.setdefault(key, value)
+
+    # configure logging
+    if not asbool(kwargs.pop('disable_logging', False)):
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(message)s")
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+
+    log = logging.getLogger(__name__)
+
     # check if all args are given
     try:
         num_defaults = len(f_defaults)
@@ -157,10 +184,8 @@ def main(argv=None, **kwargs):
     try:
         ret = command_func(**kwargs)
         if ret is not None:
-            print ret
+            log.info(ret)
     except (exceptions.UsageError, exceptions.KnownError), e:
-        if e.args[0] is None:
-            parser.print_help()
         parser.error(e.args[0])
 
 if __name__ == "__main__":

@@ -173,7 +173,7 @@ class UniqueConstraint(ConstraintChangeset, schema.UniqueConstraint):
     :type table: Table instance
     :type cols: strings or Column instances
 
-    .. versionadded:: 0.5.5
+    .. versionadded:: 0.6.0
     """
 
     __migrate_visit_name__ = 'migrate_unique_constraint'

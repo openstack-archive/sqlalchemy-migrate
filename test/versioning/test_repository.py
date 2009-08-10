@@ -101,13 +101,15 @@ class TestVersionedRepository(fixture.Pathed):
         # Load repository and commit script
         repo = Repository(self.path_repos)
         repo.create_script('')
-
-        # Get script object
-        source = repo.version(1).script().source()
+        repo.create_script_sql('postgres')
 
         # Source is valid: script must have an upgrade function
         # (not a very thorough test, but should be plenty)
-        self.assert_(source.find('def upgrade') >= 0)
+        source = repo.version(1).script().source()
+        self.assertTrue(source.find('def upgrade') >= 0)
+
+        source = repo.version(2).script('postgres', 'upgrade').source()
+        self.assertEqual(source.strip(), '')
 
     def test_latestversion(self):
         """Repository.version() (no params) returns the latest version"""

@@ -63,10 +63,10 @@ class TestSchemaDiff(fixture.DB):
         )
         ''')
         self.assertEqualsIgnoreWhitespace(upgradeCommands,
-            '''meta.bind(migrate_engine)
+            '''meta.bind = migrate_engine
             tmp_schemadiff.create()''')
         self.assertEqualsIgnoreWhitespace(downgradeCommands,
-            '''meta.bind(migrate_engine)
+            '''meta.bind = migrate_engine
             tmp_schemadiff.drop()''')
         
         # Create table in database, now model should match database.

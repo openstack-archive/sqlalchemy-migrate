@@ -1,12 +1,17 @@
 """
    This module provides an external API to the versioning system.
 
-   .. versionchanged:: 0.4.5 
+   .. versionchanged:: 0.6.0
+    :func:`migrate.versioning.api.test` and schema diff functions
+    changed order of positional arguments so all accept `url` and `repository`
+    as first arguments.
+
+   .. versionchanged:: 0.5.4 
     ``--preview_sql`` displays source file when using SQL scripts.
     If Python script is used, it runs the action with mocked engine and
     returns captured SQL statements.
 
-   .. versionchanged:: 0.4.5
+   .. versionchanged:: 0.5.4
     Deprecated ``--echo`` parameter in favour of new
     :func:`migrate.versioning.util.construct_engine` behavior.
 """
@@ -23,12 +28,14 @@
 import sys
 import inspect
 import warnings
+import logging
 
 from migrate.versioning import (exceptions, repository, schema, version,
     script as script_) # command name conflict
 from migrate.versioning.util import catch_known_errors, construct_engine
 
 
+log = logging.getLogger(__name__)
 command_desc = {
     'help': 'displays help on a given command',
     'create': 'create an empty repository at the specified path',
@@ -193,8 +200,8 @@ def downgrade(url, repository, version, **opts):
         "Try 'upgrade' instead."
     return _migrate(url, repository, version, upgrade=False, err=err, **opts)
     
-def test(repository, url, **opts):
-    """%prog test REPOSITORY_PATH URL [VERSION]
+def test(url, repository, **opts):
+    """%prog test URL REPOSITORY_PATH [VERSION]
 
     Performs the upgrade and downgrade option on the given
     database. This is not a real test and may leave the database in a
@@ -206,14 +213,14 @@ def test(repository, url, **opts):
     script = repos.version(None).script()
 
     # Upgrade
-    print "Upgrading...",
+    log.info("Upgrading...")
     script.run(engine, 1)
-    print "done"
+    log.info("done")
 
-    print "Downgrading...",
+    log.info("Downgrading...")
     script.run(engine, -1)
-    print "done"
-    print "Success"
+    log.info("done")
+    log.info("Success")
 
 
 def version_control(url, repository, version=None, **opts):
@@ -268,8 +275,8 @@ def manage(file, **opts):
     Repository.create_manage_file(file, **opts)
 
 
-def compare_model_to_db(url, model, repository, **opts):
-    """%prog compare_model_to_db URL MODEL REPOSITORY_PATH
+def compare_model_to_db(url, repository, model, **opts):
+    """%prog compare_model_to_db URL REPOSITORY_PATH MODEL
 
     Compare the current model (assumed to be a module level variable
     of type sqlalchemy.MetaData) against the current database.
@@ -277,7 +284,7 @@ def compare_model_to_db(url, model, repository, **opts):
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine = construct_engine(url, **opts)
-    print ControlledSchema.compare_model_to_db(engine, model, repository)
+    return ControlledSchema.compare_model_to_db(engine, model, repository)
 
 
 def create_model(url, repository, **opts):
@@ -289,12 +296,11 @@ def create_model(url, repository, **opts):
     """  # TODO: get rid of EXPERIMENTAL label
     engine = construct_engine(url, **opts)
     declarative = opts.get('declarative', False)
-    print ControlledSchema.create_model(engine, repository, declarative)
+    return ControlledSchema.create_model(engine, repository, declarative)
 
 
-# TODO: get rid of this? if we don't add back path param
 @catch_known_errors
-def make_update_script_for_model(url, oldmodel, model, repository, **opts):
+def make_update_script_for_model(url, repository, oldmodel, model, **opts):
     """%prog make_update_script_for_model URL OLDMODEL MODEL REPOSITORY_PATH
 
     Create a script changing the old Python model to the new (current)
@@ -303,12 +309,12 @@ def make_update_script_for_model(url, oldmodel, model, repository, **opts):
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
     engine = construct_engine(url, **opts)
-    print PythonScript.make_update_script_for_model(
+    return PythonScript.make_update_script_for_model(
         engine, oldmodel, model, repository, **opts)
 
 
-def update_db_from_model(url, model, repository, **opts):
-    """%prog update_db_from_model URL MODEL REPOSITORY_PATH
+def update_db_from_model(url, repository, model, **opts):
+    """%prog update_db_from_model URL REPOSITORY_PATH MODEL
 
     Modify the database to match the structure of the current Python
     model. This also sets the db_version number to the latest in the
@@ -329,27 +335,26 @@ def _migrate(url, repository, version, upgrade, err, **opts):
     changeset = schema.changeset(version)
     for ver, change in changeset:
         nextver = ver + changeset.step
-        print '%s -> %s... ' % (ver, nextver)
+        log.info('%s -> %s... ', ver, nextver)
 
         if opts.get('preview_sql'):
             if isinstance(change, PythonScript):
-                print change.preview_sql(url, changeset.step, **opts)
+                log.info(change.preview_sql(url, changeset.step, **opts))
             elif isinstance(change, SqlScript):
-                print change.source()
+                log.info(change.source())
 
         elif opts.get('preview_py'):
+            if not isinstance(change, PythonScript):
+                raise exceptions.UsageError("Python source can be only displayed"
+                    " for python migration files")
             source_ver = max(ver, nextver)
             module = schema.repository.version(source_ver).script().module
             funcname = upgrade and "upgrade" or "downgrade"
             func = getattr(module, funcname)
-            if isinstance(change, PythonScript):
-                print inspect.getsource(func)
-            else:
-                raise UsageError("Python source can be only displayed"
-                    " for python migration files")
+            log.info(inspect.getsource(func))
         else:
             schema.runchange(ver, change, changeset.step)
-            print 'done'
+            log.info('done')
 
 
 def _migrate_version(schema, version, upgrade, err):

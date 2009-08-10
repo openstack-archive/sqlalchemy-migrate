@@ -1,6 +1,9 @@
 """
    Database schema version management.
 """
+import sys
+import logging
+
 from sqlalchemy import (Table, Column, MetaData, String, Text, Integer,
     create_engine)
 from sqlalchemy.sql import and_
@@ -12,6 +15,8 @@ from migrate.versioning.repository import Repository
 from migrate.versioning.util import load_model
 from migrate.versioning.version import VerNum
 
+
+log = logging.getLogger(__name__)
 
 class ControlledSchema(object):
     """A database under version control"""
@@ -32,22 +37,17 @@ class ControlledSchema(object):
     def load(self):
         """Load controlled schema version info from DB"""
         tname = self.repository.version_table
-        if not hasattr(self, 'table') or self.table is None:
-            try:
-                self.table = Table(tname, self.meta, autoload=True)
-            except (sa_exceptions.NoSuchTableError,
-                    AssertionError):
-                # assertionerror is raised if no table is found in oracle db
-                raise exceptions.DatabaseNotControlledError(tname)
-
-        # TODO?: verify that the table is correct (# cols, etc.)
-        result = self.engine.execute(self.table.select(
-                    self.table.c.repository_id == str(self.repository.id)))
-
         try:
+            if not hasattr(self, 'table') or self.table is None:
+                    self.table = Table(tname, self.meta, autoload=True)
+
+            result = self.engine.execute(self.table.select(
+                self.table.c.repository_id == str(self.repository.id)))
+
             data = list(result)[0]
-        except IndexError:
-            raise exceptions.DatabaseNotControlledError(tname)
+        except Exception:
+            cls, exc, tb = sys.exc_info()
+            raise exceptions.DatabaseNotControlledError, exc.message, tb
 
         self.version = data['version']
         return data

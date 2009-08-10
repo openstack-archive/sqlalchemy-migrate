@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import logging
 
 from migrate.versioning.config import operations
 from migrate.versioning import pathed, exceptions
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 class BaseScript(pathed.Pathed):
     """Base class for other types of scripts.

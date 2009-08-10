@@ -36,9 +36,12 @@ class TestUtil(fixture.Pathed):
             engine_arg_assert_unicode=True)
         self.assertTrue(engine.dialect.assert_unicode)
 
-        # deprecated echo= parameter
+        # deprecated echo=True parameter
         engine = construct_engine(url, echo='True')
         self.assertTrue(engine.echo)
+
+        # unsupported argument
+        self.assertRaises(ValueError, construct_engine, 1)
 
     def test_asbool(self):
         """test asbool parsing"""

@@ -5,8 +5,8 @@ import os
 import shutil
 import string
 import logging
-from pkg_resources import resource_filename
 
+from pkg_resources import resource_filename
 from tempita import Template as TempitaTemplate
 
 from migrate.versioning import exceptions, script, version, pathed, cfgparse

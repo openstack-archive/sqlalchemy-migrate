@@ -28,6 +28,8 @@ class ScriptCollection(Collection):
 class ManageCollection(Collection):
     _mask = '%s.py_tmpl'
 
+class SQLScriptCollection(Collection):
+    _mask = '%s.py_tmpl'
 
 class Template(pathed.Pathed):
     """Finds the paths/packages of various Migrate templates.
@@ -50,6 +52,7 @@ class Template(pathed.Pathed):
         self.repository = RepositoryCollection(os.path.join(path, 'repository'))
         self.script = ScriptCollection(os.path.join(path, 'script'))
         self.manage = ManageCollection(os.path.join(path, 'manage'))
+        self.sql_script = SQLScriptCollection(os.path.join(path, 'sql_script'))
 
     @classmethod
     def _find_path(cls, pkg):
@@ -81,6 +84,10 @@ class Template(pathed.Pathed):
     def get_script(self, *a, **kw):
         """Calls self._get_item('script', *a, **kw)"""
         return self._get_item('script', *a, **kw)
+
+    def get_sql_script(self, *a, **kw):
+        """Calls self._get_item('sql_script', *a, **kw)"""
+        return self._get_item('sql_script', *a, **kw)
 
     def get_manage(self, *a, **kw):
         """Calls self._get_item('manage', *a, **kw)"""

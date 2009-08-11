@@ -133,7 +133,7 @@ class TestVersionedRepository(fixture.Pathed):
             uniq = list()
             # Changesets are iterable
             for version, change in changeset:
-                self.assert_(isinstance(change, script.BaseScript))
+                self.assert_(isinstance(change, BaseScript))
                 # Changes aren't identical
                 self.assert_(id(change) not in uniq)
                 uniq.append(id(change))

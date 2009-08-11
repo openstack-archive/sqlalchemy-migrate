@@ -9,7 +9,7 @@ import logging
 from pkg_resources import resource_filename
 from tempita import Template as TempitaTemplate
 
-from migrate.versioning import exceptions, script, version, pathed, cfgparse
+from migrate.versioning import exceptions, version, pathed, cfgparse
 from migrate.versioning.template import Template
 from migrate.versioning.config import *
 

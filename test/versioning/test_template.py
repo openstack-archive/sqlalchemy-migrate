@@ -33,6 +33,8 @@ class TestTemplate(fixture.Pathed):
         manage_tmpl_file = os.path.join(new_templates_dir, 'manage/custom.py_tmpl')
         repository_tmpl_file = os.path.join(new_templates_dir, 'repository/custom/README')
         script_tmpl_file = os.path.join(new_templates_dir, 'script/custom.py_tmpl')
+        sql_script_tmpl_file = os.path.join(new_templates_dir, 'sql_script/custom.py_tmpl')
+
         MANAGE_CONTENTS = 'print "manage.py"'
         README_CONTENTS = 'MIGRATE README!'
         SCRIPT_FILE_CONTENTS = 'print "script.py"'
@@ -48,6 +50,7 @@ class TestTemplate(fixture.Pathed):
         f = open(manage_tmpl_file, 'w').write(MANAGE_CONTENTS)
         f = open(repository_tmpl_file, 'w').write(README_CONTENTS)
         f = open(script_tmpl_file, 'w').write(SCRIPT_FILE_CONTENTS)
+        f = open(sql_script_tmpl_file, 'w').write(SCRIPT_FILE_CONTENTS)
 
         # create repository, manage file and python script
         kw = {}
@@ -55,6 +58,7 @@ class TestTemplate(fixture.Pathed):
         kw['templates_theme'] = 'custom'
         api.create(new_repo_dest, 'repo_name', **kw)
         api.script('test', new_repo_dest, **kw)
+        api.script_sql('postgres', new_repo_dest, **kw)
         api.manage(new_manage_dest, **kw)
 
         # assert changes
@@ -62,3 +66,5 @@ class TestTemplate(fixture.Pathed):
         self.assertEqual(open(os.path.join(new_repo_dest, 'manage.py')).read(), MANAGE_CONTENTS)
         self.assertEqual(open(os.path.join(new_repo_dest, 'README')).read(), README_CONTENTS)
         self.assertEqual(open(os.path.join(new_repo_dest, 'versions/001_test.py')).read(), SCRIPT_FILE_CONTENTS)
+        self.assertEqual(open(os.path.join(new_repo_dest, 'versions/002_postgres_downgrade.sql')).read(), SCRIPT_FILE_CONTENTS)
+        self.assertEqual(open(os.path.join(new_repo_dest, 'versions/002_postgres_upgrade.sql')).read(), SCRIPT_FILE_CONTENTS)

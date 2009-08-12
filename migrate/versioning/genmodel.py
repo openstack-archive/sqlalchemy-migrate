@@ -126,7 +126,7 @@ class ModelGenerator(object):
     def toUpgradeDowngradePython(self, indent='    '):
         ''' Assume model is most current and database is out-of-date. '''
         decls = ['from migrate.changeset import schema',
-                 'meta = MetaData(migrate_engine)']
+                 'meta = MetaData()']
         for table in self.diff.tablesMissingInModel + \
                 self.diff.tablesMissingInDatabase  + \
                 self.diff.tablesWithDiff:

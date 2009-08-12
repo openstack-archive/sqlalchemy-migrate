@@ -126,7 +126,8 @@ class ModelGenerator(object):
     def toUpgradeDowngradePython(self, indent='    '):
         ''' Assume model is most current and database is out-of-date. '''
 
-        decls = ['meta = MetaData()']
+        decls = ['from migrate.changeset import schema',
+                 'meta = MetaData(migrate_engine)']
         for table in self.diff.tablesMissingInModel + \
                 self.diff.tablesMissingInDatabase:
             decls.extend(self.getTableDefn(table))
@@ -142,6 +143,28 @@ class ModelGenerator(object):
             upgradeCommands.append("%(table)s.create()" % {'table': tableName})
             downgradeCommands.append("%(table)s.drop()" % {'table': tableName})
 
+        for modelTable in self.diff.tablesWithDiff:
+            dbTable = self.diff.reflected_model.tables[modelTable.name]
+            tableName = modelTable.name
+            missingInDatabase, missingInModel, diffDecl = \
+                self.diff.colDiffs[tableName]
+            for col in missingInDatabase:
+                upgradeCommands.append('%s.columns[%r].create()' % (
+                        modelTable, col.name))
+                downgradeCommands.append('%s.columns[%r].drop()' % (
+                        modelTable, col.name))
+            for col in missingInModel:
+                upgradeCommands.append('%s.columns[%r].drop()' % (
+                        modelTable, col.name))
+                downgradeCommands.append('%s.columns[%r].create()' % (
+                        modelTable, col.name))
+            for modelCol, databaseCol, modelDecl, databaseDecl in diffDecl:
+                upgradeCommands.append(
+                    'assert False, "Can\'t alter columns: %s:%s=>%s"',
+                    modelTable, modelCol.name, databaseCol.name)
+                downgradeCommands.append(
+                    'assert False, "Can\'t alter columns: %s:%s=>%s"',
+                    modelTable, modelCol.name, databaseCol.name)
         pre_command = '    meta.bind = migrate_engine'
 
         return (

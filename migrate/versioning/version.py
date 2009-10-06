@@ -178,12 +178,15 @@ class Version(object):
     SQL_FILENAME = re.compile(r'^(\d+)_([^_]+)_([^_]+).sql')
 
     def _add_script_sql(self, path):
-        match = self.SQL_FILENAME.match(os.path.basename(path))
+        basename = os.path.basename(path)
+        match = self.SQL_FILENAME.match(basename)
 
         if match:
             version, dbms, op = match.group(1), match.group(2), match.group(3)
         else:
-            raise exceptions.ScriptError("Invalid SQL script name %s" % path)
+            raise exceptions.ScriptError(
+                "Invalid SQL script name %s " % basename + \
+                "(needs to be ###_database_operation.sql)")
 
         # File the script into a dictionary
         self.sql.setdefault(dbms, {})[op] = script.SqlScript(path)

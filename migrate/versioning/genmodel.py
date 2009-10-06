@@ -128,7 +128,7 @@ class ModelGenerator(object):
         decls = ['from migrate.changeset import schema',
                  'meta = MetaData()']
         for table in self.diff.tablesMissingInModel + \
-                self.diff.tablesMissingInDatabase  + \
+                self.diff.tablesMissingInDatabase + \
                 self.diff.tablesWithDiff:
             decls.extend(self.getTableDefn(table))
 

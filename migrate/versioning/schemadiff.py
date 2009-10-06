@@ -84,7 +84,7 @@ class SchemaDiff(object):
             if modelName in self.excludeTables:
                 continue
             reflectedTable = self.reflected_model.tables.get(modelName, None)
-            if reflectedTable:
+            if reflectedTable is not None:
                 # Table exists.
                 pass
             else:
@@ -96,14 +96,14 @@ class SchemaDiff(object):
             if reflectedName in self.excludeTables:
                 continue
             modelTable = self.model.tables.get(reflectedName, None)
-            if modelTable:
+            if modelTable is not None:
                 # Table exists.
 
                 # Find missing columns in database.
                 for modelCol in modelTable.columns:
                     databaseCol = reflectedTable.columns.get(modelCol.name,
                                                              None)
-                    if databaseCol:
+                    if databaseCol is not None:
                         pass
                     else:
                         self.storeColumnMissingInDatabase(modelTable, modelCol)
@@ -114,7 +114,7 @@ class SchemaDiff(object):
                     # TODO: no test coverage here?   (mrb)
                     
                     modelCol = modelTable.columns.get(databaseCol.name, None)
-                    if modelCol:
+                    if modelCol is not None:
                         # Compare attributes of column.
                         modelDecl = \
                             get_column_specification(modelCol)

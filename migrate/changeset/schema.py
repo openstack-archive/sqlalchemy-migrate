@@ -177,7 +177,7 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
 
     # Column attributes that can be altered
     diff_keys = ('name', 'type', 'primary_key', 'nullable',
-        'server_onupdate', 'server_default')
+        'server_onupdate', 'server_default', 'autoincrement')
     diffs = dict()
     __visit_name__ = 'column'
 

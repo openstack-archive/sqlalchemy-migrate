@@ -4,6 +4,7 @@
 
 from migrate.changeset import ansisql, exceptions, SQLA_06
 from sqlalchemy.databases import mysql as sa_base
+from sqlalchemy import types as sqltypes
 
 if not SQLA_06:
     MySQLSchemaGenerator = sa_base.MySQLSchemaGenerator
@@ -23,6 +24,14 @@ class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
     def visit_column(self, delta):
         table = delta.table
         colspec = self.get_column_specification(delta.result_column)
+        if delta.result_column.autoincrement:
+            first = [c for c in table.primary_key.columns
+                       if (c.autoincrement and
+                            isinstance(c.type, sqltypes.Integer) and
+                            not c.foreign_keys)].pop(0)
+
+            if first.name == delta.current_name:
+                colspec += " AUTO_INCREMENT"
         old_col_name = self.preparer.quote(delta.current_name, table.quote)
 
         self.start_alter_table(table)

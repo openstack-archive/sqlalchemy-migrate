@@ -1,0 +1,6 @@
+coverage
+nose
+-e git://github.com/cmheisel/nose-xcover.git#egg=nosexcover
+pytz
+psycopg2
+scripttest

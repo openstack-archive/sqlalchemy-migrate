@@ -440,8 +440,8 @@ class TestShellDatabase(Shell, DB):
         repos_name = 'repos_name'
         repos_path = self.tmp()
         script_path = self.tmp_py()
-        model_module = 'test.fixture.models:meta_rundiffs'
-        old_model_module = 'test.fixture.models:meta_old_rundiffs'
+        model_module = 'tests.fixture.models:meta_rundiffs'
+        old_model_module = 'tests.fixture.models:meta_old_rundiffs'
 
         # Create empty repository.
         self.meta = MetaData(self.engine, reflect=True)

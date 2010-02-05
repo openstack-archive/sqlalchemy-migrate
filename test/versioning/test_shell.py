@@ -408,6 +408,8 @@ class TestShellDatabase(Shell, DB):
         script_text = '''
         from sqlalchemy import *
         from migrate import *
+
+        from migrate.changeset import schema
         
         meta = MetaData(migrate_engine)
         account = Table('account', meta,
@@ -495,6 +497,8 @@ class TestShellDatabase(Shell, DB):
         self.assertEqualsIgnoreWhitespace(result_script.stdout,
         '''from sqlalchemy import *
         from migrate import *
+
+        from migrate.changeset import schema
 
         meta = MetaData()
         tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,

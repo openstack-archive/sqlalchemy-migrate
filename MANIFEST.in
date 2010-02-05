@@ -1,3 +1,5 @@
 include CHANGELOG
-include docs/*.rst
-include docs/conf.py
+include README
+recursive-include docs *
+recursive-include migrate *
+global-exclude *pyc

@@ -55,11 +55,12 @@ class TestSchemaDiff(fixture.DB):
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
         self.assertEqualsIgnoreWhitespace(decls, '''
+        from migrate.changeset import schema
         meta = MetaData()
-        tmp_schemadiff = Table('tmp_schemadiff',meta,
-            Column('id',Integer(),primary_key=True,nullable=False),
-            Column('name',UnicodeText(length=None)),
-            Column('data',UnicodeText(length=None)),
+        tmp_schemadiff = Table('tmp_schemadiff', meta,
+            Column('id', Integer(), primary_key=True, nullable=False),
+            Column('name', UnicodeText(length=None)),
+            Column('data', UnicodeText(length=None)),
         )
         ''')
         self.assertEqualsIgnoreWhitespace(upgradeCommands,

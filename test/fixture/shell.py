@@ -16,7 +16,10 @@ class Shell(Pathed):
 
     def setUp(self):
         super(Shell, self).setUp()
-        self.env = TestFileEnvironment(os.path.join(self.temp_usable_dir, 'env'))
+        self.env = TestFileEnvironment(
+            base_path=os.path.join(self.temp_usable_dir, 'env'),
+            script_path=[os.path.dirname(sys.executable)],
+        )
 
     def run_version(self, repos_path):
         result = self.env.run('migrate version %s' % repos_path)

@@ -235,7 +235,9 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
 
     def compare_1_column(self, col, *p, **k):
         """Compares one Column object"""
-        self.table = k.pop('table', None) or col.table
+        self.table = k.pop('table', None)
+        if self.table is None:
+            self.table = col.table
         self.result_column = col
         if len(p):
             k = self._extract_parameters(p, k, self.result_column)
@@ -244,7 +246,12 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
     def compare_2_columns(self, old_col, new_col, *p, **k):
         """Compares two Column objects"""
         self.process_column(new_col)
-        self.table = k.pop('table', None) or old_col.table or new_col.table
+        self.table = k.pop('table', None)
+        # we cannot use bool() on table in SA06 
+        if self.table is None:
+            self.table = old_col.table
+        if self.table is None:
+            new_col.table
         self.result_column = old_col
 
         # set differences

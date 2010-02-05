@@ -283,7 +283,7 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
             self.result_column.type = self.result_column.type()
 
         # add column to the table
-        if self.table and self.alter_metadata:
+        if self.table is not None and self.alter_metadata:
             self.result_column.add_to_table(self.table)
 
     def are_column_types_eq(self, old_type, new_type):
@@ -542,7 +542,7 @@ populated with defaults
         return self
 
     def add_to_table(self, table):
-        if table and not self.table:
+        if table is not None  and self.table is None:
             self._set_parent(table)
 
     def remove_from_table(self, table, unset_table=True):

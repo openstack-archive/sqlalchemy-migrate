@@ -1,5 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """The migrate command-line tool."""
 
 import sys
@@ -66,13 +67,13 @@ def main(argv=None, **kwargs):
     commands = list(api.__all__)
     commands.sort()
 
-    usage = u"""%%prog COMMAND ...
+    usage = """%%prog COMMAND ...
 
     Available commands:
         %s
 
     Enter "%%prog help COMMAND" for information on a particular command.
-    """ % '\n\t'.join([u"%s — %s" % (command.ljust(28), api.command_desc.get(command)) for command in commands])
+    """ % '\n\t'.join(["%s - %s" % (command.ljust(28), api.command_desc.get(command)) for command in commands])
 
     parser = PassiveOptionParser(usage=usage)
     parser.add_option("-d", "--debug",

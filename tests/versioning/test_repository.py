@@ -9,7 +9,7 @@ from migrate.versioning.repository import *
 from migrate.versioning.script import *
 from nose.tools import raises
 
-from test import fixture
+from tests import fixture
 
 
 class TestRepository(fixture.Pathed):

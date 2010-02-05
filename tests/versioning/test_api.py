@@ -4,9 +4,9 @@
 from migrate.versioning import api
 from migrate.versioning.exceptions import *
 
-from test.fixture.pathed import *
-from test.fixture import models
-from test import fixture
+from tests.fixture.pathed import *
+from tests.fixture import models
+from tests import fixture
 
 
 class TestAPI(Pathed):

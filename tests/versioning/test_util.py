@@ -5,7 +5,7 @@ import os
 
 from sqlalchemy import *
 
-from test import fixture
+from tests import fixture
 from migrate.versioning.util import *
 
 

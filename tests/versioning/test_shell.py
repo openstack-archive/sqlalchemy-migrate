@@ -10,7 +10,7 @@ from sqlalchemy import MetaData, Table
 from migrate.versioning.repository import Repository
 from migrate.versioning import genmodel, shell, api
 from migrate.versioning.exceptions import *
-from test.fixture import Shell, DB, usedb
+from tests.fixture import Shell, DB, usedb
 
 
 class TestShellCommands(Shell):

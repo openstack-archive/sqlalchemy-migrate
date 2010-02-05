@@ -8,7 +8,7 @@ import types
 
 from scripttest import TestFileEnvironment
 
-from test.fixture.pathed import *
+from tests.fixture.pathed import *
 
 
 class Shell(Pathed):

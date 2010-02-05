@@ -6,7 +6,7 @@ import os
 from migrate.versioning.genmodel import *
 from migrate.versioning.exceptions import *
 
-from test import fixture
+from tests import fixture
 
 
 class TestModelGenerator(fixture.Pathed, fixture.DB):

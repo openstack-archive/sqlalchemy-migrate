@@ -1,7 +1,12 @@
-from test import fixture
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import os,shutil
+
+from tests import fixture
 from migrate.versioning.schema import *
 from migrate.versioning import script
-import os,shutil
+
 
 class TestRunChangeset(fixture.Pathed,fixture.DB):
     level=fixture.DB.CONNECT

@@ -6,7 +6,7 @@ import sys
 import shutil
 import tempfile
 
-from test.fixture import base
+from tests.fixture import base
 
 
 class Pathed(base.Base):

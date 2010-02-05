@@ -21,7 +21,7 @@ readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'REA
 setup(
     name = "sqlalchemy-migrate",
     version = "0.5.5",
-    packages = find_packages(exclude=['test*']),
+    packages = find_packages(exclude=['tests*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",
     long_description = readme_file.read(),

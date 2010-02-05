@@ -6,7 +6,7 @@ from sqlalchemy import *
 from migrate import changeset
 from migrate.changeset import *
 from migrate.changeset.schema import ColumnDelta
-from test import fixture
+from tests import fixture
 
 
 class TestAddDropColumn(fixture.DB):

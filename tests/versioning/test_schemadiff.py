@@ -1,9 +1,11 @@
 import os
+
 import sqlalchemy
 from sqlalchemy import *
-from test import fixture
-from migrate.versioning import genmodel, schemadiff
 from nose.tools import eq_
+from migrate.versioning import genmodel, schemadiff
+
+from tests import fixture
 
 
 class TestSchemaDiff(fixture.DB):

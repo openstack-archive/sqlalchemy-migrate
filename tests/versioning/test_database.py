@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from test import fixture
+from tests import fixture
 
 class TestConnect(fixture.DB):
     level=fixture.DB.TXN

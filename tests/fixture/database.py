@@ -9,8 +9,8 @@ from sqlalchemy.orm import create_session
 from sqlalchemy.pool import StaticPool
 
 from migrate.versioning.util import Memoize
-from test.fixture.base import Base
-from test.fixture.pathed import Pathed
+from tests.fixture.base import Base
+from tests.fixture.pathed import Pathed
 
 
 @Memoize

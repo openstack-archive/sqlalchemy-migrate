@@ -1,6 +1,8 @@
-from test import fixture
 import doctest
 import os
+
+
+from tests import fixture
 
 # Collect tests for all handwritten docs: doc/*.rst
 

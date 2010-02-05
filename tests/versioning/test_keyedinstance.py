@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from test import fixture
+from tests import fixture
 from migrate.versioning.util.keyedinstance import *
 
 class TestKeydInstance(fixture.Base):

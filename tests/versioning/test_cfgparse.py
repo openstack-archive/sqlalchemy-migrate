@@ -4,7 +4,7 @@
 from migrate.versioning import cfgparse
 from migrate.versioning.repository import *
 from migrate.versioning.template import Template
-from test import fixture
+from tests import fixture
 
 
 class TestConfigParser(fixture.Base):

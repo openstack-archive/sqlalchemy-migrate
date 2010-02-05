@@ -47,15 +47,19 @@ class TestAddDropColumn(fixture.DB):
                 # new primary key: check its length too
                 result = len(self.table.primary_key)
                 self.assertEquals(result, num_of_expected_cols)
-            
+
+        # we have 1 columns and there is no data column  
         assert_numcols(1)
+        self.assertTrue(getattr(self.table.c, 'data', None) is None)
         if len(col_p) == 0:
             col_p = [String(40)]
         col = Column(col_name, *col_p, **col_k)
         create_column_func(col)
         assert_numcols(2)
-        col2 = getattr(self.table.c, col_name)
-        self.assertEquals(col2, col)
+        # data column exists
+        self.assert_(self.table.c.data.type.length, 40)
+
+        col2 = self.table.c.data
         drop_column_func(col2)
         assert_numcols(1)
 

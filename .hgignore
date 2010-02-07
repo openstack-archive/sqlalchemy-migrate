@@ -11,3 +11,5 @@ syntax: glob
 *include/*
 *lib/*
 sa06/*
+.coverage
+test_db.cfg

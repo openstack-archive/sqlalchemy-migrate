@@ -158,11 +158,11 @@ Our change script defines two functions, currently empty:
                   )
   
   def upgrade(migrate_engine):
-		  meta.bind(migrate_engine)
+		  meta.bind = migrate_engine
       account.create()
   
   def downgrade(migrate_engine):
-		  meta.bind(migrate_engine)
+		  meta.bind = migrate_engine
       account.drop()
 
 As you might have guessed, :func:`upgrade` upgrades the database to the next
@@ -277,10 +277,10 @@ Your application defines a table in the model.py file:
  import model
 
  def upgrade(migrate_engine):
-     model.meta.bind(migrate_engine)
+     model.meta.bind = migrate_engine
 
  def downgrade(migrate_engine):
-     model.meta.bind(migrate_engine)
+     model.meta.bind = migrate_engine 
      model.table.drop()
 
 This runs successfully the first time. But what happens if we change
@@ -302,10 +302,10 @@ We'll create a new column with a matching change script
  import model
 
  def upgrade(migrate_engine):
-     model.meta.bind(migrate_engine)
+     model.meta.bind = migrate_engine
      model.table.data.create()
  def downgrade(migrate_engine):
-     model.meta.bind(migrate_engine)
+     model.meta.bind = migrate_engine
      model.table.data.drop()
 
 This appears to run fine when upgrading an existing database - but the

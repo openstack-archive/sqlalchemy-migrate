@@ -303,10 +303,11 @@ We'll create a new column with a matching change script
 
  def upgrade(migrate_engine):
      model.meta.bind = migrate_engine
-     model.table.data.create()
+     model.table.create()
+
  def downgrade(migrate_engine):
      model.meta.bind = migrate_engine
-     model.table.data.drop()
+     model.table.drop()
 
 This appears to run fine when upgrading an existing database - but the
 first script's behavior changed! Running all our change scripts on a

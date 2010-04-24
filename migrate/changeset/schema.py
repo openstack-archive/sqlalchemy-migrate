@@ -403,7 +403,7 @@ class ChangesetTable(object):
 
     def drop_column(self, column, *p, **kw):
         """Drop a column, given its name or definition.
-        
+
         API to :meth:`ChangesetColumn.drop`
 
         :param column: Column to be droped
@@ -417,7 +417,7 @@ class ChangesetTable(object):
                 # That column isn't part of the table. We don't need
                 # its entire definition to drop the column, just its
                 # name, so create a dummy column with the same name.
-                column = sqlalchemy.Column(str(column))
+                column = sqlalchemy.Column(str(column), sqlalchemy.Integer())
         column.drop(table=self, *p, **kw)
 
     def rename(self, name, *args, **kwargs):

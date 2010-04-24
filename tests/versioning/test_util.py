@@ -19,12 +19,12 @@ class TestUtil(fixture.Pathed):
         self.assert_(engine.name == 'sqlite')
 
         # keyword arg
-        engine = construct_engine(url, engine_arg_assert_unicode=True)
-        self.assertTrue(engine.dialect.assert_unicode)
+        engine = construct_engine(url, engine_arg_encoding=True)
+        self.assertTrue(engine.dialect.encoding)
 
         # dict
-        engine = construct_engine(url, engine_dict={'assert_unicode': True})
-        self.assertTrue(engine.dialect.assert_unicode)
+        engine = construct_engine(url, engine_dict={'encoding': True})
+        self.assertTrue(engine.dialect.encoding)
 
         # engine parameter
         engine_orig = create_engine('sqlite://')
@@ -32,9 +32,9 @@ class TestUtil(fixture.Pathed):
         self.assertEqual(engine, engine_orig)
 
         # test precedance
-        engine = construct_engine(url, engine_dict={'assert_unicode': False},
-            engine_arg_assert_unicode=True)
-        self.assertTrue(engine.dialect.assert_unicode)
+        engine = construct_engine(url, engine_dict={'encoding': False},
+            engine_arg_encoding=True)
+        self.assertTrue(engine.dialect.encoding)
 
         # deprecated echo=True parameter
         engine = construct_engine(url, echo='True')

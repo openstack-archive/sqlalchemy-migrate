@@ -45,9 +45,9 @@ class ControlledSchema(object):
                 self.table.c.repository_id == str(self.repository.id)))
 
             data = list(result)[0]
-        except Exception:
+        except:
             cls, exc, tb = sys.exc_info()
-            raise exceptions.DatabaseNotControlledError, exc.message, tb
+            raise exceptions.DatabaseNotControlledError, exc.__str__(), tb
 
         self.version = data['version']
         return data

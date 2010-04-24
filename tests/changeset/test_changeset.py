@@ -41,7 +41,7 @@ class TestAddDropColumn(fixture.DB):
             # number of cols should be correct in table object and in database
             self.refresh_table(self.table_name)
             result = len(self.table.c)
-            
+
             self.assertEquals(result, num_of_expected_cols),
             if col_k.get('primary_key', None):
                 # new primary key: check its length too
@@ -273,7 +273,7 @@ class TestAddDropColumn(fixture.DB):
         col.create(self.table)
 
         self.table.insert(values={'id': 10}).execute()
-        row = self.table.select(autocommit=True).execute().fetchone()
+        row = self._select_row()
         self.assertEqual(u'foobar', row['data'])
 
         col.drop()
@@ -287,7 +287,7 @@ class TestAddDropColumn(fixture.DB):
         col.create(self.table, populate_default=True)
 
         self.table.insert(values={'id': 10}).execute()
-        row = self.table.select(autocommit=True).execute().fetchone()
+        row = self._select_row()
         self.assertEqual(u'foobar', row['data'])
 
         col.drop()
@@ -509,7 +509,7 @@ class TestColumnChange(fixture.DB):
         # TextClause returned by autoload
         self.assert_(default in str(self.table.c.data.server_default.arg))
         self.engine.execute(self.table.insert(), id=12)
-        row = self.table.select(autocommit=True).execute().fetchone()
+        row = self._select_row()
         self.assertEqual(row['data'], default)
 
         # Column object
@@ -526,15 +526,17 @@ class TestColumnChange(fixture.DB):
         # server_default isn't necessarily None for Oracle
         #self.assert_(self.table.c.data.server_default is None,self.table.c.data.server_default)
         self.engine.execute(self.table.insert(), id=11)
-        row = self.table.select(self.table.c.id == 11, autocommit=True).execute().fetchone()
+        if SQLA_06:
+            row = self.table.select(self.table.c.id == 11).execution_options(autocommit=True).execute().fetchone()
+        else:
+            row = self.table.select(self.table.c.id == 11, autocommit=True).execute().fetchone()
         self.assert_(row['data'] is None, row['data'])
-        
 
     @fixture.usedb(not_supported='firebird')
     def test_null(self):
         """Can change a column's null constraint"""
         self.assertEquals(self.table.c.data.nullable, True)
-        
+
         # Column object
         self.table.c.data.alter(Column('data', String(40), nullable=False))
         self.table.nullable = None
@@ -607,7 +609,7 @@ class TestColumnChange(fixture.DB):
 
         # insert data and assert default
         self.table.insert(values={'id': 10}).execute()
-        row = self.table.select(autocommit=True).execute().fetchone()
+        row = self._select_row()
         self.assertEqual(u'foobar', row['data_new'])
 
 

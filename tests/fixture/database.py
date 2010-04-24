@@ -8,6 +8,7 @@ from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import create_session
 from sqlalchemy.pool import StaticPool
 
+from migrate.changeset import SQLA_06
 from migrate.versioning.util import Memoize
 from tests.fixture.base import Base
 from tests.fixture.pathed import Pathed
@@ -130,6 +131,14 @@ class DB(Base):
 
     def _not_supported(self, url):
         return not self._supported(url)
+
+    def _select_row(self):
+        """Select rows, used in multiple tests"""
+        if SQLA_06:
+            row = self.table.select().execution_options(autocommit=True).execute().fetchone()
+        else:
+            row = self.table.select(autocommit=True).execute().fetchone()
+        return row
 
     def refresh_table(self, name=None):
         """Reload the table from the database

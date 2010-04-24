@@ -3,7 +3,9 @@ import os
 import sqlalchemy
 from sqlalchemy import *
 from nose.tools import eq_
+
 from migrate.versioning import genmodel, schemadiff
+from migrate.changeset import schema
 
 from tests import fixture
 
@@ -37,22 +39,19 @@ class TestSchemaDiff(fixture.DB):
     def _applyLatestModel(self):
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         genmodel.ModelGenerator(diff).applyModel()
-        
+
     @fixture.usedb()
     def test_rundiffs(self):
-        
-        # Yuck! We have to import from changeset to apply the monkey-patch to allow column adding/dropping.
-        from migrate.changeset import schema
-        
+
         def assertDiff(isDiff, tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff):
             diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
             eq_(bool(diff), isDiff)
             eq_( ([t.name for t in diff.tablesMissingInDatabase], [t.name for t in diff.tablesMissingInModel], [t.name for t in diff.tablesWithDiff]),
                            (tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff) )
-                
+
         # Model is defined but database is empty.
         assertDiff(True, [self.table_name], [], [])
-        
+
         # Check Python upgrade and downgrade of database from updated model.
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff).toUpgradeDowngradePython()

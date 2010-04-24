@@ -9,8 +9,10 @@
 import sys
 import logging
 
-import migrate
 import sqlalchemy
+
+import migrate
+import migrate.changeset
 
 
 log = logging.getLogger(__name__)
@@ -36,7 +38,6 @@ class ModelGenerator(object):
     def __init__(self, diff, declarative=False):
         self.diff = diff
         self.declarative = declarative
-
 
     def column_repr(self, col):
         kwarg = []
@@ -174,9 +175,6 @@ class ModelGenerator(object):
 
     def applyModel(self):
         """Apply model to current database."""
-        # Yuck! We have to import from changeset to apply the
-        # monkey-patch to allow column adding/dropping.
-        from migrate.changeset import schema
 
         def dbCanHandleThisChange(missingInDatabase, missingInModel, diffDecl):
             if missingInDatabase and not missingInModel and not diffDecl:

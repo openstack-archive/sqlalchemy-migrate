@@ -3,6 +3,5 @@ nose
 -e git://github.com/cmheisel/nose-xcover.git#egg=nosexcover
 scripttest==1.0.1
 pytz
-http://downloads.egenix.com/python/egenix-mx-base-3.0.0.zip
 psycopg2
 mysql-python

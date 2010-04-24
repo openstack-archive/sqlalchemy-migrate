@@ -1,5 +1,6 @@
 syntax: glob
 
+
 *.pyc
 *data/*
 *build/*
@@ -13,3 +14,4 @@ syntax: glob
 sa06/*
 .coverage
 test_db.cfg
+nosexcover

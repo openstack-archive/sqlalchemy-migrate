@@ -4,4 +4,5 @@ nose
 scripttest==1.0.1
 pytz
 psycopg2
+pysqlite
 mysql-python

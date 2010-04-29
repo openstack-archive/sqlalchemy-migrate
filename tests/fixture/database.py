@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 
 from migrate.changeset import SQLA_06
 from migrate.versioning.util import Memoize
+
 from tests.fixture.base import Base
 from tests.fixture.pathed import Pathed
 

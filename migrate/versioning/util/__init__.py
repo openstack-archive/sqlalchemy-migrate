@@ -155,7 +155,8 @@ def with_engine(f, *a, **kw):
     engine = construct_engine(url, **kw)
 
     try:
-        return f(*a, engine=engine, **kw)
+        kw['engine'] = engine
+        return f(*a, **kw)
     finally:
         if isinstance(engine, Engine):
             log.debug('Disposing SQLAlchemy engine %s', engine)

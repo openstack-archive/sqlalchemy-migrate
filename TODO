@@ -12,11 +12,10 @@ make_update_script_for_model:
 
 - make logging stderr and stdout aware
 - update documentation
-- write documentation how to test all databases
 - update repository migration script
-- single pool strategy for api (decorator to close engine connection)
 - wrap migration into transaction
 - interactive migration script resultion
-- downgrade to scripttest 1.0, report bug
-- port to unittest2
 - readd transaction support
+
+- port to unittest2
+- write documentation how to test all databases

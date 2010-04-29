@@ -6,7 +6,7 @@
     changed order of positional arguments so all accept `url` and `repository`
     as first arguments.
 
-   .. versionchanged:: 0.5.4 
+   .. versionchanged:: 0.5.4
     ``--preview_sql`` displays source file when using SQL scripts.
     If Python script is used, it runs the action with mocked engine and
     returns captured SQL statements.
@@ -32,7 +32,7 @@ import logging
 
 from migrate.versioning import (exceptions, repository, schema, version,
     script as script_) # command name conflict
-from migrate.versioning.util import catch_known_errors, construct_engine
+from migrate.versioning.util import catch_known_errors, with_engine
 
 
 log = logging.getLogger(__name__)
@@ -134,6 +134,7 @@ def version(repository, **opts):
     return repo.latest
 
 
+@with_engine
 def db_version(url, repository, **opts):
     """%prog db_version URL REPOSITORY_PATH
 
@@ -143,7 +144,7 @@ def db_version(url, repository, **opts):
 
     The url should be any valid SQLAlchemy connection string.
     """
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     schema = ControlledSchema(engine, repository)
     return schema.version
 
@@ -199,7 +200,8 @@ def downgrade(url, repository, version, **opts):
     err = "Cannot downgrade a database of version %s to version %s. "\
         "Try 'upgrade' instead."
     return _migrate(url, repository, version, upgrade=False, err=err, **opts)
-    
+
+@with_engine
 def test(url, repository, **opts):
     """%prog test URL REPOSITORY_PATH [VERSION]
 
@@ -208,7 +210,7 @@ def test(url, repository, **opts):
     bad state. You should therefore better run the test on a copy of
     your database.
     """
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     repos = Repository(repository)
     script = repos.version(None).script()
 
@@ -223,6 +225,7 @@ def test(url, repository, **opts):
     log.info("Success")
 
 
+@with_engine
 def version_control(url, repository, version=None, **opts):
     """%prog version_control URL REPOSITORY_PATH [VERSION]
 
@@ -242,16 +245,17 @@ def version_control(url, repository, version=None, **opts):
     identical to what it would be if the database were created from
     scratch.
     """
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     ControlledSchema.create(engine, repository, version)
 
 
+@with_engine
 def drop_version_control(url, repository, **opts):
     """%prog drop_version_control URL REPOSITORY_PATH
 
     Removes version control from a database.
     """
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     schema = ControlledSchema(engine, repository)
     schema.drop()
 
@@ -275,6 +279,7 @@ def manage(file, **opts):
     Repository.create_manage_file(file, **opts)
 
 
+@with_engine
 def compare_model_to_db(url, repository, model, **opts):
     """%prog compare_model_to_db URL REPOSITORY_PATH MODEL
 
@@ -283,10 +288,11 @@ def compare_model_to_db(url, repository, model, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     return ControlledSchema.compare_model_to_db(engine, model, repository)
 
 
+@with_engine
 def create_model(url, repository, **opts):
     """%prog create_model URL REPOSITORY_PATH [DECLERATIVE=True]
 
@@ -294,12 +300,13 @@ def create_model(url, repository, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     declarative = opts.get('declarative', False)
     return ControlledSchema.create_model(engine, repository, declarative)
 
 
 @catch_known_errors
+@with_engine
 def make_update_script_for_model(url, repository, oldmodel, model, **opts):
     """%prog make_update_script_for_model URL OLDMODEL MODEL REPOSITORY_PATH
 
@@ -308,11 +315,12 @@ def make_update_script_for_model(url, repository, oldmodel, model, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     return PythonScript.make_update_script_for_model(
         engine, oldmodel, model, repository, **opts)
 
 
+@with_engine
 def update_db_from_model(url, repository, model, **opts):
     """%prog update_db_from_model URL REPOSITORY_PATH MODEL
 
@@ -322,13 +330,14 @@ def update_db_from_model(url, repository, model, **opts):
 
     NOTE: This is EXPERIMENTAL.
     """  # TODO: get rid of EXPERIMENTAL label
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
     schema = ControlledSchema(engine, repository)
     schema.update_db_from_model(model)
 
-
+@with_engine
 def _migrate(url, repository, version, upgrade, err, **opts):
-    engine = construct_engine(url, **opts)
+    engine = opts.pop('engine')
+    url = str(engine.url)
     schema = ControlledSchema(engine, repository)
     version = _migrate_version(schema, version, upgrade, err)
 

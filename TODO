@@ -6,3 +6,17 @@ make_update_script_for_model:
 - even if two "models" are equal, it doesn't yield so
 
 - controlledschema.drop() drops whole migrate table, maybe there are some other repositories bound to it!
+
+
+0.6.0
+
+- make logging stderr and stdout aware
+- update documentation
+- write documentation how to test all databases
+- update repository migration script
+- single pool strategy for api (decorator to close engine connection)
+- wrap migration into transaction
+- interactive migration script resultion
+- downgrade to scripttest 1.0, report bug
+- port to unittest2
+- readd transaction support

@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import shutil
 import sys
-import types
 
 from scripttest import TestFileEnvironment
 
@@ -18,7 +16,7 @@ class Shell(Pathed):
         super(Shell, self).setUp()
         self.env = TestFileEnvironment(
             base_path=os.path.join(self.temp_usable_dir, 'env'),
-            script_path=[os.path.dirname(sys.executable)],
+            script_path=[os.path.dirname(sys.executable)] # PATH to migrate development script folder
         )
 
     def run_version(self, repos_path):

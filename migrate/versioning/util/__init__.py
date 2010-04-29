@@ -1,17 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+""".. currentmodule:: migrate.versioning.util"""
 
 import warnings
+import logging
 from decorator import decorator
 from pkg_resources import EntryPoint
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.pool import StaticPool
 
 from migrate.versioning import exceptions
 from migrate.versioning.util.keyedinstance import KeyedInstance
 from migrate.versioning.util.importpath import import_path
 
+
+log = logging.getLogger(__name__)
 
 def load_model(dotted_name):
     """Import module and use module-level variable".
@@ -123,13 +128,38 @@ def construct_engine(engine, **opts):
             'engine_arg_echo=True or engine_dict={"echo": True}',
             DeprecationWarning)
         kwargs['echo'] = echo
-    
+
     # parse keyword arguments
     for key, value in opts.iteritems():
         if key.startswith('engine_arg_'):
             kwargs[key[11:]] = guess_obj_type(value)
-    
+
+    log.debug('Constructing engine')
+    # TODO: return create_engine(engine, poolclass=StaticPool, **kwargs)
+    # seems like 0.5.x branch does not work with engine.dispose and staticpool
     return create_engine(engine, **kwargs)
+
+@decorator
+def with_engine(f, *a, **kw):
+    """Decorator for :mod:`migrate.versioning.api` functions
+    to safely close resources after function usage.
+
+    Passes engine parameters to :func:`construct_engine` and
+    resulting parameter is available as kw['engine'].
+
+    Engine is disposed after wrapped function is executed.
+
+    .. versionadded: 0.6.0
+    """
+    url = a[0]
+    engine = construct_engine(url, **kw)
+
+    try:
+        return f(*a, engine=engine, **kw)
+    finally:
+        if isinstance(engine, Engine):
+            log.debug('Disposing SQLAlchemy engine %s', engine)
+            engine.dispose()
 
 
 class Memoize:

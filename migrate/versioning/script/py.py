@@ -11,7 +11,7 @@ from migrate.versioning import exceptions, genmodel, schemadiff
 from migrate.versioning.config import operations
 from migrate.versioning.template import Template
 from migrate.versioning.script import base
-from migrate.versioning.util import import_path, load_model, construct_engine
+from migrate.versioning.util import import_path, load_model, with_engine
 
 
 log = logging.getLogger(__name__)
@@ -102,18 +102,21 @@ class PythonScript(base.BaseScript):
     def preview_sql(self, url, step, **args):
         """Mocks SQLAlchemy Engine to store all executed calls in a string 
         and runs :meth:`PythonScript.run <migrate.versioning.script.py.PythonScript.run>`
-        
+
         :returns: SQL file
         """
         buf = StringIO()
         args['engine_arg_strategy'] = 'mock'
         args['engine_arg_executor'] = lambda s, p = '': buf.write(str(s) + p)
-        engine = construct_engine(url, **args)
 
-        self.run(engine, step)
+        @with_engine
+        def go(url, step, **kw):
+            engine = kw.pop('engine')
+            self.run(engine, step)
+            return buf.getvalue()
 
-        return buf.getvalue()
-            
+        return go(url, step, **args)
+
     def run(self, engine, step):
         """Core method of Script file. 
         Exectues :func:`update` or :func:`downgrade` functions

@@ -72,9 +72,11 @@ def usedb(supported=None, not_supported=None):
     @decorator
     def dec(f, self, *a, **kw):
         for url in my_urls:
-            self._setup(url)
-            f(self, *a, **kw)
-            self._teardown()
+            try:
+                self._setup(url)
+                f(self, *a, **kw)
+            finally:
+                self._teardown()
     return dec
 
 
@@ -96,20 +98,19 @@ class DB(Base):
 
     def _teardown(self):
         self._disconnect()
-    
+
     def _connect(self, url):
         self.url = url
-        self.engine = create_engine(url, echo=True, poolclass=StaticPool)
+        # TODO: seems like 0.5.x branch does not work with engine.dispose and staticpool
+        #self.engine = create_engine(url, echo=True, poolclass=StaticPool)
+        self.engine = create_engine(url, echo=True)
         self.meta = MetaData(bind=self.engine)
-        if self.level < self.CONNECT: 
+        if self.level < self.CONNECT:
             return
-        #self.conn = self.engine.connect()
-        self.session = create_session(bind=self.engine)
+        #self.session = create_session(bind=self.engine)
         if self.level < self.TXN: 
             return
-        self.txn = self.session.begin()
-
-        #self.txn.add(self.engine)
+        #self.txn = self.session.begin()
 
     def _disconnect(self):
         if hasattr(self, 'txn'):
@@ -118,6 +119,7 @@ class DB(Base):
             self.session.close()
         #if hasattr(self,'conn'):
         #    self.conn.close()
+        self.engine.dispose()
 
     def _supported(self, url):
         db = url.split(':',1)[0]
@@ -152,3 +154,5 @@ class DB(Base):
             name = self.table.name
         self.meta.clear()
         self.table = Table(name, self.meta, autoload=True)
+
+# TODO: document engine.dispose and write tests

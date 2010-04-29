@@ -14,7 +14,7 @@ make_update_script_for_model:
 - update documentation
 - update repository migration script
 - wrap migration into transaction
-- interactive migration script resultion
+- interactive migration script resolution
 - readd transaction support
 
 - port to unittest2

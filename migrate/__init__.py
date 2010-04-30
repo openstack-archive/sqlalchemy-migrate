@@ -4,3 +4,6 @@
    :mod:`migrate.changeset` that allows to define database schema changes
    using Python.
 """
+
+class MigrateDeprecationWarning(DeprecationWarning):
+    """Warning for deprecated features in Migrate"""

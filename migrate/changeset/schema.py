@@ -4,6 +4,7 @@
 from UserDict import DictMixin
 import sqlalchemy
 
+from migrate import MigrateDeprecationWarning
 from migrate.changeset import SQLA_06
 from migrate.changeset.exceptions import *
 from migrate.changeset.databases.visitor import (get_engine_visitor,
@@ -102,6 +103,10 @@ def alter_column(*p, **k):
         k['table'] = p[0].table
     if 'engine' not in k:
         k['engine'] = k['table'].bind
+
+    # deprecation
+    if len(p) >= 2 and isinstance(p[1], sqlalchemy.Column):
+        raise MigrateDeprecationWarning("Alter column with comparing columns is deprecated. Just pass in parameters instead.")
 
     engine = k['engine']
     delta = ColumnDelta(*p, **k)

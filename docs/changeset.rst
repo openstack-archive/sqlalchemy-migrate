@@ -69,10 +69,12 @@ Given a standard SQLAlchemy table::
  assert col.nullable
  assert table.c.col3 is col
 
+.. warning:: 
+    Since version ``0.6.0`` passing column into alter is deprecated. Pass in explicit parameters instead.  
 
 .. note::
 
-	Since version ``0.6.0`` you can pass primary_key_name, index_name and unique_name to column.create method to issue ALTER TABLE ADD CONSTRAINT after changing the column. Note for multi columns constraints and other advanced configuration, check :ref:`constraint tutorial <constraint-tutorial>`.
+    Since version ``0.6.0`` you can pass primary_key_name, index_name and unique_name to column.create method to issue ALTER TABLE ADD CONSTRAINT after changing the column. Note for multi columns constraints and other advanced configuration, check :ref:`constraint tutorial <constraint-tutorial>`.
 
 .. _table-rename:
 

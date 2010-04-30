@@ -23,11 +23,11 @@
 
 .. _backwards-06:
 
-**Backward incompatible changes**:
+.. warning:: **Backward incompatible changes**:
 
-- :func:`api.test` and schema comparison functions now all accept `url` as first parameter and `repository` as second.
-- python upgrade/downgrade scripts do not import `migrate_engine` magically, but recieve engine as the only parameter to function (eg. ``def upgrade(migrate_engine):``)
-- :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>` does not accept `current_name` anymore, it extracts name from the old column.
+    - :func:`api.test` and schema comparison functions now all accept `url` as first parameter and `repository` as second.
+    - python upgrade/downgrade scripts do not import `migrate_engine` magically, but recieve engine as the only parameter to function (eg. ``def upgrade(migrate_engine):``)
+    - :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>` does not accept `current_name` anymore, it extracts name from the old column.
 
 0.5.4
 -----

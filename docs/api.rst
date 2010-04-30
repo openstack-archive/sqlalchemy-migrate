@@ -105,6 +105,8 @@ Module :mod:`migrate.versioning`
    :members:
    :synopsis: Database version and repository management
 
+.. _versioning-api:
+
 Module :mod:`api <migrate.versioning.api>`
 ------------------------------------------
 

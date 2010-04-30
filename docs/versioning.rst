@@ -1,6 +1,6 @@
 .. _versioning-system:
 .. currentmodule:: migrate.versioning
-.. highlight:: bash
+.. highlight:: console
 
 ***********************************
 Database schema versioning workflow
@@ -22,36 +22,39 @@ Create a change repository
 --------------------------
 
 To begin, we'll need to create a *repository* for our
-project. Repositories are associated with a single database schema,
-and store collections of change scripts to manage that schema. The
-scripts in a repository may be applied to any number of databases.
+project.
 
-Repositories each have a name. This name is used to identify the
-repository we're working with.
-
-All work with repositories is done using the migrate command. Let's
+All work with repositories is done using the :ref:`migrate <command-line-usage>` command. Let's
 create our project's repository::
 
  $ migrate create my_repository "Example project"
 
 This creates an initially empty repository relative to current directory at
-my_repository/ named `Example project`. The repository directory
-contains a sub directory versions that will store the schema versions,
-a configuration file :file:`migrate.cfg` that contains
-:ref:`repository configuration <repository_configuration>`, a
-:file:`README` file containing information that the directory is an
-sqlalchemy-migrate repository and a script :ref:`manage.py <project_management_script>`
-that has the same functionality as the :ref:`migrate <command-line-usage>` command but is
-preconfigured with the repository.
+my_repository/ named `Example project`.
 
-Version-control a database
+The repository directory
+contains a sub directory :file:`versions` that will store the :ref:`schema versions <changeset-system>`,
+a configuration file :file:`migrate.cfg` that contains
+:ref:`repository configuration <repository_configuration>` and a script :ref:`manage.py <project_management_script>`
+that has the same functionality as the :ref:`migrate <command-line-usage>` command but is
+preconfigured with repository specific parameters.
+
+.. note::
+
+    Repositories are associated with a single database schema,
+    and store collections of change scripts to manage that schema. The
+    scripts in a repository may be applied to any number of databases.
+    Each repository has an unique name. This name is used to identify the
+    repository we're working with.
+
+
+Version control a database
 --------------------------
 
-Next, we need to create a database and declare it to be under version
-control. Information on a database's version is stored in the database
+Next we need to declare database to be under version control.
+Information on a database's version is stored in the database
 itself; declaring a database to be under version control creates a
-table, named 'migrate_version' by default, and associates it with your
-repository.
+table named **migrate_version** and associates it with your repository.
 
 The database is specified as a `SQLAlchemy database url`_.
 
@@ -102,11 +105,16 @@ and use it to perform commands::
  0
 
 The script manage.py was created. All commands we perform with it are
-the same as those performed with the 'migrate' tool, using the
+the same as those performed with the :ref:`migrate <command-line-usage>` tool, using the
 repository and database connection entered above. The difference
 between the script :file:`manage.py` in the current directory and the
 script inside the repository is, that the one in the current directory
 has the database URL preconfigured.
+
+.. note::
+
+   Parameters specified in manage.py should be the same as in :ref:`versioning api <versioning-api>`.
+   Preconfigured parameter should just be omitted from :ref:`migrate <command-line-usage>` command.
 
 
 Making schema changes
@@ -139,47 +147,57 @@ This creates an empty change script at
 :file:`my_repository/versions/001_Add_account_table.py`. Next, we'll
 edit this script to create our table.
 
+
 Edit the change script
 ----------------------
 
-Our change script defines two functions, currently empty:
-:func:`upgrade`` and :func:`downgrade`. We'll fill those in
+Our change script predefines two functions, currently empty:
+:func:`upgrade` and :func:`downgrade`. We'll fill those in
 
 .. code-block:: python
 
-  from sqlalchemy import *
-  from migrate import *
+    from sqlalchemy import *
+    from migrate import *
+
+    meta = MetaData()
+
+    account = Table('account', meta,
+        Column('id', Integer, primary_key=True),
+        Column('login', String(40)),
+        Column('passwd', String(40)),
+    )
   
-  meta = MetaData()
-  account = Table('account', meta,
-                  Column('id', Integer, primary_key=True),
-                  Column('login', String(40)),
-                  Column('passwd', String(40)),
-                  )
-  
-  def upgrade(migrate_engine):
-		  meta.bind = migrate_engine
-      account.create()
-  
-  def downgrade(migrate_engine):
-		  meta.bind = migrate_engine
-      account.drop()
+    def upgrade(migrate_engine):
+        meta.bind = migrate_engine
+        account.create()
+
+    def downgrade(migrate_engine):
+        meta.bind = migrate_engine
+        account.drop()
 
 As you might have guessed, :func:`upgrade` upgrades the database to the next
-version. This function should contain the changes we want to perform;
-here, we're creating a table. :func:`downgrade` should reverse changes made
+version. This function should contain the :ref:`schema changes<changeset-system>` we want to perform
+(in our example we're creating a table).
+
+:func:`downgrade` should reverse changes made
 by :func:`upgrade`. You'll need to write both functions for every change
 script. (Well, you don't *have* to write downgrade, but you won't be
 able to revert to an older version of the database or test your
 scripts without it.)
 
-As you can see, **migrate_engine** is passed to both functions.
-You should use this in your change scripts, rather
-than creating your own engine.
 
-You should be very careful about importing files from the rest of your
-application, as your change scripts might break when your application
-changes. More about `writing scripts with consistent behavior`_.
+.. note::
+
+    As you can see, **migrate_engine** is passed to both functions.
+    You should use this in your change scripts, rather
+    than creating your own engine.
+
+.. warning::
+
+    You should be very careful about importing files from the rest of your
+    application, as your change scripts might break when your application
+    changes. More about `writing scripts with consistent behavior`_.
+
 
 Test the change script
 ------------------------
@@ -189,7 +207,7 @@ script will run its :func:`upgrade` and :func:`downgrade` functions on a specifi
 database; you can ensure the script runs without error. You should be
 testing on a test database - if something goes wrong here, you'll need
 to correct it by hand. If the test is successful, the database should
-appear unchanged after upgrade() and downgrade() run.
+appear unchanged after :func:`upgrade` and :func:`downgrade` run.
 
 To test the script::
 
@@ -201,14 +219,14 @@ To test the script::
 Our script runs on our database (``sqlite:///project.db``, as
 specified in manage.py) without any errors.
 
-Our repository's version now is::
+Our repository's version is::
 
  $ python manage.py version
  1
 
 .. warning::
 
-	 test command exectues actual script, be sure you are NOT doing this on production database.
+	 test command executes actual script, be sure you are NOT doing this on production database.
 
 
 Upgrade the database
@@ -254,10 +272,11 @@ every time, despite any changes to your app's source code. You don't
 want your change scripts' behavior changing when your source code
 does.
 
-**Consider the following example of what can go wrong (i.e. what NOT to
-do)**:
+.. warning:: 
 
-Your application defines a table in the model.py file:
+    **Consider the following example of what NOT to do**
+
+Let's say your application defines a table in the :file:`model.py` file:
 
 .. code-block:: python
 
@@ -284,10 +303,13 @@ Your application defines a table in the model.py file:
      model.table.drop()
 
 This runs successfully the first time. But what happens if we change
-the table definition?
+the table definition in :file:`model.py`?
 
 .. code-block:: python
 
+ from sqlalchemy import *
+ 
+ meta = MetaData()
  table = Table('mytable', meta,
      Column('id', Integer, primary_key=True),
      Column('data', String(42)),
@@ -309,6 +331,7 @@ We'll create a new column with a matching change script
      model.meta.bind = migrate_engine
      model.table.drop()
 
+
 This appears to run fine when upgrading an existing database - but the
 first script's behavior changed! Running all our change scripts on a
 new database will result in an error - the first script creates the
@@ -318,6 +341,9 @@ cannot add the column because it already exists.
 To avoid the above problem, you should copy-paste your table
 definition into each change script rather than importing parts of your
 application.
+
+.. note:: Sometimes it is enough to just reflect tables with SQLAlchemy instead of copy-pasting - but remember, explicit is better than implicit!
+
 
 Writing for a specific database
 -------------------------------
@@ -340,9 +366,7 @@ Writings .sql scripts
 ---------------------
 
 You might prefer to write your change scripts in SQL, as .sql files,
-rather than as Python scripts. SQLAlchemy-migrate can work with that
-
-.. code-block:: python
+rather than as Python scripts. SQLAlchemy-migrate can work with that::
 
  $ python manage.py version
  1
@@ -389,10 +413,10 @@ and you have a project management script that looks like
 you have first two slots filed, and command line usage would look like::
 
 	# preview Python script
-	migrate downgrade 2 --preview_py
+	$ migrate downgrade 2 --preview_py
 
 	# downgrade to version 2
-	migrate downgrade 2
+	$ migrate downgrade 2
 
 .. versionchanged:: 0.5.4
 	Command line parsing refactored: positional parameters usage
@@ -442,6 +466,7 @@ For example, the following commands are similar:
 
 .. _repository_configuration:
 
+
 Experimental commands
 =====================
 
@@ -469,6 +494,7 @@ Here are the commands' descriptions as given by ``migrate help <command>``:
 As this sections headline says: These features are EXPERIMENTAL. Take
 the necessary arguments to the commands from the output of ``migrate
 help <command>``.
+
 
 Repository configuration
 ========================

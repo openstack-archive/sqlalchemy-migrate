@@ -1,14 +1,14 @@
 .. _changeset-system:
 .. highlight:: python
 
-******************
-Database changeset
-******************
+**************************
+Database schema migrations
+**************************
 
 .. currentmodule:: migrate.changeset.schema
 
 Importing :mod:`migrate.changeset` adds some new methods to existing
-SA objects, as well as creating functions of its own. Most operations
+SQLAlchemy objects, as well as creating functions of its own. Most operations
 can be done either by a method or a function. Methods match
 SQLAlchemy's existing API and are more intuitive when the object is
 available; functions allow one to make changes when only the name of
@@ -70,7 +70,7 @@ Given a standard SQLAlchemy table::
  assert table.c.col3 is col
 
 .. warning:: 
-    Since version ``0.6.0`` passing column into alter is deprecated. Pass in explicit parameters instead.  
+    Since version ``0.6.0`` passing column into :meth:`ChangesetColumn.alter` is deprecated. Pass in explicit parameters instead.  
 
 .. note::
 

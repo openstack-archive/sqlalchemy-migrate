@@ -19,3 +19,7 @@ make_update_script_for_model:
 
 - port to unittest2
 - write documentation how to test all databases
+- glossary
+- managing output - logging
+- required_dbs tests
+- add story to changeset tutorial

@@ -4,7 +4,6 @@
 from UserDict import DictMixin
 import sqlalchemy
 
-from migrate import MigrateDeprecationWarning
 from migrate.changeset import SQLA_06
 from migrate.changeset.exceptions import *
 from migrate.changeset.databases.visitor import (get_engine_visitor,

@@ -7,7 +7,3 @@
 
 from migrate.versioning import *
 from migrate.changeset import *
-
-
-class MigrateDeprecationWarning(DeprecationWarning):
-    """Warning for deprecated features in Migrate"""

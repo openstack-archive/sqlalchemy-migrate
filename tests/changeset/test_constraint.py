@@ -55,11 +55,11 @@ class TestConstraint(CommonTestConstraint):
             pk = PrimaryKeyConstraint(table=self.table, name='temp_pk_key', *cols)
         else:
             pk = PrimaryKeyConstraint(table=self.table, *cols)
-        self.assertEquals(list(pk.columns), list(cols))
+        self.compare_columns_equal(pk.columns, cols)
         pk.create()
         self.refresh_table()
         if not self.url.startswith('sqlite'):
-            self.assertEquals(list(self.table.primary_key), list(cols))
+            self.compare_columns_equal(self.table.primary_key, cols, ['type', 'autoincrement'])
 
         # Drop the PK constraint
         #if (self.engine.name in ('oracle', 'firebird')):
@@ -85,7 +85,8 @@ class TestConstraint(CommonTestConstraint):
                                   name="fk_id_fkey",
                                   ondelete="CASCADE")
         self.assert_(self.table.c.fkey.foreign_keys._list is not [])
-        self.assertEquals(list(fk.columns), [self.table.c.fkey])
+        for key in fk.columns:
+            self.assertEquals(key, self.table.c.fkey.name)
         self.assertEquals([e.column for e in fk.elements], [self.table.c.id])
         self.assertEquals(list(fk.referenced), [self.table.c.id])
 
@@ -186,7 +187,7 @@ class TestAutoname(CommonTestConstraint):
         self.refresh_table()
         if not self.url.startswith('sqlite'):
             # TODO: test for index for sqlite
-            self.assertEquals(list(cons.columns), list(self.table.primary_key))
+            self.compare_columns_equal(cons.columns, self.table.primary_key, ['autoincrement', 'type'])
 
         # Remove the name, drop the constraint; it should succeed
         cons.name = None
@@ -200,7 +201,7 @@ class TestAutoname(CommonTestConstraint):
         self.refresh_table()
         if not self.url.startswith('sqlite'):
             # TODO: test for index for sqlite
-            self.assertEquals(list(cons.columns), list(self.table.primary_key))
+            self.compare_columns_equal(cons.columns, self.table.primary_key)
         cons.name = None
         cons.drop()
 

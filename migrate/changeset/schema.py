@@ -1,7 +1,9 @@
 """
    Schema module providing common schema operations.
 """
+import warnings
 from UserDict import DictMixin
+
 import sqlalchemy
 
 from migrate.changeset import SQLA_06
@@ -105,8 +107,8 @@ def alter_column(*p, **k):
 
     # deprecation
     if len(p) >= 2 and isinstance(p[1], sqlalchemy.Column):
-        raise MigrateDeprecationWarning("Alter column with comparing columns is deprecated. Just pass in parameters instead.")
-
+        warnings.warn("Alter column with comparing columns is deprecated."
+            " Just pass in parameters instead.", MigrateDeprecationWarning)
     engine = k['engine']
     delta = ColumnDelta(*p, **k)
 

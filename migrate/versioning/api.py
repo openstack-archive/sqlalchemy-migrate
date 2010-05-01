@@ -27,7 +27,6 @@
 
 import sys
 import inspect
-import warnings
 import logging
 
 from migrate.versioning import (exceptions, repository, schema, version,

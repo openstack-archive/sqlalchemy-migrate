@@ -78,15 +78,14 @@ class TestSchemaDiff(fixture.DB):
         # Check Python code gen from database.
         diff = schemadiff.getDiffOfModelAgainstDatabase(MetaData(), self.engine, excludeTables=['migrate_version'])
         src = genmodel.ModelGenerator(diff).toPython()
-        src = src.replace(genmodel.HEADER, '')
-        self.assertEqualsIgnoreWhitespace(src, '''
-        tmp_schemadiff = Table('tmp_schemadiff',meta,
-            Column('id',Integer(),primary_key=True,nullable=False),
-            Column('name',Text(length=None,convert_unicode=False,assert_unicode=None)),
-            Column('data',Text(length=None,convert_unicode=False,assert_unicode=None)),
-        )
-        ''')
-        
+
+        exec src in locals()
+
+        c1 = Table('tmp_schemadiff', self.meta, autoload=True).c
+        c2 = tmp_schemadiff.c
+        self.compare_columns_equal(c1, c2, ['type'])
+        # TODO: get rid of ignoring type
+
         if not self.engine.name == 'oracle':
             # Add data, later we'll make sure it's still present.
             result = self.engine.execute(self.table.insert(), id=1, name=u'mydata')

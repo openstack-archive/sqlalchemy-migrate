@@ -9,6 +9,7 @@ from sqlalchemy.orm import create_session
 from sqlalchemy.pool import StaticPool
 
 from migrate.changeset import SQLA_06
+from migrate.changeset.schema import ColumnDelta
 from migrate.versioning.util import Memoize
 
 from tests.fixture.base import Base
@@ -155,5 +156,15 @@ class DB(Base):
             name = self.table.name
         self.meta.clear()
         self.table = Table(name, self.meta, autoload=True)
+
+    def compare_columns_equal(self, columns1, columns2, ignore=None):
+        """Loop through all columns and compare them"""
+        for c1, c2 in zip(list(columns1), list(columns2)):
+            diffs = ColumnDelta(c1, c2).diffs
+            if ignore:
+                for key in ignore:
+                    diffs.pop(key, None)
+            if diffs:
+                self.fail("Comparing %s to %s failed: %s" % (columns1, columns2, diffs))
 
 # TODO: document engine.dispose and write tests

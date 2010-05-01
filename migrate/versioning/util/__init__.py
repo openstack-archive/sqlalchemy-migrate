@@ -14,6 +14,7 @@ from sqlalchemy.pool import StaticPool
 from migrate.versioning import exceptions
 from migrate.versioning.util.keyedinstance import KeyedInstance
 from migrate.versioning.util.importpath import import_path
+from migrate.changeset.exceptions import *
 
 
 log = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def load_model(dotted_name):
         if ':' not in dotted_name:
             # backwards compatibility
             warnings.warn('model should be in form of module.model:User '
-                'and not module.model.User', DeprecationWarning)
+                'and not module.model.User', MigrateDeprecationWarning)
             dotted_name = ':'.join(dotted_name.rsplit('.', 1))
         return EntryPoint.parse('x=%s' % dotted_name).load(False)
     else:
@@ -126,7 +127,7 @@ def construct_engine(engine, **opts):
     if echo:
         warnings.warn('echo=True parameter is deprecated, pass '
             'engine_arg_echo=True or engine_dict={"echo": True}',
-            DeprecationWarning)
+            MigrateDeprecationWarning)
         kwargs['echo'] = echo
 
     # parse keyword arguments

@@ -7,6 +7,7 @@
 import sqlalchemy as sa
 from sqlalchemy.schema import SchemaVisitor
 from sqlalchemy.engine.default import DefaultDialect
+from sqlalchemy.sql import ClauseElement
 from sqlalchemy.schema import (ForeignKeyConstraint,
                                PrimaryKeyConstraint,
                                CheckConstraint,
@@ -23,8 +24,14 @@ else:
     from sqlalchemy.sql.compiler import DDLCompiler
     SchemaGenerator = SchemaDropper = DDLCompiler
 
+
 class AlterTableVisitor(SchemaVisitor):
     """Common operations for ``ALTER TABLE`` statements."""
+
+    if SQLA_06:
+        # engine.Compiler looks for .statement
+        # when it spawns off a new compiler
+        statement = ClauseElement()
 
     def append(self, s):
         """Append content to the SchemaIterator's query buffer."""

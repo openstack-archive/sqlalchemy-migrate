@@ -13,9 +13,9 @@ make_update_script_for_model:
 - make logging stderr and stdout aware
 - update documentation
 - update repository migration script
+- readd transaction support
 - wrap migration into transaction
 - interactive migration script resolution
-- readd transaction support
 
 - port to unittest2
 - write documentation how to test all databases

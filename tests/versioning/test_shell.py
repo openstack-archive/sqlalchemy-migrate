@@ -11,6 +11,7 @@ from migrate.versioning.repository import Repository
 from migrate.versioning import genmodel, shell, api
 from migrate.versioning.exceptions import *
 from tests.fixture import Shell, DB, usedb
+from tests.fixture import models
 
 
 class TestShellCommands(Shell):
@@ -483,11 +484,15 @@ class TestShellDatabase(Shell, DB):
         result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
 
         result = self.env.run('migrate create_model %s %s' % (self.url, repos_path))
-        self.assertTrue("""tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
-  Column('id', Integer(),  primary_key=True, nullable=False),
-  Column('login', String(length=None, convert_unicode=False, assert_unicode=None)),
-  Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None))""" in result.stdout)
-        
+        temp_dict = dict()
+        exec result.stdout in temp_dict
+
+        self.compare_columns_equal(models.tmp_account_rundiffs.c, temp_dict['tmp_account_rundiffs'].c)
+        #self.assertTrue("""tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
+  #Column('id', Integer(),  primary_key=True, nullable=False),
+  #Column('login', String(length=None, convert_unicode=False, assert_unicode=None)),
+  #Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None))""" in result.stdout)
+
         # We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
         result = self.env.run('migrate make_update_script_for_model', expect_error=True)
         self.assertTrue('Not enough arguments' in result.stderr)

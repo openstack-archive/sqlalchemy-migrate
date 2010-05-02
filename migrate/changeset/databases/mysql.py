@@ -25,13 +25,15 @@ class MySQLSchemaChanger(MySQLSchemaGenerator, ansisql.ANSISchemaChanger):
         table = delta.table
         colspec = self.get_column_specification(delta.result_column)
         if delta.result_column.autoincrement:
-            first = [c for c in table.primary_key.columns
+            primary_keys = [c for c in table.primary_key.columns
                        if (c.autoincrement and
                             isinstance(c.type, sqltypes.Integer) and
-                            not c.foreign_keys)].pop(0)
+                            not c.foreign_keys)]
 
-            if first.name == delta.current_name:
-                colspec += " AUTO_INCREMENT"
+            if primary_keys:
+                first = primary_keys.pop(0)
+                if first.name == delta.current_name:
+                    colspec += " AUTO_INCREMENT"
         old_col_name = self.preparer.quote(delta.current_name, table.quote)
 
         self.start_alter_table(table)

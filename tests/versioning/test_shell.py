@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import tempfile
-from runpy import run_module
+try:
+    from runpy import run_module
+except ImportError:
+    pass #python2.4
 
 from sqlalchemy import MetaData, Table
+from nose.plugins.skip import SkipTest
 
 from migrate.versioning.repository import Repository
 from migrate.versioning import genmodel, shell, api
@@ -44,13 +49,18 @@ class TestShellCommands(Shell):
         # TODO: assert logging messages to 0
         shell.main(['version', repos], logging=False)
 
-    def test_main(self):
-        """Test main() function"""
-        # TODO: test output?
+    def test_main_with_runpy(self):
+        if sys.version_info[:2] == (2, 4):
+            raise SkipTest("runpy is not part of python2.4")
+        asd
         try:
             run_module('migrate.versioning.shell', run_name='__main__')
         except:
             pass
+
+    def test_main(self):
+        """Test main() function"""
+        # TODO: test output?
         repos = self.tmp_repos()
         shell.main(['help'])
         shell.main(['help', 'create'])

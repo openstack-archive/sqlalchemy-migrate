@@ -19,6 +19,8 @@ from tests.fixture import Shell, DB, usedb
 from tests.fixture import models
 
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
 class TestShellCommands(Shell):
     """Tests migrate.py commands"""
 
@@ -424,8 +426,8 @@ class TestShellDatabase(Shell, DB):
         meta = MetaData(migrate_engine)
         account = Table('account', meta,
             Column('id', Integer, primary_key=True),
-            Column('login', String(40)),
-            Column('passwd', String(40)),
+            Column('login', Text),
+            Column('passwd', Text),
         )
         def upgrade():
             # Upgrade operations go here. Don't create your own engine; use the engine
@@ -468,25 +470,27 @@ class TestShellDatabase(Shell, DB):
         result = self.env.run('migrate manage %s --repository=%s --url=%s --model=%s'\
             % (script_path, repos_path, self.url, model_module))
         self.assert_(os.path.exists(script_path))
-        
+
         # Model is defined but database is empty.
-        result = self.env.run('migrate compare_model_to_db %s %s --model=%s' % (self.url, repos_path, model_module))
+        result = self.env.run('migrate compare_model_to_db %s %s --model=%s' \
+            % (self.url, repos_path, model_module), cwd=HERE)
         self.assert_("tables missing in database: tmp_account_rundiffs" in result.stdout)
 
         # Test Deprecation
-        result = self.env.run('migrate compare_model_to_db %s %s --model=%s' % (self.url, repos_path, model_module.replace(":", ".")), expect_error=True)
+        result = self.env.run('migrate compare_model_to_db %s %s --model=%s' \
+            % (self.url, repos_path, model_module.replace(":", ".")), cwd=HERE, expect_error=True)
         self.assertEqual(result.returncode, 0)
         self.assertTrue("DeprecationWarning" in result.stderr)
         self.assert_("tables missing in database: tmp_account_rundiffs" in result.stdout)
-        
+
         # Update db to latest model.
         result = self.env.run('migrate update_db_from_model %s %s %s'\
-            % (self.url, repos_path, model_module))
+            % (self.url, repos_path, model_module), cwd=HERE)
         self.assertEquals(self.run_version(repos_path), 0)
         self.assertEquals(self.run_db_version(self.url, repos_path), 0)  # version did not get bumped yet because new version not yet created
 
         result = self.env.run('migrate compare_model_to_db %s %s %s'\
-            % (self.url, repos_path, model_module))
+            % (self.url, repos_path, model_module), cwd=HERE)
         self.assert_("No schema diffs" in result.stdout)
 
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
@@ -496,6 +500,7 @@ class TestShellDatabase(Shell, DB):
         temp_dict = dict()
         exec result.stdout in temp_dict
 
+        # TODO: compare whole table
         self.compare_columns_equal(models.tmp_account_rundiffs.c, temp_dict['tmp_account_rundiffs'].c)
         #self.assertTrue("""tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
   #Column('id', Integer(),  primary_key=True, nullable=False),
@@ -503,11 +508,11 @@ class TestShellDatabase(Shell, DB):
   #Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None))""" in result.stdout)
 
         # We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
-        result = self.env.run('migrate make_update_script_for_model', expect_error=True)
+        result = self.env.run('migrate make_update_script_for_model', expect_error=True, cwd=HERE)
         self.assertTrue('Not enough arguments' in result.stderr)
 
         result_script = self.env.run('migrate make_update_script_for_model %s %s %s %s'\
-            % (self.url, repos_path, old_model_module, model_module))
+            % (self.url, repos_path, old_model_module, model_module), cwd=HERE)
         self.assertEqualsIgnoreWhitespace(result_script.stdout,
         '''from sqlalchemy import *
         from migrate import *
@@ -517,8 +522,8 @@ class TestShellDatabase(Shell, DB):
         meta = MetaData()
         tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
           Column('id', Integer(),  primary_key=True, nullable=False),
-          Column('login', String(length=40, convert_unicode=False, assert_unicode=None)),
-          Column('passwd', String(length=40, convert_unicode=False, assert_unicode=None)),
+          Column('login', String(length=None, convert_unicode=False, assert_unicode=None)),
+          Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None)),
         )
 
         def upgrade(migrate_engine):
@@ -538,7 +543,7 @@ class TestShellDatabase(Shell, DB):
         open(upgrade_script_path, 'w').write(result_script.stdout)
 
         result = self.env.run('migrate compare_model_to_db %s %s %s'\
-            % (self.url, repos_path, model_module))
+            % (self.url, repos_path, model_module), cwd=HERE)
         self.assert_("No schema diffs" in result.stdout)
 
         self.meta.drop_all()  # in case junk tables are lying around in the test database

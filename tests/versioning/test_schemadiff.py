@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 import sqlalchemy
@@ -11,34 +13,43 @@ from tests import fixture
 
 
 class TestSchemaDiff(fixture.DB):
-    level=fixture.DB.CONNECT
     table_name = 'tmp_schemadiff'
+    level = fixture.DB.CONNECT
 
     def _setup(self, url):
-        
         super(TestSchemaDiff, self)._setup(url)
         self.meta = MetaData(self.engine, reflect=True)
         self.meta.drop_all()  # in case junk tables are lying around in the test database
         self.meta = MetaData(self.engine, reflect=True)  # needed if we just deleted some tables
-        self.table = Table(self.table_name,self.meta,
-            Column('id',Integer(),primary_key=True),
-            Column('name',UnicodeText()),
-            Column('data',UnicodeText()),
+        self.table = Table(self.table_name, self.meta,
+            Column('id',Integer(), primary_key=True),
+            Column('name', UnicodeText()),
+            Column('data', UnicodeText()),
         )
-        WANT_ENGINE_ECHO = os.environ.get('WANT_ENGINE_ECHO', 'F')  # to get debugging: set this to T and run py.test with --pdb
-        if WANT_ENGINE_ECHO == 'T':
-            self.engine.echo = True
-    
+
     def _teardown(self):
         if self.table.exists():
-            #self.table.drop()  # bummer, this doesn't work because the list of tables is out of date, but calling reflect didn't work
             self.meta = MetaData(self.engine, reflect=True)
             self.meta.drop_all()
         super(TestSchemaDiff, self)._teardown()
-        
+
     def _applyLatestModel(self):
         diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
         genmodel.ModelGenerator(diff).applyModel()
+
+    # TODO: support for diff/generator to extract differences between columns
+    #@fixture.usedb()
+    #def test_type_diff(self):
+        #"""Basic test for correct type diff"""
+        #self.table.create()
+        #self.meta = MetaData(self.engine)
+        #self.table = Table(self.table_name, self.meta,
+            #Column('id', Integer(), primary_key=True),
+            #Column('name', Unicode(45)),
+            #Column('data', Integer),
+        #)
+        #diff = schemadiff.getDiffOfModelAgainstDatabase\
+            #(self.meta, self.engine, excludeTables=['migrate_version'])
 
     @fixture.usedb()
     def test_rundiffs(self):

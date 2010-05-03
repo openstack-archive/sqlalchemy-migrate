@@ -9,10 +9,6 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-try:
-    import buildutils
-except ImportError:
-    pass
 
 test_requirements = ['nose >= 0.10', 'ScriptTest==1.0.1']
 required_deps = ['sqlalchemy >= 0.5', 'decorator', 'tempita']
@@ -20,7 +16,7 @@ readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'REA
 
 setup(
     name = "sqlalchemy-migrate",
-    version = "0.5.5",
+    version = "0.6",
     packages = find_packages(exclude=['tests*']),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",

@@ -52,7 +52,6 @@ class TestShellCommands(Shell):
     def test_main_with_runpy(self):
         if sys.version_info[:2] == (2, 4):
             raise SkipTest("runpy is not part of python2.4")
-        asd
         try:
             run_module('migrate.versioning.shell', run_name='__main__')
         except:

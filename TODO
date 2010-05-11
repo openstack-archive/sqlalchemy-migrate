@@ -23,3 +23,4 @@ make_update_script_for_model:
 - managing output - logging
 - required_dbs tests
 - add story to changeset tutorial
+- verbose output on migration failures

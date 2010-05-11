@@ -204,7 +204,7 @@ class TestAddDropColumn(fixture.DB):
             self.fail()
 
         col.drop()
-    
+
     @fixture.usedb(not_supported='mysql')
     def test_check(self):
         """Can create columns with check constraint"""
@@ -245,6 +245,7 @@ class TestAddDropColumn(fixture.DB):
 
         col.drop(self.table)
 
+# TODO: remove already attached columns with indexes, uniques, pks, fks ..
     @fixture.usedb()
     def test_index(self):
         """Can create columns with indexes"""
@@ -469,19 +470,13 @@ class TestColumnChange(fixture.DB):
         self.table.c.data.alter(Column('data', String(42)))
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.data.type, String))
-        if self.engine.name == 'firebird':
-            self.assertEquals(self.table.c.data.type.length, 42 * 4)
-        else:
-            self.assertEquals(self.table.c.data.type.length, 42)
+        self.assertEquals(self.table.c.data.type.length, 42)
 
         # Just the new type
         self.table.c.data.alter(type=String(43))
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.data.type, String))
-        if self.engine.name == 'firebird':
-            self.assertEquals(self.table.c.data.type.length, 43 * 4)
-        else:
-            self.assertEquals(self.table.c.data.type.length, 43)
+        self.assertEquals(self.table.c.data.type.length, 43)
 
         # Different type
         self.assert_(isinstance(self.table.c.id.type, Integer))

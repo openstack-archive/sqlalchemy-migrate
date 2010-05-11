@@ -18,6 +18,19 @@ class FBColumnDropper(ansisql.ANSIColumnDropper):
     """Firebird column dropper implementation."""
 
     def visit_column(self, column):
+        """Firebird supports 'DROP col' instead of 'DROP COLUMN col' syntax
+
+        Drop primary key and unique constraints if dropped column is referencing it."""
+        if column.primary_key:
+            if column.table.primary_key.columns.contains_column(column):
+                column.table.primary_key.drop()
+                # TODO: recreate primary key if it references more than this column
+        if column.unique or getattr(column, 'unique_name', None):
+            for cons in column.table.constraints:
+                if cons.contains_column(column):
+                    cons.drop()
+                    # TODO: recreate unique constraint if it refenrences more than this column
+
         table = self.start_alter_table(column)
         self.append('DROP %s' % self.preparer.format_column(column))
         self.execute()

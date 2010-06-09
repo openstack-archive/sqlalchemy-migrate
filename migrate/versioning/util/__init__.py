@@ -33,6 +33,7 @@ def load_model(dotted_name):
             warnings.warn('model should be in form of module.model:User '
                 'and not module.model.User', MigrateDeprecationWarning)
             dotted_name = ':'.join(dotted_name.rsplit('.', 1))
+        import os; print "*****************************", os.environ.get('PYTHONPATH', 'ARGH FUCK')
         return EntryPoint.parse('x=%s' % dotted_name).load(False)
     else:
         # Assume it's already loaded.

@@ -9,7 +9,7 @@ from nose.tools import eq_
 from migrate.versioning import genmodel, schemadiff
 from migrate.changeset import schema
 
-from tests import fixture
+from migrate.tests import fixture
 
 
 class TestSchemaDiff(fixture.DB):

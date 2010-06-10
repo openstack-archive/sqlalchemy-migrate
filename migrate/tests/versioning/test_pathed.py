@@ -1,4 +1,4 @@
-from tests import fixture
+from migrate.tests import fixture
 from migrate.versioning.pathed import *
 
 class TestPathed(fixture.Base):

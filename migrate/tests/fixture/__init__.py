@@ -61,6 +61,6 @@ def main(imports=None):
         testRunner=Runner(verbosity=1))
 
 from base import Base
-from pathed import Pathed
+from migrate.tests.fixture.pathed import Pathed
 from shell import Shell
 from database import DB,usedb

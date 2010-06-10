@@ -15,8 +15,8 @@ from nose.plugins.skip import SkipTest
 from migrate.versioning.repository import Repository
 from migrate.versioning import genmodel, shell, api
 from migrate.versioning.exceptions import *
-from tests.fixture import Shell, DB, usedb
-from tests.fixture import models
+from migrate.tests.fixture import Shell, DB, usedb
+from migrate.tests.fixture import models
 
 
 class TestShellCommands(Shell):
@@ -450,8 +450,8 @@ class TestShellDatabase(Shell, DB):
         repos_name = 'repos_name'
         repos_path = self.tmp()
         script_path = self.tmp_py()
-        model_module = 'tests.fixture.models:meta_rundiffs'
-        old_model_module = 'tests.fixture.models:meta_old_rundiffs'
+        model_module = 'migrate.tests.fixture.models:meta_rundiffs'
+        old_model_module = 'migrate.tests.fixture.models:meta_old_rundiffs'
 
         # Create empty repository.
         self.meta = MetaData(self.engine, reflect=True)

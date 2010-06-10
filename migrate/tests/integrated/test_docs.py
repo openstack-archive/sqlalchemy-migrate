@@ -2,11 +2,11 @@ import doctest
 import os
 
 
-from tests import fixture
+from migrate.tests import fixture
 
 # Collect tests for all handwritten docs: doc/*.rst
 
-dir = ('..','..','docs')
+dir = ('..','..','..','docs')
 absdir = (os.path.dirname(os.path.abspath(__file__)),)+dir
 dirpath = os.path.join(*absdir)
 files = [f for f in os.listdir(dirpath) if f.endswith('.rst')]

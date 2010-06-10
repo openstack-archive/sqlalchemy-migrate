@@ -4,9 +4,6 @@
 import re
 import unittest
 
-from nose.tools import raises, eq_
-
-
 class Base(unittest.TestCase):
 
     def setup_method(self,func=None):

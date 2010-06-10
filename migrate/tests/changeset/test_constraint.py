@@ -8,7 +8,7 @@ from sqlalchemy.exc import *
 from migrate.changeset import *
 from migrate.changeset.exceptions import *
 
-from tests import fixture
+from migrate.tests import fixture
 
 
 class CommonTestConstraint(fixture.DB):

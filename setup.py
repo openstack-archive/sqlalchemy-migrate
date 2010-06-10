@@ -9,8 +9,8 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-
-test_requirements = ['nose >= 0.10', 'ScriptTest==1.0.1']
+# NOTE: scripttest 1.0.2 removes base_path argument to ScriptTest
+test_requirements = ['nose >= 0.10', 'ScriptTest==1.0.1'] 
 required_deps = ['sqlalchemy >= 0.5', 'decorator', 'tempita']
 readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README'))
 

@@ -1,7 +1,7 @@
 coverage
 nose
 -e git://github.com/cmheisel/nose-xcover.git#egg=nosexcover
-scripttest==1.0
+scripttest==1.0.1
 pytz
 psycopg2
 pysqlite

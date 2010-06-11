@@ -4,7 +4,7 @@
 from migrate.versioning.version import *
 from migrate.versioning.exceptions import *
 
-from tests import fixture
+from migrate.tests import fixture
 
 
 class TestVerNum(fixture.Base):

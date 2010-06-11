@@ -6,6 +6,9 @@
 
 import os
 import sys
+import logging
+
+log = logging.getLogger(__name__)
 
 
 def usage():
@@ -22,13 +25,13 @@ def usage():
 
 def delete_file(filepath):
     """Deletes a file and prints a message."""
-    print '    Deleting file: %s' % filepath
+    log.info('Deleting file: %s' % filepath)
     os.remove(filepath)
 
 
 def move_file(src, tgt):
     """Moves a file and prints a message."""
-    print '    Moving file %s to %s' % (src, tgt)
+    log.info('Moving file %s to %s' % (src, tgt))
     if os.path.exists(tgt):
         raise Exception(
             'Cannot move file %s because target %s already exists' % \
@@ -38,13 +41,13 @@ def move_file(src, tgt):
 
 def delete_directory(dirpath):
     """Delete a directory and print a message."""
-    print '    Deleting directory: %s' % dirpath
+    log.info('Deleting directory: %s' % dirpath)
     os.rmdir(dirpath)
 
 
 def migrate_repository(repos):
     """Does the actual migration to the new repository format."""
-    print 'Migrating repository at: %s to new format' % repos
+    log.info('Migrating repository at: %s to new format' % repos)
     versions = '%s/versions' % repos
     dirs = os.listdir(versions)
     # Only use int's in list.
@@ -52,7 +55,7 @@ def migrate_repository(repos):
     numdirs.sort()  # Sort list.
     for dirname in numdirs:
         origdir = '%s/%s' % (versions, dirname)
-        print '  Working on directory: %s' % origdir
+        log.info('Working on directory: %s' % origdir)
         files = os.listdir(origdir)
         files.sort()
         for filename in files:

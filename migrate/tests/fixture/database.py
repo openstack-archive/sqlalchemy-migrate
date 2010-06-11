@@ -12,8 +12,8 @@ from migrate.changeset import SQLA_06
 from migrate.changeset.schema import ColumnDelta
 from migrate.versioning.util import Memoize
 
-from tests.fixture.base import Base
-from tests.fixture.pathed import Pathed
+from migrate.tests.fixture.base import Base
+from migrate.tests.fixture.pathed import Pathed
 
 
 @Memoize

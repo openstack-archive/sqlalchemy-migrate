@@ -8,7 +8,7 @@ import migrate.versioning.templates
 from migrate.versioning.template import *
 from migrate.versioning import api
 
-from tests import fixture
+from migrate.tests import fixture
 
 
 class TestTemplate(fixture.Pathed):

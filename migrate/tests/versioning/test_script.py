@@ -9,8 +9,8 @@ from migrate.versioning import exceptions, version, repository
 from migrate.versioning.script import *
 from migrate.versioning.util import *
 
-from tests import fixture
-from tests.fixture.models import tmp_sql_table
+from migrate.tests import fixture
+from migrate.tests.fixture.models import tmp_sql_table
 
 
 class TestBaseScript(fixture.Pathed):
@@ -226,7 +226,7 @@ class TestSqlScript(fixture.Pathed, fixture.DB):
         # populate python script
         contents = open(script_path, 'r').read()
         contents = contents.replace("pass", "tmp_sql_table.create(migrate_engine)")
-        contents = 'from tests.fixture.models import tmp_sql_table\n' + contents
+        contents = 'from migrate.tests.fixture.models import tmp_sql_table\n' + contents
         f = open(script_path, 'w')
         f.write(contents)
         f.close()

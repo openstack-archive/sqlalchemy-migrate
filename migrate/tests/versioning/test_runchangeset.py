@@ -3,7 +3,7 @@
 
 import os,shutil
 
-from tests import fixture
+from migrate.tests import fixture
 from migrate.versioning.schema import *
 from migrate.versioning import script
 

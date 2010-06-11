@@ -9,7 +9,7 @@ from migrate.versioning import script, exceptions, schemadiff
 
 from sqlalchemy import *
 
-from tests import fixture
+from migrate.tests import fixture
 
 
 class TestControlledSchema(fixture.Pathed, fixture.DB):

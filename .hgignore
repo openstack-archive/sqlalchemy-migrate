@@ -11,7 +11,9 @@ syntax: glob
 *bin/*
 *include/*
 *lib/*
+lib64
 sa06/*
 .coverage
 test_db.cfg
 nosexcover
+.ropeproject

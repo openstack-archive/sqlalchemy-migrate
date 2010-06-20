@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import re
-import unittest
+import unittest2
 
-class Base(unittest.TestCase):
+class Base(unittest2.TestCase):
 
     def setup_method(self,func=None):
         self.setUp()
 
     def teardown_method(self,func=None):
         self.tearDown()
-    
+
     def assertEqualsIgnoreWhitespace(self, v1, v2):
         """Compares two strings that should be\
         identical except for whitespace
@@ -22,7 +22,7 @@ class Base(unittest.TestCase):
         line1 = strip_whitespace(v1)
         line2 = strip_whitespace(v2)
 
-        self.assertEquals(line1, line2, "%s != %s" % (v1, v2))
+        self.assertEqual(line1, line2, "%s != %s" % (v1, v2))
 
     def ignoreErrors(self, func, *p,**k):
         """Call a function, ignoring any exceptions"""

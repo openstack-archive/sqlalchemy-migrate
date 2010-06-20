@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest
+import unittest2
 import sys
 
 
@@ -12,10 +12,10 @@ def getDescription(self, test):
    if self.descriptions:
        return test.shortDescription() or ret
    return ret
-unittest._TextTestResult.getDescription = getDescription
+unittest2._TextTestResult.getDescription = getDescription
 
 
-class Result(unittest._TextTestResult):
+class Result(unittest2._TextTestResult):
     # test description may be changed as we go; store the description at 
     # exception-time and print later
     def __init__(self,*p,**k):
@@ -33,7 +33,7 @@ class Result(unittest._TextTestResult):
         super(Result,self).addError(test,err)
         self._addError(test,err,self.errors)
     def printErrorList(self, flavour, errors):
-        # Copied from unittest.py
+        # Copied from unittest2.py
         #for test, err in errors:
         for errdata in errors:
             test,err,desc=errdata
@@ -43,12 +43,12 @@ class Result(unittest._TextTestResult):
             self.stream.writeln(self.separator2)
             self.stream.writeln("%s" % err)
 
-class Runner(unittest.TextTestRunner):
+class Runner(unittest2.TextTestRunner):
     def _makeResult(self):
         return Result(self.stream,self.descriptions,self.verbosity)
 
 def suite(imports):
-    return unittest.TestLoader().loadTestsFromNames(imports)
+    return unittest2.TestLoader().loadTestsFromNames(imports)
 
 def main(imports=None):
     if imports:
@@ -57,7 +57,7 @@ def main(imports=None):
         defaultTest='fixture.suite'
     else:
         defaultTest=None
-    return unittest.TestProgram(defaultTest=defaultTest,\
+    return unittest2.TestProgram(defaultTest=defaultTest,\
         testRunner=Runner(verbosity=1))
 
 from base import Base

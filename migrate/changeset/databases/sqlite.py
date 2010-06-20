@@ -101,6 +101,7 @@ class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator, SQLiteCommon):
     def visit_migrate_unique_constraint(self, *p, **k):
         self._not_supported('ALTER TABLE ADD CONSTRAINT')
 
+
 class SQLiteConstraintDropper(ansisql.ANSIColumnDropper,
                               SQLiteCommon,
                               ansisql.ANSIConstraintCommon):

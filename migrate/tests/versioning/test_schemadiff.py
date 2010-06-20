@@ -100,8 +100,8 @@ class TestSchemaDiff(fixture.DB):
         if not self.engine.name == 'oracle':
             # Add data, later we'll make sure it's still present.
             result = self.engine.execute(self.table.insert(), id=1, name=u'mydata')
-            dataId = result.last_inserted_ids()[0]
-        
+            dataId = result.inserted_primary_key[0]
+
         # Modify table in model (by removing it and adding it back to model) -- drop column data and add column data2.
         self.meta.remove(self.table)
         self.table = Table(self.table_name,self.meta,

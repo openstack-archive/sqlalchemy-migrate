@@ -26,10 +26,9 @@ To run automated tests:
 
 - Copy test_db.cfg.tmpl to test_db.cfg
 - Edit test_db.cfg with database connection strings suitable for running tests.  (Use empty databases.)
-- python setup.py test
-
-Note that `nose <http://somethingaboutorange.com/mrl/projects/nose/>`_ is required to run migrate's tests. It should be
-installed automatically; if not, try "easy_install nose".
+$ pip install -r test-req.pip
+$ python setup.py develop
+$ nosetests
 
 Please report any issues with sqlalchemy-migrate to the issue tracker
 at `code.google.com issues <http://code.google.com/p/sqlalchemy-migrate/issues/list>`_

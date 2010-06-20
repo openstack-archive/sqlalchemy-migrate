@@ -8,3 +8,4 @@ pysqlite
 mysql-python
 http://downloads.sourceforge.net/firebird/kinterbasdb-3.3.0.tar.bz2
 virtualenv
+unittest2

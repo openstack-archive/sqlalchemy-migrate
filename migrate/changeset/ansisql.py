@@ -40,7 +40,6 @@ class AlterTableVisitor(SchemaVisitor):
 
     def execute(self):
         """Execute the contents of the SchemaIterator's buffer."""
-
         try:
             return self.connection.execute(self.buffer.getvalue())
         finally:
@@ -57,7 +56,7 @@ class AlterTableVisitor(SchemaVisitor):
         if ret:
             # adapt to 0.6 which uses a string-returning
             # object
-            self.append(ret)
+            self.append(" %s" % ret)
             
     def _to_table(self, param):
         """Returns the table object for the given param object."""

@@ -520,8 +520,8 @@ class TestShellDatabase(Shell, DB):
         meta = MetaData()
         tmp_account_rundiffs = Table('tmp_account_rundiffs', meta,
           Column('id', Integer(),  primary_key=True, nullable=False),
-          Column('login', String(length=None, convert_unicode=False, assert_unicode=None)),
-          Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None)),
+          Column('login', Text(length=None, convert_unicode=False, assert_unicode=None, unicode_error=None, _warn_on_bytestring=False)),
+          Column('passwd', Text(length=None, convert_unicode=False, assert_unicode=None, unicode_error=None, _warn_on_bytestring=False)),
         )
 
         def upgrade(migrate_engine):

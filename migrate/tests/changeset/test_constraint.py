@@ -118,20 +118,15 @@ class TestConstraint(CommonTestConstraint):
         """Multicolumn PK constraints can be defined, created, and dropped"""
         self._define_pk(self.table.c.id, self.table.c.fkey)
 
-    @fixture.usedb()
+    @fixture.usedb(not_supported=['firebird'])
     def test_drop_cascade(self):
         """Drop constraint cascaded"""
-
         pk = PrimaryKeyConstraint('fkey', table=self.table, name="id_pkey")
         pk.create()
         self.refresh_table()
 
         # Drop the PK constraint forcing cascade
-        try:
-            pk.drop(cascade=True)
-        except NotSupportedError:
-            if self.engine.name == 'firebird':
-                pass
+        pk.drop(cascade=True)
 
         # TODO: add real assertion if it was added
 

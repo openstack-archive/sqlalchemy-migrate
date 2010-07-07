@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import logging
 from decorator import decorator
 
 from sqlalchemy import create_engine, Table, MetaData
@@ -15,6 +16,8 @@ from migrate.versioning.util import Memoize
 from migrate.tests.fixture.base import Base
 from migrate.tests.fixture.pathed import Pathed
 
+
+log = logging.getLogger(__name__)
 
 @Memoize
 def readurls():
@@ -74,6 +77,7 @@ def usedb(supported=None, not_supported=None):
     @decorator
     def dec(f, self, *a, **kw):
         for url in my_urls:
+            log.debug("Running test with engine %s", url)
             try:
                 self._setup(url)
                 f(self, *a, **kw)

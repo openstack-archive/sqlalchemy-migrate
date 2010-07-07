@@ -1,7 +1,8 @@
 coverage
 nose
 -e git://github.com/cmheisel/nose-xcover.git#egg=nosexcover
-scripttest==1.0.1
+# NOTE: scripttest 1.0.1 removes base_path argument to ScriptTest
+scripttest==1.0
 pytz
 psycopg2
 pysqlite

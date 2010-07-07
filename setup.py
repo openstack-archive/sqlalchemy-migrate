@@ -9,8 +9,6 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-# NOTE: scripttest 1.0.1 removes base_path argument to ScriptTest
-test_requirements = ['nose >= 0.10', 'ScriptTest==1.0']
 required_deps = ['sqlalchemy >= 0.5', 'decorator', 'tempita']
 readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'README'))
 
@@ -22,7 +20,6 @@ setup(
     description = "Database schema migration for SQLAlchemy",
     long_description = readme_file.read(),
     install_requires = required_deps,
-    tests_require = test_requirements,
     extras_require = {
         'docs' : ['sphinx >= 0.5'],
     },

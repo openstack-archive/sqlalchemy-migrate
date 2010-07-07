@@ -3,20 +3,26 @@
 
 import os
 import sys
+import logging
 
 from scripttest import TestFileEnvironment
 
 from migrate.tests.fixture.pathed import *
 
 
+log = logging.getLogger(__name__)
+
 class Shell(Pathed):
     """Base class for command line tests"""
 
     def setUp(self):
         super(Shell, self).setUp()
+        migrate_path = os.path.dirname(sys.executable)
+        # PATH to migrate development script folder
+        log.debug('PATH for ScriptTest: %s', migrate_path)
         self.env = TestFileEnvironment(
             base_path=os.path.join(self.temp_usable_dir, 'env'),
-            script_path=[os.path.dirname(sys.executable)], # PATH to migrate development script folder
+            script_path=[migrate_path],
         )
 
     def run_version(self, repos_path):

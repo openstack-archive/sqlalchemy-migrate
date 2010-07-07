@@ -7,7 +7,7 @@ from sqlalchemy import *
 from nose.tools import eq_
 
 from migrate.versioning import genmodel, schemadiff
-from migrate.changeset import schema
+from migrate.changeset import schema, SQLA_06
 
 from migrate.tests import fixture
 
@@ -100,7 +100,10 @@ class TestSchemaDiff(fixture.DB):
         if not self.engine.name == 'oracle':
             # Add data, later we'll make sure it's still present.
             result = self.engine.execute(self.table.insert(), id=1, name=u'mydata')
-            dataId = result.inserted_primary_key[0]
+            if SQLA_06:
+                dataId = result.inserted_primary_key[0]
+            else:
+                dataId = result.last_inserted_ids()[0]
 
         # Modify table in model (by removing it and adding it back to model) -- drop column data and add column data2.
         self.meta.remove(self.table)
@@ -124,7 +127,10 @@ class TestSchemaDiff(fixture.DB):
         
             # Add data, later we'll make sure it's still present.
             result = self.engine.execute(self.table.insert(), id=2, name=u'mydata2', data2=123)
-            dataId2 = result.last_inserted_ids()[0]
+            if SQLA_06:
+                dataId2 = result.inserted_primary_key[0]
+            else:
+                dataId2 = result.last_inserted_ids()[0]
         
         # Change column type in model.
         self.meta.remove(self.table)

@@ -5,7 +5,7 @@
 .. moduleauthor:: Evan Rosson
 
 :Author: Evan Rosson
-:Maintainer: Domen Kozar <domenNO@SPAMdev.si>
+:Maintainer: Domen Kožar <domenNO@SPAMdev.si>
 :Source code: http://code.google.com/p/sqlalchemy-migrate/issues/list
 :Issues: http://code.google.com/p/sqlalchemy-migrate/
 :Version: |release|
@@ -29,7 +29,7 @@
 
 .. warning::
 
-	 Version **0.6.0** breaks backward compatability, please read :ref:`changelog <backwards-06>` for more info.
+	 Version **0.6** breaks backward compatability, please read :ref:`changelog <backwards-06>` for more info.
 
 
 Download and Development

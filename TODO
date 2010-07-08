@@ -24,3 +24,8 @@ make_update_script_for_model:
 - required_dbs tests
 - add story to changeset tutorial
 - verbose output on migration failures
+
+
+Documentation
+
+- better document 'populate_default'

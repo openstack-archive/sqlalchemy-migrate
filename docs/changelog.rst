@@ -1,25 +1,5 @@
 0.6.0
 -----
-- deprecated `alter_column` comparing of columns. Just use explicit parameter change.
-- added option to define custom templates through option ``--templates_path`` and ``--templates_theme``, read more in :ref:`tutorial section <custom-templates>`
-- use Python logging for output, can be shut down by passing ``--disable_logging`` to :func:`migrate.versioning.shell.main`
-- `url` parameter can also be an :class:`Engine` instance (this usage is discouraged though sometimes necessary)
-- added support for SQLAlchemy 0.6 by Michael Bayer
-- alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
-- complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
-- added support for :ref:`firebird <firebird-d>`
-- fixed bug when :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string') was not properly set
-- `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are now issued correctly
-- added `populate_default` bool argument to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` which issues corresponding UPDATE statements to set defaults after column creation
-- constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
-- :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
-- Constraint classes have `cascade=True` keyword argument to issue ``DROP CASCADE`` where supported
-- added :class:`~migrate.changeset.constraint.UniqueConstraint`/:class:`~migrate.changeset.constraint.CheckConstraint` and corresponding create/drop methods
-- use SQLAlchemy quoting system to avoid name conflicts (for issue 32)
-- code coverage is up to 99% with more than 100 tests
-- partial refactoring of :mod:`changeset` package
-- majoy update to documentation
-- :ref:`dialect support <dialect-support>` table was added to documentation
 
 .. _backwards-06:
 
@@ -28,6 +8,42 @@
     - :func:`api.test` and schema comparison functions now all accept `url` as first parameter and `repository` as second.
     - python upgrade/downgrade scripts do not import `migrate_engine` magically, but recieve engine as the only parameter to function (eg. ``def upgrade(migrate_engine):``)
     - :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>` does not accept `current_name` anymore, it extracts name from the old column.
+
+Features
+**************
+
+- added support for :ref:`firebird <firebird-d>`
+- added option to define custom templates through option ``--templates_path`` and ``--templates_theme``,
+  read more in :ref:`tutorial section <custom-templates>`
+- use Python logging for output, can be shut down by passing ``--disable_logging`` to :func:`migrate.versioning.shell.main`
+- deprecated `alter_column` comparing of columns. Just use explicit parameter change.
+- added support for SQLAlchemy 0.6.x by Michael Bayer
+- Constraint classes have `cascade=True` keyword argument to issue ``DROP CASCADE`` where supported
+- added :class:`~migrate.changeset.constraint.UniqueConstraint`/:class:`~migrate.changeset.constraint.CheckConstraint`
+  and corresponding create/drop methods
+- API `url` parameter can also be an :class:`Engine` instance (this usage is discouraged though sometimes necessary)
+- code coverage is up to 80% with more than 100 tests
+- alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
+- added `populate_default` bool argument to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` which issues corresponding UPDATE statements to set defaults after column creation
+- :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
+
+Bug fixes
+*****************
+
+- `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are now issued correctly
+- use SQLAlchemy quoting system to avoid name conflicts (for issue 32)
+- complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
+- partial refactoring of :mod:`changeset` package
+- fixed bug when :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string') was not properly set
+- constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
+
+Documentation
+*********************
+
+- :ref:`dialect support <dialect-support>` table was added to documentation
+- majoy update to documentation
+
+
 
 0.5.4
 -----

@@ -32,8 +32,8 @@ class CommonTestConstraint(fixture.DB):
         self.meta = MetaData(self.engine)
         self.tablename = 'mytable'
         self.table = Table(self.tablename, self.meta,
-            Column('id', Integer, nullable=False),
-            Column('fkey', Integer, nullable=False),
+            Column(u'id', Integer, nullable=False),
+            Column(u'fkey', Integer, nullable=False),
             mysql_engine='InnoDB')
         if self.engine.has_table(self.table.name):
             self.table.drop()

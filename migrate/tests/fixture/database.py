@@ -163,7 +163,9 @@ class DB(Base):
 
     def compare_columns_equal(self, columns1, columns2, ignore=None):
         """Loop through all columns and compare them"""
-        for c1, c2 in zip(list(columns1), list(columns2)):
+        def key(column):
+            return column.name
+        for c1, c2 in zip(sorted(columns1, key=key), sorted(columns2, key=key)):
             diffs = ColumnDelta(c1, c2).diffs
             if ignore:
                 for key in ignore:

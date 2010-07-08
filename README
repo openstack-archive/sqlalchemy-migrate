@@ -3,7 +3,7 @@ Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with datab
 Migrate extends SQLAlchemy to have database changeset handling. It provides a database change repository mechanism which can be used from the command line as well as from inside python code.
 
 Help
-----
+------
 
 Sphinx documentation is available at the project page `packages.python.org <http://packages.python.org/sqlalchemy-migrate/>`_.
 
@@ -20,15 +20,15 @@ You can also download `development version <http://sqlalchemy-migrate.googlecode
 
 
 Tests and Bugs
---------------
+------------------
 
 To run automated tests:
 
-- Copy test_db.cfg.tmpl to test_db.cfg
-- Edit test_db.cfg with database connection strings suitable for running tests.  (Use empty databases.)
-$ pip install -r test-req.pip
-$ python setup.py develop
-$ nosetests
+* Copy test_db.cfg.tmpl to test_db.cfg
+* Edit test_db.cfg with database connection strings suitable for running tests.  (Use empty databases.)
+* $ pip install -r test-req.pip
+* $ python setup.py develop
+* $ nosetests
 
 Please report any issues with sqlalchemy-migrate to the issue tracker
 at `code.google.com issues <http://code.google.com/p/sqlalchemy-migrate/issues/list>`_

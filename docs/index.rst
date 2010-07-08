@@ -39,45 +39,86 @@ Download and Development
 
    download
 
+
 .. _dialect-support:
 
 Dialect support
 ---------------
 
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| Operation / Dialect                                     | :ref:`sqlite <sqlite-d>` | :ref:`postgres <postgres-d>` | :ref:`mysql <mysql-d>` | :ref:`oracle  <oracle-d>` | :ref:`firebird <firebird-d>`  |   mssql            |
-|                                                         |                          |                              |                        |                           |                               |                    |
-+=========================================================+==========================+==============================+========================+===========================+===============================+====================+
-| :ref:`ALTER TABLE RENAME TABLE <table-rename>`          | yes                      | yes                          | yes                    | yes                       | no                            |   not supported    |
-|                                                         |                          |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`ALTER TABLE RENAME COLUMN <column-alter>`         | yes                      | yes                          | yes                    | yes                       | yes                           |   not supported    |
-|                                                         | (workaround) [#1]_       |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`ALTER TABLE ADD COLUMN <column-create>`           | yes                      | yes                          | yes                    | yes                       | yes                           |   not supported    |
-|                                                         | (with limitations) [#2]_ |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`ALTER TABLE DROP COLUMN <column-drop>`            | yes                      | yes                          | yes                    | yes                       | yes                           |   not supported    |
-|                                                         | (workaround) [#1]_       |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`ALTER TABLE ALTER COLUMN <column-alter>`          | yes                      | yes                          | yes                    | yes                       | yes [#4]_                     |   not supported    |
-|                                                         | (workaround) [#1]_       |                              |                        | (with limitations) [#3]_  |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`ALTER TABLE ADD CONSTRAINT <constraint-tutorial>` | no                       | yes                          | yes                    | yes                       | yes                           |   not supported    |
-|                                                         |                          |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`ALTER TABLE DROP CONSTRAINT <constraint-tutorial>`| no                       | yes                          | yes                    | yes                       | yes                           |   not supported    |
-|                                                         |                          |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
-| :ref:`RENAME INDEX <index-rename>`                      | no                       | yes                          | no                     | yes                       | yes                           |   not supported    |
-|                                                         |                          |                              |                        |                           |                               |                    |
-+---------------------------------------------------------+--------------------------+------------------------------+------------------------+---------------------------+-------------------------------+--------------------+
+.. list-table::
+    :header-rows: 1
+    :widths: 25 10 10 10 10 10 11
+
+    * - Operation / Dialect
+      - :ref:`sqlite <sqlite-d>`
+      - :ref:`postgres <postgres-d>`
+      - :ref:`mysql <mysql-d>`
+      - :ref:`oracle  <oracle-d>`
+      - :ref:`firebird <firebird-d>`
+      - mssql
+    * - :ref:`ALTER TABLE RENAME TABLE <table-rename>`
+      - yes
+      - yes
+      - yes
+      - yes
+      - no
+      - not supported
+    * - :ref:`ALTER TABLE RENAME COLUMN <column-alter>`
+      - yes (workaround) [#1]_
+      - yes
+      - yes
+      - yes
+      - yes
+      - not supported
+    * - :ref:`ALTER TABLE ADD COLUMN <column-create>`
+      - yes (with limitations) [#2]_
+      - yes
+      - yes
+      - yes
+      - yes
+      - not supported
+    * - :ref:`ALTER TABLE DROP COLUMN <column-drop>`
+      - yes (workaround) [#1]_
+      - yes
+      - yes
+      - yes
+      - yes
+      - not supported
+    * - :ref:`ALTER TABLE ALTER COLUMN <column-alter>`
+      - yes (workaround) [#1]_
+      - yes
+      - yes
+      - yes (with limitations) [#3]_
+      - yes [#4]_
+      - not supported
+    * - :ref:`ALTER TABLE ADD CONSTRAINT <constraint-tutorial>`
+      - no
+      - yes
+      - yes
+      - yes
+      - yes
+      - not supported
+    * - :ref:`ALTER TABLE DROP CONSTRAINT <constraint-tutorial>`
+      - no
+      - yes
+      - yes
+      - yes
+      - yes
+      - not supported
+    * - :ref:`RENAME INDEX <index-rename>`
+      - no
+      - yes
+      - no
+      - yes
+      - yes
+      - not supported
 
 
 .. [#1] Table is renamed to temporary table, new table is created followed by INSERT statements.
 .. [#2] Visit http://www.sqlite.org/lang_altertable.html for more information.
 .. [#3] You can not change datatype or rename column if table has NOT NULL data, see http://blogs.x2line.com/al/archive/2005/08/30/1231.aspx for more information.
 .. [#4] Changing nullable is not supported
+
 
 Documentation
 -------------

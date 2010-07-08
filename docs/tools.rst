@@ -1,11 +1,9 @@
-SQLAlchemy migrate tools
-========================
-
-The most commonly used tool is the :ref:`migrate <command-line-usage>`.
+Repository migration (0.4.5 -> 0.5.4)
+================================================
 
 .. index:: repository migration
 
-There is a second tool :command:`migrate_repository.py` that may be
+:command:`migrate_repository.py` should be
 used to migrate your repository from a version before 0.4.5 of
 SQLAlchemy migrate to the current version.
 

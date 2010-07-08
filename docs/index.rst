@@ -120,7 +120,7 @@ Dialect support
 .. [#4] Changing nullable is not supported
 
 
-Documentation
+User guide
 -------------
 
 SQLAlchemy Migrate is split into two parts, database schema versioning (:mod:`migrate.versioning`) and

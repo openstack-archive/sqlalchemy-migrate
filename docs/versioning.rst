@@ -13,7 +13,7 @@ Purpose of this package is frontend for migrations. It provides commands
 to manage migrate repository and database selection aswell as script versioning.
 
 
-Project Setup
+Project setup
 =============
 
 .. _create_change_repository:

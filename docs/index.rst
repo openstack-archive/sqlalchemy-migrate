@@ -8,6 +8,8 @@
 :Maintainer: Domen Kožar <domenNO@SPAMdev.si>
 :Source code: http://code.google.com/p/sqlalchemy-migrate/issues/list
 :Issues: http://code.google.com/p/sqlalchemy-migrate/
+:Generated: |today|
+:License: MIT
 :Version: |release|
 
 

@@ -1,20 +1,20 @@
-Module :mod:`migrate.changeset`
-===============================
+Module :mod:`migrate.changeset` -- Schema migration API
+=============================================================
 
 .. automodule:: migrate.changeset
    :members:
    :synopsis: Database changeset management
 
-Module :mod:`ansisql <migrate.changeset.ansisql>`
--------------------------------------------------
+Module :mod:`ansisql <migrate.changeset.ansisql>` -- Standard SQL implementation
+------------------------------------------------------------------------------------
 
 .. automodule:: migrate.changeset.ansisql
    :members:
    :member-order: groupwise
    :synopsis: Standard SQL implementation for altering database schemas
 
-Module :mod:`constraint <migrate.changeset.constraint>`
--------------------------------------------------------
+Module :mod:`constraint <migrate.changeset.constraint>` -- Constraint schema migration API
+---------------------------------------------------------------------------------------------
 
 .. automodule:: migrate.changeset.constraint
    :members:
@@ -22,8 +22,8 @@ Module :mod:`constraint <migrate.changeset.constraint>`
    :member-order: groupwise
    :synopsis: Standalone schema constraint objects
 
-Module :mod:`databases <migrate.changeset.databases>`
------------------------------------------------------
+Module :mod:`databases <migrate.changeset.databases>` -- Database specific schema migration
+-----------------------------------------------------------------------------------------------
 
 .. automodule:: migrate.changeset.databases
    :members:
@@ -83,23 +83,23 @@ Module :mod:`visitor <migrate.changeset.databases.visitor>`
 .. automodule:: migrate.changeset.databases.visitor
    :members:
 
-Module :mod:`exceptions <migrate.changeset.exceptions>`
--------------------------------------------------------
+Module :mod:`exceptions <migrate.changeset.exceptions>` -- Exception definitions
+---------------------------------------------------------------------------------------
 
 .. automodule:: migrate.changeset.exceptions
    :members:
    :synopsis: Changeset exception classes
 
-Module :mod:`schema <migrate.changeset.schema>`
------------------------------------------------
+Module :mod:`schema <migrate.changeset.schema>` -- Additional API to SQLAlchemy for migrations
+-------------------------------------------------------------------------------------------------
 
 .. automodule:: migrate.changeset.schema
    :members:
    :synopsis: Schema changeset handling functions
 
 
-Module :mod:`migrate.versioning`
-================================
+Module :mod:`migrate.versioning` -- Database versioning and repository management
+==================================================================================
 
 .. automodule:: migrate.versioning
    :members:
@@ -107,59 +107,59 @@ Module :mod:`migrate.versioning`
 
 .. _versioning-api:
 
-Module :mod:`api <migrate.versioning.api>`
-------------------------------------------
+Module :mod:`api <migrate.versioning.api>` -- Python API commands
+--------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.api
    :members:
    :synopsis: External API for :mod:`migrate.versioning`
 
-Module :mod:`exceptions <migrate.versioning.exceptions>`
---------------------------------------------------------
+Module :mod:`exceptions <migrate.versioning.exceptions>` -- Exception definitions
+--------------------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.exceptions
    :members:
    :synopsis: Exception classes for :mod:`migrate.versioning`
 
-Module :mod:`genmodel <migrate.versioning.genmodel>`
-----------------------------------------------------
+Module :mod:`genmodel <migrate.versioning.genmodel>` -- ORM Model generator
+-------------------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.genmodel
    :members:
    :synopsis: Python database model generator and differencer
 
-Module :mod:`pathed <migrate.versioning.pathed>`
-------------------------------------------------
+Module :mod:`pathed <migrate.versioning.pathed>` -- Path utilities
+----------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.pathed
    :members:
    :synopsis: File/Directory handling class
 
-Module :mod:`repository <migrate.versioning.repository>`
---------------------------------------------------------
+Module :mod:`repository <migrate.versioning.repository>` -- Repository management
+-------------------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.repository
    :members:
    :synopsis: SQLAlchemy migrate repository management
    :member-order: groupwise
 
-Module :mod:`schema <migrate.versioning.schema>`
-------------------------------------------------
+Module :mod:`schema <migrate.versioning.schema>` -- Migration upgrade/downgrade
+----------------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.schema
    :members:
    :member-order: groupwise
    :synopsis: Database schema management
 
-Module :mod:`schemadiff <migrate.versioning.schemadiff>`
---------------------------------------------------------
+Module :mod:`schemadiff <migrate.versioning.schemadiff>` -- ORM Model differencing
+-------------------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.schemadiff
    :members:
    :synopsis: Database schema and model differencing
 
-Module :mod:`script <migrate.versioning.script>`
-------------------------------------------------
+Module :mod:`script <migrate.versioning.script>` -- Script actions
+--------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.script.base
    :synopsis: Script utilities
@@ -178,22 +178,22 @@ Module :mod:`script <migrate.versioning.script>`
    :show-inheritance:
    :inherited-members:
 
-Module :mod:`shell <migrate.versioning.shell>`
-----------------------------------------------
+Module :mod:`shell <migrate.versioning.shell>` -- CLI interface
+------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.shell
    :members:
    :synopsis: Shell commands
 
-Module :mod:`util <migrate.versioning.util>`
---------------------------------------------
+Module :mod:`util <migrate.versioning.util>` -- Various utility functions
+--------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.util
    :members:
    :synopsis: Utility functions
 
-Module :mod:`version <migrate.versioning.version>`
---------------------------------------------------
+Module :mod:`version <migrate.versioning.version>` -- Versioning management
+-----------------------------------------------------------------------------
 
 .. automodule:: migrate.versioning.version
    :members:

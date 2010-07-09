@@ -161,12 +161,29 @@ def main(argv=None, **kwargs):
 
     # configure logging
     if not asbool(kwargs.pop('disable_logging', False)):
+        # filter to log =< INFO into stdout and rest to stderr
+        class SingleLevelFilter(logging.Filter):
+            def __init__(self, min=None, max=None):
+                self.min = min or 0
+                self.max = max or 100
+
+            def filter(self, record):
+                return self.min <= record.levelno <= self.max
+
         logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(message)s")
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setFormatter(formatter)
-        logger.addHandler(ch)
+        h1 = logging.StreamHandler(sys.stdout)
+        f1 = SingleLevelFilter(max=logging.INFO)
+        h1.addFilter(f1)
+        h2 = logging.StreamHandler(sys.stderr)
+        f2 = SingleLevelFilter(min=logging.WARN)
+        h2.addFilter(f2)
+        logger.addHandler(h1)
+        logger.addHandler(h2)
+
+        if options.debug:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
 
     log = logging.getLogger(__name__)
 

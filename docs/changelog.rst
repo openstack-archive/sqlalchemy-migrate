@@ -30,12 +30,13 @@ Features
 Bug fixes
 *****************
 
-- `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are now issued correctly
+- `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>`
+  are now issued correctly
 - use SQLAlchemy quoting system to avoid name conflicts (for issue 32)
 - complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
 - partial refactoring of :mod:`changeset` package
 - fixed bug when :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string') was not properly set
-- constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
+- constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted  (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
 
 Documentation
 *********************

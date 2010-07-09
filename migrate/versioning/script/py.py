@@ -140,7 +140,7 @@ class PythonScript(base.BaseScript):
             script_func(engine)
         except TypeError:
             warnings.warn("upgrade/downgrade functions must accept engine"
-                " parameter (since version > 0.5.4)", MigrateDeprecationWarning)
+                " parameter (since version > 0.5.4)", exceptions.MigrateDeprecationWarning)
             raise
 
     @property

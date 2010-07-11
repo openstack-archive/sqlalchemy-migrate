@@ -28,7 +28,7 @@ Summary of supported actions:
 
 * :meth:`Create a column <ChangesetColumn.create>`
 * :meth:`Drop a column <ChangesetColumn.drop>`
-* :meth:`Alter a column <ChangesetColumn.alter>` (name, nullabe, type, server_default)
+* :meth:`Alter a column <ChangesetColumn.alter>` (follow a link for list of supported changes)
 * :meth:`Rename a table <ChangesetTable.rename>`
 * :meth:`Rename an index <ChangesetIndex.rename>`
 * :meth:`Create primary key constraint <migrate.changeset.constraint.PrimaryKeyConstraint>`

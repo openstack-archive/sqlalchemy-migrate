@@ -208,7 +208,7 @@ def str_to_filename(s):
     and double underscores to underscores
     """
 
-    s = s.replace(' ', '_').replace('"', '_').replace("'", '_')
+    s = s.replace(' ', '_').replace('"', '_').replace("'", '_').replace(".", "_")
     while '__' in s:
         s = s.replace('__', '_')
     return s

@@ -178,7 +178,7 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
 
         * :class:`ColumnDelta`.current_name is current name of column in db
 
-        
+
     """
 
     # Column attributes that can be altered
@@ -473,6 +473,9 @@ class ChangesetColumn(object):
         Example::
 
             col.alter(name='foobar', type=Integer(), server_default=text("a"))
+
+        Supported parameters: name, type, primary_key, nullable,
+        server_onupdate, server_default, autoincrement
 
         """
         if 'table' not in k:

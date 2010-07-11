@@ -465,20 +465,15 @@ class ChangesetColumn(object):
     def alter(self, *p, **k):
         """Alter a column's definition: ``ALTER TABLE ALTER COLUMN``.
 
-        May supply a new column object, or a list of properties to
-        change.
-
-        For example; the following are equivalent::
-
-            col.alter(Column('myint', Integer, DefaultClause('foobar')))
-            col.alter('myint', Integer, server_default='foobar', nullable=False)
-            col.alter(DefaultClause('foobar'), name='myint', type=Integer,\
- nullable=False)
-
         Column name, type, server_default, and nullable may be changed
         here.
 
         Direct API to :func:`alter_column`
+
+        Example::
+
+            col.alter(name='foobar', type=Integer(), server_default=text("a"))
+
         """
         if 'table' not in k:
             k['table'] = self.table
@@ -487,7 +482,7 @@ class ChangesetColumn(object):
         return alter_column(self, *p, **k)
 
     def create(self, table=None, index_name=None, unique_name=None,
-               primary_key_name=None, connection=None, **kwargs):
+               primary_key_name=None, populate_default=True, connection=None, **kwargs):
         """Create this column in the database.
 
         Assumes the given table exists. ``ALTER TABLE ADD COLUMN``,
@@ -513,7 +508,7 @@ populated with defaults
 
         :returns: self
         """
-        self.populate_default = kwargs.pop('populate_default', False)
+        self.populate_default = populate_default
         self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         self.index_name = index_name
         self.unique_name = unique_name

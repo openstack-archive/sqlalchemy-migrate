@@ -18,6 +18,7 @@ Module :mod:`constraint <migrate.changeset.constraint>` -- Constraint schema mig
 
 .. automodule:: migrate.changeset.constraint
    :members:
+   :inherited-members:
    :show-inheritance:
    :member-order: groupwise
    :synopsis: Standalone schema constraint objects

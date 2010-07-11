@@ -21,6 +21,26 @@ Changeset operations can be used independently of SQLAlchemy Migrate's
 For more information, see the generated documentation for
 :mod:`migrate.changeset`.
 
+.. _summary-changeset-api:
+
+Summary of supported actions:
+
+
+* :meth:`Create a column <ChangesetColumn.create>`
+* :meth:`Drop a column <ChangesetColumn.drop>`
+* :meth:`Alter a column <ChangesetColumn.alter>` (name, nullabe, type, server_default)
+* :meth:`Rename a table <ChangesetTable.rename>`
+* :meth:`Rename an index <ChangesetIndex.rename>`
+* :meth:`Create primary key constraint <migrate.changeset.constraint.PrimaryKeyConstraint>`
+* :meth:`Drop primary key constraint <migrate.changeset.constraint.PrimaryKeyConstraint.drop>`
+* :meth:`Create foreign key contraint <migrate.changeset.constraint.ForeignKeyConstraint.create>`
+* :meth:`Drop foreign key constraint <migrate.changeset.constraint.ForeignKeyConstraint.drop>`
+* :meth:`Create unique key contraint <migrate.changeset.constraint.UniqueConstraint.create>`
+* :meth:`Drop unique key constraint <migrate.changeset.constraint.UniqueConstraint.drop>`
+* :meth:`Create check key contraint <migrate.changeset.constraint.CheckConstraint.create>`
+* :meth:`Drop check key constraint <migrate.changeset.constraint.CheckConstraint.drop>`
+
+
 .. note::
 
 	alter_metadata keyword defaults to True.
@@ -44,6 +64,8 @@ Given a standard SQLAlchemy table::
 
  # Column is added to table based on its name
  assert col is table.c.col1
+
+ # col1 is populated with 'foobar' because of `populate_default`
 
 .. _column-drop:
 

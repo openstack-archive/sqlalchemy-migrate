@@ -30,6 +30,7 @@ Features
 Bug fixes
 *****************
 
+- ORM methods now accept `connection` parameter commonly used for transactions
 - `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>`
   are now issued correctly
 - use SQLAlchemy quoting system to avoid name conflicts (for issue 32)

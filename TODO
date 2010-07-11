@@ -10,11 +10,7 @@ make_update_script_for_model:
 
 0.6.0
 
-- make logging stderr and stdout aware
-- update documentation
 - update repository migration script
-- readd transaction support
-- wrap migration into transaction
 - interactive migration script resolution
 
 - port to unittest2
@@ -26,6 +22,7 @@ make_update_script_for_model:
 - verbose output on migration failures
 
 
-Documentation
-
-- better document 'populate_default'
+Transaction support in 0.6.1
+- script.run should call engine.transaction()
+- API should support engine and connection as well
+- tests for transactions

@@ -38,6 +38,8 @@ class ConstraintChangeset(object):
         :param engine: the database engine to use. If this is \
         :keyword:`None` the instance's engine will be used
         :type engine: :class:`sqlalchemy.engine.base.Engine`
+        :param connection: reuse connection istead of creating new one.
+        :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
         # TODO: set the parent here instead of in __init__
         self.__do_imports('constraintgenerator', *a, **kw)
@@ -50,6 +52,8 @@ class ConstraintChangeset(object):
         :param cascade: Issue CASCADE drop if database supports it
         :type engine: :class:`sqlalchemy.engine.base.Engine`
         :type cascade: bool
+        :param connection: reuse connection istead of creating new one.
+        :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         :returns: Instance with cleared columns
         """
         self.cascade = kw.pop('cascade', False)
@@ -63,7 +67,7 @@ class ConstraintChangeset(object):
 
 class PrimaryKeyConstraint(ConstraintChangeset, schema.PrimaryKeyConstraint):
     """Construct PrimaryKeyConstraint
-    
+
     Migrate's additional parameters:
 
     :param cols: Columns in constraint.
@@ -89,7 +93,7 @@ class PrimaryKeyConstraint(ConstraintChangeset, schema.PrimaryKeyConstraint):
 
 class ForeignKeyConstraint(ConstraintChangeset, schema.ForeignKeyConstraint):
     """Construct ForeignKeyConstraint
-    
+
     Migrate's additional parameters:
 
     :param columns: Columns in constraint
@@ -132,7 +136,7 @@ class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
     """Construct CheckConstraint
 
     Migrate's additional parameters:
-    
+
     :param sqltext: Plain SQL text to check condition
     :param columns: If not name is applied, you must supply this kw\
     to autoname constraint
@@ -165,7 +169,7 @@ class CheckConstraint(ConstraintChangeset, schema.CheckConstraint):
 
 class UniqueConstraint(ConstraintChangeset, schema.UniqueConstraint):
     """Construct UniqueConstraint
-    
+
     Migrate's additional parameters:
 
     :param cols: Columns in constraint.

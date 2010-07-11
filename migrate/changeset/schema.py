@@ -426,19 +426,21 @@ class ChangesetTable(object):
                 column = sqlalchemy.Column(str(column), sqlalchemy.Integer())
         column.drop(table=self, *p, **kw)
 
-    def rename(self, name, *args, **kwargs):
+    def rename(self, name, connection=None, **kwargs):
         """Rename this table.
 
         :param name: New name of the table.
         :type name: string
         :param alter_metadata: If True, table will be removed from metadata
         :type alter_metadata: bool
+        :param connection: reuse connection istead of creating new one.
+        :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
         self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         engine = self.bind
         self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
-        run_single_visitor(engine, visitorcallable, self, *args, **kwargs)
+        run_single_visitor(engine, visitorcallable, self, connection, **kwargs)
 
         # Fix metadata registration
         if self.alter_metadata:
@@ -485,7 +487,7 @@ class ChangesetColumn(object):
         return alter_column(self, *p, **k)
 
     def create(self, table=None, index_name=None, unique_name=None,
-               primary_key_name=None, *args, **kwargs):
+               primary_key_name=None, connection=None, **kwargs):
         """Create this column in the database.
 
         Assumes the given table exists. ``ALTER TABLE ADD COLUMN``,
@@ -500,12 +502,16 @@ class ChangesetColumn(object):
         :param alter_metadata: If True, column will be added to table object.
         :param populate_default: If True, created column will be \
 populated with defaults
+        :param connection: reuse connection istead of creating new one.
         :type table: Table instance
         :type index_name: string
         :type unique_name: string
         :type primary_key_name: string
         :type alter_metadata: bool
         :type populate_default: bool
+        :type connection: :class:`sqlalchemy.engine.base.Connection` instance
+
+        :returns: self
         """
         self.populate_default = kwargs.pop('populate_default', False)
         self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
@@ -514,26 +520,29 @@ populated with defaults
         self.primary_key_name = primary_key_name
         for cons in ('index_name', 'unique_name', 'primary_key_name'):
             self._check_sanity_constraints(cons)
-        
+
         if self.alter_metadata:
             self.add_to_table(table)
         engine = self.table.bind
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
-        engine._run_visitor(visitorcallable, self, *args, **kwargs)
+        engine._run_visitor(visitorcallable, self, connection, **kwargs)
 
+        # TODO: reuse existing connection
         if self.populate_default and self.default is not None:
             stmt = table.update().values({self: engine._execute_default(self.default)})
             engine.execute(stmt)
 
         return self
 
-    def drop(self, table=None, *args, **kwargs):
+    def drop(self, table=None, connection=None, **kwargs):
         """Drop this column from the database, leaving its table intact.
 
         ``ALTER TABLE DROP COLUMN``, for most databases.
 
         :param alter_metadata: If True, column will be removed from table object.
         :type alter_metadata: bool
+        :param connection: reuse connection istead of creating new one.
+        :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
         self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         if table is not None:
@@ -542,7 +551,7 @@ populated with defaults
         if self.alter_metadata:
             self.remove_from_table(self.table, unset_table=False)
         visitorcallable = get_engine_visitor(engine, 'columndropper')
-        engine._run_visitor(visitorcallable, self, *args, **kwargs)
+        engine._run_visitor(visitorcallable, self, connection, **kwargs)
         if self.alter_metadata:
             self.table = None
         return self
@@ -557,7 +566,7 @@ populated with defaults
             self.table = None
         if table.c.contains_column(self):
             table.c.remove(self)
-            
+
     # TODO: this is fixed in 0.6
     def copy_fixed(self, **kw):
         """Create a copy of this ``Column``, with all attributes."""
@@ -590,19 +599,21 @@ class ChangesetIndex(object):
 
     __visit_name__ = 'index'
 
-    def rename(self, name, *args, **kwargs):
+    def rename(self, name, connection=None, **kwargs):
         """Change the name of an index.
 
         :param name: New name of the Index.
         :type name: string
         :param alter_metadata: If True, Index object will be altered.
         :type alter_metadata: bool
+        :param connection: reuse connection istead of creating new one.
+        :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
         self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         engine = self.table.bind
         self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
-        engine._run_visitor(visitorcallable, self, *args, **kwargs)
+        engine._run_visitor(visitorcallable, self, connection, **kwargs)
         if self.alter_metadata:
             self.name = name
 

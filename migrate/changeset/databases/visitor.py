@@ -57,15 +57,22 @@ def get_dialect_visitor(sa_dialect, name):
 
     return visitor
 
-def run_single_visitor(engine, visitorcallable, element, **kwargs):
-    """Runs only one method on the visitor"""
-    conn = engine.contextual_connect(close_with_result=False)
+def run_single_visitor(engine, visitorcallable, element,
+    connection=None, **kwargs):
+    """Taken from :meth:`sqlalchemy.engine.base.Engine._run_single_visitor`
+    with support for migrate visitors.
+    """
+    if connection is None:
+        conn = engine.contextual_connect(close_with_result=False)
+    else:
+        conn = connection
+    visitor = visitorcallable(engine.dialect, conn)
     try:
-        visitor = visitorcallable(engine.dialect, conn)
         if hasattr(element, '__migrate_visit_name__'):
             fn = getattr(visitor, 'visit_' + element.__migrate_visit_name__)
         else:
             fn = getattr(visitor, 'visit_' + element.__visit_name__)
         fn(element, **kwargs)
     finally:
-        conn.close()
+        if connection is None:
+            conn.close()

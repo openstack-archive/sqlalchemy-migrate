@@ -38,6 +38,7 @@ Bug fixes
 - partial refactoring of :mod:`changeset` package
 - fixed bug when :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string') was not properly set
 - constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted  (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
+- script names don't break with dot in the name
 
 Documentation
 *********************

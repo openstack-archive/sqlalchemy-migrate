@@ -31,7 +31,7 @@ sys.path.append(os.path.dirname(os.path.abspath('.')))
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # link to sqlalchemy docs
-intersphinx_mapping = {'http://www.sqlalchemy.org/docs/05/': None}
+intersphinx_mapping = {'http://www.sqlalchemy.org/docs/06/': None}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'SQLAlchemy Migrate'
-copyright = u'2009, Evan Rosson, Jan Dittberner, Domen Kožar'
+copyright = u'2010, Evan Rosson, Jan Dittberner, Domen Kožar'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -174,7 +174,7 @@ htmlhelp_basename = 'SQLAlchemyMigratedoc'
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [
   ('index', 'SQLAlchemyMigrate.tex', ur'SQLAlchemy Migrate Documentation',
-   ur'Evan Rosson, Jan Dittberner', 'manual'),
+   ur'Evan Rosson, Jan Dittberner, Domen Kožar', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

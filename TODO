@@ -8,19 +8,21 @@ make_update_script_for_model:
 - controlledschema.drop() drops whole migrate table, maybe there are some other repositories bound to it!
 
 
-0.6.0
-
+Unknown milestone
 - update repository migration script
-- interactive migration script resolution
-
-- port to unittest2
-- write documentation how to test all databases
-- glossary
-- managing output - logging
 - required_dbs tests
-- add story to changeset tutorial
-- verbose output on migration failures
 
+0.6.1
+- transaction support
+- verbose output on migration failures
+- interactive migration script resolution?
+- backend for versioning management
+- port to unittest2
+
+Documentation updates in 0.6.1
+- glossary
+- add story to changeset tutorial
+- write documentation how to test all databases
 
 Transaction support in 0.6.1
 - script.run should call engine.transaction()

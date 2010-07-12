@@ -21,7 +21,7 @@ display more information about each command.
 If you'd like to be notified when new versions of SQLAlchemy Migrate
 are released, subscribe to `migrate-announce`_.
 
-.. _pip: pip.openplans.org/
+.. _pip: http://pip.openplans.org/
 .. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
 .. _sqlalchemy: http://www.sqlalchemy.org/download.html
 .. _`project's download page`: http://code.google.com/p/sqlalchemy-migrate/downloads/list

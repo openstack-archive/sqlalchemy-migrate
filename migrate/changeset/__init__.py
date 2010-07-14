@@ -4,10 +4,13 @@
 
    .. [#] SQL Data Definition Language
 """
-import sqlalchemy
-
-from sqlalchemy import __version__ as _sa_version
 import re
+import warnings
+
+import sqlalchemy
+from sqlalchemy import __version__ as _sa_version
+
+warnings.simplefilter('always', DeprecationWarning)
 
 _sa_version = tuple(int(re.match("\d+", x).group(0)) for x in _sa_version.split("."))
 SQLA_06 = _sa_version >= (0, 6)

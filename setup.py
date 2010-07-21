@@ -9,7 +9,7 @@ except ImportError:
     use_setuptools()
     from setuptools import setup, find_packages
 
-required_deps = ['sqlalchemy >= 0.5', 'decorator', 'tempita']
+required_deps = ['sqlalchemy >= 0.5', 'decorator', 'tempita >= 0.4']
 readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'README'))
 

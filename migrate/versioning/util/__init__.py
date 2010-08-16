@@ -14,8 +14,8 @@ from sqlalchemy.pool import StaticPool
 from migrate.versioning import exceptions
 from migrate.versioning.util.keyedinstance import KeyedInstance
 from migrate.versioning.util.importpath import import_path
-from migrate.changeset.exceptions import *
 
+from migrate.changeset import *
 
 log = logging.getLogger(__name__)
 

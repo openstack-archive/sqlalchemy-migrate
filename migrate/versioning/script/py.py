@@ -12,6 +12,7 @@ from migrate.versioning.config import operations
 from migrate.versioning.template import Template
 from migrate.versioning.script import base
 from migrate.versioning.util import import_path, load_model, with_engine
+from migrate.changeset.exceptions import *
 
 
 log = logging.getLogger(__name__)
@@ -140,7 +141,7 @@ class PythonScript(base.BaseScript):
             script_func(engine)
         except TypeError:
             warnings.warn("upgrade/downgrade functions must accept engine"
-                " parameter (since version > 0.5.4)", exceptions.MigrateDeprecationWarning)
+                " parameter (since version > 0.5.4)", MigrateDeprecationWarning)
             raise
 
     @property

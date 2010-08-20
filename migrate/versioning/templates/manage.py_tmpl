@@ -1,4 +1,5 @@
 #!/usr/bin/env python
 from migrate.versioning.shell import main
 
-main(%(defaults)s)
+if __name__ == '__main__':
+    main(%(defaults)s)

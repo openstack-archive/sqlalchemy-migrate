@@ -1,3 +1,13 @@
+0.6.1 (xxxxxxx)
+---------------------------
+
+Fixed bugs
+******************
+
+- updated tests for Python 2.7
+- added if main condition for manage.py script
+- fixed case sensitivity in setup.py dependencies
+
 0.6 (11.07.2010)
 ---------------------------
 

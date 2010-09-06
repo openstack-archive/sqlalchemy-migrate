@@ -12,6 +12,13 @@ Unknown milestone
 - update repository migration script
 - required_dbs tests
 
+- dot instead of semicolumn in dotted module name should have better deprecation warning
+- change "model" in "metadata" for all highlevel api stuff
+- bash autocompletion
+- clarify ImportError in load_model
+- implement debug flag to jump into the error
+
+
 0.6.1
 - transaction support
 - verbose output on migration failures

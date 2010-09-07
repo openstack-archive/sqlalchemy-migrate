@@ -4,8 +4,7 @@ nosexcover
 # NOTE: scripttest 1.0.1 removes base_path argument to ScriptTest
 scripttest==1.0
 pytz
-# initd.org is currently offline :-(
-# psycopg2
+psycopg2
 pysqlite
 mysql-python
 http://downloads.sourceforge.net/firebird/kinterbasdb-3.3.0.tar.bz2

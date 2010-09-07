@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import with_statement
 import sqlalchemy
 import warnings
 
@@ -551,7 +550,11 @@ class TestColumnChange(fixture.DB):
 
     @fixture.usedb()
     def test_alter_metadata_deprecated(self):
-        with catch_warnings(record=True) as w:
+        try:
+            # py 2.4 compatability :-/
+            cw = catch_warnings(record=True)
+            w = cw.__enter__()
+            
             warnings.simplefilter("always")
             self.table.c.data.alter(Column('data', String(100)))
 
@@ -562,7 +565,9 @@ class TestColumnChange(fixture.DB):
                 'Passing a Column object to alter_column is deprecated. '
                 'Just pass in keyword parameters instead.',
                 str(w[-1].message))
-
+        finally:
+            cw.__exit__()
+            
     @fixture.usedb()
     def test_alter_metadata(self):
         """Test if alter_metadata is respected"""

@@ -5,7 +5,8 @@ import os
 import sys
 import shutil
 
-from migrate.versioning import exceptions, version, repository
+from migrate import exceptions
+from migrate.versioning import version, repository
 from migrate.versioning.script import *
 from migrate.versioning.util import *
 

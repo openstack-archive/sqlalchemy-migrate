@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import with_statement
 
 import os
 
 from sqlalchemy import *
 
+from migrate.exceptions import MigrateDeprecationWarning
 from migrate.tests import fixture
+from migrate.tests.fixture.warnings import catch_warnings
 from migrate.versioning.util import *
 
+import warnings
 
 class TestUtil(fixture.Pathed):
 
@@ -37,8 +41,18 @@ class TestUtil(fixture.Pathed):
         self.assertTrue(engine.dialect.encoding)
 
         # deprecated echo=True parameter
-        engine = construct_engine(url, echo='True')
-        self.assertTrue(engine.echo)
+        with catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            engine = construct_engine(url, echo='True')
+            self.assertTrue(engine.echo)
+
+            self.assertEqual(len(w),1)
+            self.assertTrue(issubclass(w[-1].category,
+                                       MigrateDeprecationWarning))
+            self.assertEqual(
+                'echo=True parameter is deprecated, pass '
+                'engine_arg_echo=True or engine_dict={"echo": True}',
+                str(w[-1].message))
 
         # unsupported argument
         self.assertRaises(ValueError, construct_engine, 1)
@@ -69,8 +83,20 @@ class TestUtil(fixture.Pathed):
         f.write("class FakeFloat(int): pass")
         f.close()
 
-        FakeFloat = load_model('test_load_model.FakeFloat')
-        self.assert_(isinstance(FakeFloat(), int))
+        with catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            # deprecated spelling
+            FakeFloat = load_model('test_load_model.FakeFloat')
+            self.assert_(isinstance(FakeFloat(), int))
+
+            self.assertEqual(len(w),1)
+            self.assertTrue(issubclass(w[-1].category,
+                                       MigrateDeprecationWarning))
+            self.assertEqual(
+                'model should be in form of module.model:User '
+                'and not module.model.User',
+                str(w[-1].message))
 
         FakeFloat = load_model('test_load_model:FakeFloat')
         self.assert_(isinstance(FakeFloat(), int))

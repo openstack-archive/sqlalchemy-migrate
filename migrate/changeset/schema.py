@@ -107,8 +107,11 @@ def alter_column(*p, **k):
 
     # deprecation
     if len(p) >= 2 and isinstance(p[1], sqlalchemy.Column):
-        warnings.warn("Alter column with comparing columns is deprecated."
-            " Just pass in parameters instead.", MigrateDeprecationWarning)
+        warnings.warn(
+            "Passing a Column object to alter_column is deprecated."
+            " Just pass in keyword parameters instead.",
+            MigrateDeprecationWarning
+            )
     engine = k['engine']
     delta = ColumnDelta(*p, **k)
 

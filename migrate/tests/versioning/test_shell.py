@@ -4,11 +4,8 @@
 import os
 import sys
 import tempfile
-try:
-    from runpy import run_module
-except ImportError:
-    pass #python2.4
 
+from cStringIO import StringIO
 from sqlalchemy import MetaData, Table
 from nose.plugins.skip import SkipTest
 
@@ -52,36 +49,45 @@ class TestShellCommands(Shell):
     def test_main_with_runpy(self):
         if sys.version_info[:2] == (2, 4):
             raise SkipTest("runpy is not part of python2.4")
+        from runpy import run_module
         try:
+            original = sys.argv
+            sys.argv=['X','--help']
+            
             run_module('migrate.versioning.shell', run_name='__main__')
-        except:
-            pass
 
+        finally:
+            sys.argv = original
+
+    def _check_error(self,args,code,expected,**kw):
+        original = sys.stderr
+        try:
+            actual = StringIO()
+            sys.stderr = actual
+            try:
+                shell.main(args,**kw)
+            except SystemExit, e:
+                self.assertEqual(code,e.args[0])
+            else:
+                self.fail('No exception raised')
+        finally:
+            sys.stderr = original
+        actual = actual.getvalue()
+        self.assertTrue(expected in actual,'%r not in:\n"""\n%s\n"""'%(expected,actual))
+            
     def test_main(self):
         """Test main() function"""
-        # TODO: test output?
         repos = self.tmp_repos()
         shell.main(['help'])
         shell.main(['help', 'create'])
         shell.main(['create', 'repo_name', '--preview_sql'], repository=repos)
         shell.main(['version', '--', '--repository=%s' % repos])
         shell.main(['version', '-d', '--repository=%s' % repos, '--version=2'])
-        try:
-            shell.main(['foobar'])
-        except SystemExit, e:
-            pass
-        try:
-            shell.main(['create', 'f', 'o', 'o'])
-        except SystemExit, e:
-            pass
-        try:
-            shell.main(['create'])
-        except SystemExit, e:
-            pass
-        try:
-            shell.main(['create', 'repo_name'], repository=repos)
-        except SystemExit, e:
-            pass
+
+        self._check_error(['foobar'],2,'error: Invalid command foobar')
+        self._check_error(['create', 'f', 'o', 'o'],2,'error: Too many arguments for command create: o')
+        self._check_error(['create'],2,'error: Not enough arguments for command create: name, repository not specified')
+        self._check_error(['create', 'repo_name'],2,'already exists', repository=repos)
 
     def test_create(self):
         """Repositories are created successfully"""

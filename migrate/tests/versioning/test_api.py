@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from migrate.exceptions import *
 from migrate.versioning import api
-from migrate.versioning.exceptions import *
 
 from migrate.tests.fixture.pathed import *
 from migrate.tests.fixture import models

@@ -1,5 +1,5 @@
 """
-   Provide exception classes for :mod:`migrate.versioning`
+   Provide exception classes for :mod:`migrate`
 """
 
 
@@ -73,3 +73,15 @@ class InvalidScriptError(ScriptError):
 
 class InvalidVersionError(Error):
     """Invalid version error."""
+
+# migrate.changeset
+
+class NotSupportedError(Error):
+    """Not supported error"""
+
+
+class InvalidConstraintError(Error):
+    """Invalid constraint error"""
+
+class MigrateDeprecationWarning(DeprecationWarning):
+    """Warning for deprecated features in Migrate"""

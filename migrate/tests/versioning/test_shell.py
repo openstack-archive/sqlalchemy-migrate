@@ -12,9 +12,9 @@ except ImportError:
 from sqlalchemy import MetaData, Table
 from nose.plugins.skip import SkipTest
 
+from migrate.exceptions import *
 from migrate.versioning.repository import Repository
 from migrate.versioning import genmodel, shell, api
-from migrate.versioning.exceptions import *
 from migrate.tests.fixture import Shell, DB, usedb
 from migrate.tests.fixture import models
 

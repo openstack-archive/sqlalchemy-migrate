@@ -1,9 +1,11 @@
 """
    Firebird database specific implementations of changeset classes.
 """
-
-from migrate.changeset import ansisql, exceptions, SQLA_06
 from sqlalchemy.databases import firebird as sa_base
+
+from migrate import exceptions
+from migrate.changeset import ansisql, SQLA_06
+
 
 if SQLA_06:
     FBSchemaGenerator = sa_base.FBDDLCompiler

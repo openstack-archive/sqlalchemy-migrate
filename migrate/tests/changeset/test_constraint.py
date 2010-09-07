@@ -5,8 +5,8 @@ from sqlalchemy import *
 from sqlalchemy.util import *
 from sqlalchemy.exc import *
 
+from migrate.exceptions import *
 from migrate.changeset import *
-from migrate.changeset.exceptions import *
 
 from migrate.tests import fixture
 

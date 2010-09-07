@@ -9,7 +9,8 @@ import logging
 from pkg_resources import resource_filename
 from tempita import Template as TempitaTemplate
 
-from migrate.versioning import exceptions, version, pathed, cfgparse
+from migrate import exceptions
+from migrate.versioning import version, pathed, cfgparse
 from migrate.versioning.template import Template
 from migrate.versioning.config import *
 
@@ -86,7 +87,7 @@ class Repository(pathed.Pathed):
         """
         Ensure the target path is a valid repository.
 
-        :raises: :exc:`InvalidRepositoryError <migrate.versioning.exceptions.InvalidRepositoryError>`
+        :raises: :exc:`InvalidRepositoryError <migrate.exceptions.InvalidRepositoryError>`
         """
         # Ensure the existence of required files
         try:

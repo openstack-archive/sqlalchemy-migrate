@@ -4,6 +4,8 @@
    At the moment, this isn't so much based off of ANSI as much as
    things that just happen to work with multiple databases.
 """
+import StringIO
+
 import sqlalchemy as sa
 from sqlalchemy.schema import SchemaVisitor
 from sqlalchemy.engine.default import DefaultDialect
@@ -14,8 +16,8 @@ from sqlalchemy.schema import (ForeignKeyConstraint,
                                UniqueConstraint,
                                Index)
 
-from migrate.changeset import exceptions, constraint, SQLA_06
-import StringIO
+from migrate import exceptions
+from migrate.changeset import constraint, SQLA_06
 
 if not SQLA_06:
     from sqlalchemy.sql.compiler import SchemaGenerator, SchemaDropper

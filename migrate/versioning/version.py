@@ -6,7 +6,8 @@ import re
 import shutil
 import logging
 
-from migrate.versioning import exceptions, pathed, script
+from migrate import exceptions
+from migrate.versioning import pathed, script
 
 
 log = logging.getLogger(__name__)

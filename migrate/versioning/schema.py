@@ -10,7 +10,8 @@ from sqlalchemy.sql import and_
 from sqlalchemy import exceptions as sa_exceptions
 from sqlalchemy.sql import bindparam
 
-from migrate.versioning import exceptions, genmodel, schemadiff
+from migrate import exceptions
+from migrate.versioning import genmodel, schemadiff
 from migrate.versioning.repository import Repository
 from migrate.versioning.util import load_model
 from migrate.versioning.version import VerNum

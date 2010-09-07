@@ -8,7 +8,8 @@ import inspect
 import logging
 from optparse import OptionParser, BadOptionError
 
-from migrate.versioning import api, exceptions
+from migrate import exceptions
+from migrate.versioning import api
 from migrate.versioning.config import *
 from migrate.versioning.util import asbool
 

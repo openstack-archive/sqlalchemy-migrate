@@ -3,7 +3,7 @@
 """
 from sqlalchemy import schema
 
-from migrate.changeset.exceptions import *
+from migrate.exceptions import *
 from migrate.changeset import SQLA_06
 
 class ConstraintChangeset(object):

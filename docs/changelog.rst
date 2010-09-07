@@ -7,6 +7,8 @@ Fixed bugs
 - updated tests for Python 2.7
 - added if main condition for manage.py script
 - fixed case sensitivity in setup.py dependencies
+- moved :mod:`migrate.changeset.exceptions` and :mod:`migrate.versioning.exceptions`
+  to :mod:`migrate.exceptions`
 
 0.6 (11.07.2010)
 ---------------------------

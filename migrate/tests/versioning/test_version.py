@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from migrate.exceptions import *
 from migrate.versioning.version import *
-from migrate.versioning.exceptions import *
 
 from migrate.tests import fixture
 

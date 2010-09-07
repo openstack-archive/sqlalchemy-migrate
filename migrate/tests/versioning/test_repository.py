@@ -4,7 +4,7 @@
 import os
 import shutil
 
-from migrate.versioning import exceptions
+from migrate import exceptions
 from migrate.versioning.repository import *
 from migrate.versioning.script import *
 from nose.tools import raises

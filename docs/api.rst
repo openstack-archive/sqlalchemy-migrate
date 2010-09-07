@@ -1,3 +1,10 @@
+Module :mod:`exceptions <migrate.exceptions>` -- Exception definitions
+---------------------------------------------------------------------------------------
+
+.. automodule:: migrate.exceptions
+   :members:
+   :synopsis: Migrate exception classes
+
 Module :mod:`migrate.changeset` -- Schema migration API
 =============================================================
 
@@ -84,13 +91,6 @@ Module :mod:`visitor <migrate.changeset.databases.visitor>`
 .. automodule:: migrate.changeset.databases.visitor
    :members:
 
-Module :mod:`exceptions <migrate.changeset.exceptions>` -- Exception definitions
----------------------------------------------------------------------------------------
-
-.. automodule:: migrate.changeset.exceptions
-   :members:
-   :synopsis: Changeset exception classes
-
 Module :mod:`schema <migrate.changeset.schema>` -- Additional API to SQLAlchemy for migrations
 -------------------------------------------------------------------------------------------------
 
@@ -115,12 +115,6 @@ Module :mod:`api <migrate.versioning.api>` -- Python API commands
    :members:
    :synopsis: External API for :mod:`migrate.versioning`
 
-Module :mod:`exceptions <migrate.versioning.exceptions>` -- Exception definitions
---------------------------------------------------------------------------------------
-
-.. automodule:: migrate.versioning.exceptions
-   :members:
-   :synopsis: Exception classes for :mod:`migrate.versioning`
 
 Module :mod:`genmodel <migrate.versioning.genmodel>` -- ORM Model generator
 -------------------------------------------------------------------------------------

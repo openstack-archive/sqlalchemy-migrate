@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 import logging
 
+from migrate import exceptions
 from migrate.versioning.config import operations
-from migrate.versioning import pathed, exceptions
+from migrate.versioning import pathed
 
 
 log = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ class BaseScript(pathed.Pathed):
         """Ensure this is a valid script
         This version simply ensures the script file's existence
 
-        :raises: :exc:`InvalidScriptError <migrate.versioning.exceptions.InvalidScriptError>`
+        :raises: :exc:`InvalidScriptError <migrate.exceptions.InvalidScriptError>`
         """
         try:
             cls.require_found(path)

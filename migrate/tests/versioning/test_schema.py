@@ -4,8 +4,9 @@
 import os
 import shutil
 
+from migrate import exceptions
 from migrate.versioning.schema import *
-from migrate.versioning import script, exceptions, schemadiff
+from migrate.versioning import script, schemadiff
 
 from sqlalchemy import *
 

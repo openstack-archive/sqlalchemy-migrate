@@ -3,7 +3,7 @@
 import sqlalchemy
 from sqlalchemy import *
 
-from migrate import changeset
+from migrate import changeset, exceptions
 from migrate.changeset import *
 from migrate.changeset.schema import ColumnDelta
 from migrate.tests import fixture
@@ -165,7 +165,7 @@ class TestAddDropColumn(fixture.DB):
         # create column with fk
         col = Column('data', Integer, ForeignKey(reftable.c.id))
         if self.url.startswith('sqlite'):
-            self.assertRaises(changeset.exceptions.NotSupportedError,
+            self.assertRaises(exceptions.NotSupportedError,
                 col.create, self.table)
         else:
             col.create(self.table)
@@ -189,7 +189,7 @@ class TestAddDropColumn(fixture.DB):
     def test_pk(self):
         """Can create columns with primary key"""
         col = Column('data', Integer, nullable=False)
-        self.assertRaises(changeset.exceptions.InvalidConstraintError,
+        self.assertRaises(exceptions.InvalidConstraintError,
             col.create, self.table, primary_key_name=True)
         col.create(self.table, primary_key_name='data_pkey')
 
@@ -228,7 +228,7 @@ class TestAddDropColumn(fixture.DB):
     @fixture.usedb(not_supported='sqlite')
     def test_unique(self):
         """Can create columns with unique constraint"""
-        self.assertRaises(changeset.exceptions.InvalidConstraintError,
+        self.assertRaises(exceptions.InvalidConstraintError,
             Column('data', Integer, unique=True).create, self.table)
         col = Column('data', Integer)
         col.create(self.table, unique_name='data_unique')
@@ -249,7 +249,7 @@ class TestAddDropColumn(fixture.DB):
     @fixture.usedb()
     def test_index(self):
         """Can create columns with indexes"""
-        self.assertRaises(changeset.exceptions.InvalidConstraintError,
+        self.assertRaises(exceptions.InvalidConstraintError,
             Column('data', Integer).create, self.table, index_name=True)
         col = Column('data', Integer)
         col.create(self.table, index_name='ix_data')
@@ -372,7 +372,7 @@ class TestRename(fixture.DB):
     
             # Index renames
             if self.url.startswith('sqlite') or self.url.startswith('mysql'):
-                self.assertRaises(changeset.exceptions.NotSupportedError,
+                self.assertRaises(exceptions.NotSupportedError,
                     self.index.rename, index_name2)
             else:
                 assert_index_name(index_name1)

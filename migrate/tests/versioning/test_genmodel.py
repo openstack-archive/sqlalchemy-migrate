@@ -3,8 +3,8 @@
 
 import os
 
+from migrate.exceptions import *
 from migrate.versioning.genmodel import *
-from migrate.versioning.exceptions import *
 
 from migrate.tests import fixture
 

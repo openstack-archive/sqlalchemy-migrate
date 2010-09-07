@@ -6,8 +6,8 @@ from UserDict import DictMixin
 
 import sqlalchemy
 
+from migrate.exceptions import *
 from migrate.changeset import SQLA_06
-from migrate.changeset.exceptions import *
 from migrate.changeset.databases.visitor import (get_engine_visitor,
                                                  run_single_visitor)
 

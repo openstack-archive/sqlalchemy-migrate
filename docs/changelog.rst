@@ -9,6 +9,8 @@ Fixed bugs
 - fixed case sensitivity in setup.py dependencies
 - moved :mod:`migrate.changeset.exceptions` and :mod:`migrate.versioning.exceptions`
   to :mod:`migrate.exceptions`
+- cleared up test output and improved testing of deprecation warnings.
+- some documentation fixes
 
 0.6 (11.07.2010)
 ---------------------------

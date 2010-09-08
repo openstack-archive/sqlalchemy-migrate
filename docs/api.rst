@@ -1,12 +1,8 @@
-Module :mod:`exceptions <migrate.exceptions>` -- Exception definitions
----------------------------------------------------------------------------------------
-
-.. automodule:: migrate.exceptions
-   :members:
-   :synopsis: Migrate exception classes
+Module :mod:`migrate.changeset` -- Schema changes
+=================================================
 
 Module :mod:`migrate.changeset` -- Schema migration API
-=============================================================
+-------------------------------------------------------
 
 .. automodule:: migrate.changeset
    :members:
@@ -40,7 +36,7 @@ Module :mod:`databases <migrate.changeset.databases>` -- Database specific schem
 .. _mysql-d:
 
 Module :mod:`mysql <migrate.changeset.databases.mysql>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 .. automodule:: migrate.changeset.databases.mysql
@@ -50,7 +46,7 @@ Module :mod:`mysql <migrate.changeset.databases.mysql>`
 .. _firebird-d:
 
 Module :mod:`firebird <migrate.changeset.databases.firebird>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 .. automodule:: migrate.changeset.databases.firebird
@@ -60,7 +56,7 @@ Module :mod:`firebird <migrate.changeset.databases.firebird>`
 .. _oracle-d:
 
 Module :mod:`oracle <migrate.changeset.databases.oracle>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 .. automodule:: migrate.changeset.databases.oracle
@@ -70,7 +66,7 @@ Module :mod:`oracle <migrate.changeset.databases.oracle>`
 .. _postgres-d:
 
 Module :mod:`postgres <migrate.changeset.databases.postgres>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: migrate.changeset.databases.postgres
    :members:
@@ -79,20 +75,20 @@ Module :mod:`postgres <migrate.changeset.databases.postgres>`
 .. _sqlite-d:
 
 Module :mod:`sqlite <migrate.changeset.databases.sqlite>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: migrate.changeset.databases.sqlite
    :members:
    :synopsis: SQLite database specific changeset implementations
 
 Module :mod:`visitor <migrate.changeset.databases.visitor>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: migrate.changeset.databases.visitor
    :members:
 
 Module :mod:`schema <migrate.changeset.schema>` -- Additional API to SQLAlchemy for migrations
--------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
 
 .. automodule:: migrate.changeset.schema
    :members:
@@ -109,7 +105,7 @@ Module :mod:`migrate.versioning` -- Database versioning and repository managemen
 .. _versioning-api:
 
 Module :mod:`api <migrate.versioning.api>` -- Python API commands
---------------------------------------------------------------------------
+-----------------------------------------------------------------
 
 .. automodule:: migrate.versioning.api
    :members:
@@ -194,3 +190,11 @@ Module :mod:`version <migrate.versioning.version>` -- Versioning management
    :members:
    :member-order: groupwise
    :synopsis: Version management
+
+Module :mod:`exceptions <migrate.exceptions>` -- Exception definitions
+======================================================================
+
+.. automodule:: migrate.exceptions
+   :members:
+   :synopsis: Migrate exception classes
+

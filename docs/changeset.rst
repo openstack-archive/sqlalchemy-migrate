@@ -18,12 +18,12 @@ database without having to load that table into Python).
 Changeset operations can be used independently of SQLAlchemy Migrate's
 :ref:`versioning <versioning-system>`.
 
-For more information, see the generated documentation for
+For more information, see the API documentation for
 :mod:`migrate.changeset`.
 
 .. _summary-changeset-api:
 
-Summary of supported actions:
+Here are some direct links to the relevent sections of the API documentations:
 
 
 * :meth:`Create a column <ChangesetColumn.create>`
@@ -43,7 +43,12 @@ Summary of supported actions:
 
 .. note::
 
-	alter_metadata keyword defaults to True.
+  Many of the schema modification methods above take an
+  ``alter_metadata`` keyword parameter. This parameter defaults to
+  ``True``.
+
+The following sections give examples of how to make various kinds of
+schema changes.
 
 Column
 ======
@@ -57,7 +62,7 @@ Given a standard SQLAlchemy table::
 
 .. _column-create:
 
-:meth:`Create a column <ChangesetColumn.create>`::
+You can create a column with :meth:`~ChangesetColumn.create`::
 
  col = Column('col1', String, default='foobar')
  col.create(table, populate_default=True)
@@ -69,14 +74,25 @@ Given a standard SQLAlchemy table::
 
 .. _column-drop:
 
-:meth:`Drop a column <ChangesetColumn.drop>`::
+.. note::
+
+  You can pass `primary_key_name`, `index_name`
+  and `unique_name` to the :meth:`~ChangesetColumn.create` method to issue ``ALTER TABLE ADD
+  CONSTRAINT`` after changing the column. 
+
+  For multi columns constraints and other advanced configuration,
+  check the :ref:`constraint tutorial <constraint-tutorial>`. 
+
+  .. versionadded:: 0.6.0
+
+You can drop a column with :meth:`~ChangesetColumn.drop`::
 
  col.drop()
 
 
 .. _column-alter:
 
-:meth:`Alter a column <ChangesetColumn.alter>`::
+You can alter a column with :meth:`~ChangesetColumn.alter`::
 
  col.alter(name='col2')
 
@@ -91,25 +107,25 @@ Given a standard SQLAlchemy table::
  assert col.nullable
  assert table.c.col3 is col
 
-.. warning:: 
-    Since version ``0.6.0`` passing column into :meth:`ChangesetColumn.alter` is deprecated. Pass in explicit parameters instead.  
-
-.. note::
-
-    Since version ``0.6.0`` you can pass primary_key_name, index_name and unique_name to column.create method to issue ALTER TABLE ADD CONSTRAINT after changing the column. Note for multi columns constraints and other advanced configuration, check :ref:`constraint tutorial <constraint-tutorial>`.
+.. deprecated:: 0.6.0
+    Passing a :class:`~sqlalchemy.schema.Column` to
+    :meth:`ChangesetColumn.alter` is deprecated. Pass in explicit
+    parameters, such as `name` for a new column name and `type` for a
+    new column type, instead. Do **not** include any parameters that
+    are not changed.
 
 .. _table-rename:
 
 Table
 =====
 
-SQLAlchemy supports `table create/drop`_.
+SQLAlchemy includes support for `creating and dropping`__ tables..
 
-:meth:`Rename a table <ChangesetTable.rename>`::
+Tables can be renamed with :meth:`~ChangesetTable.rename`::
 
  table.rename('newtablename')
 
-.. _`table create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#creating-and-dropping-database-tables
+.. __: http://www.sqlalchemy.org/docs/05/metadata.html#creating-and-dropping-database-tables
 .. currentmodule:: migrate.changeset.constraint
 
 
@@ -118,13 +134,13 @@ SQLAlchemy supports `table create/drop`_.
 Index
 =====
 
-SQLAlchemy supports `index create/drop`_.
+SQLAlchemy supports `creating and dropping`__ indexes.
 
-:meth:`Rename an index <migrate.changeset.schema.ChangesetIndex.rename>`, given an SQLAlchemy ``Index`` object::
+Indexes can be renamed using :meth:`~migrate.changeset.schema.ChangesetIndex.rename`::
 
  index.rename('newindexname')
 
-.. _`index create/drop`: http://www.sqlalchemy.org/docs/05/metadata.html#indexes
+.. __: http://www.sqlalchemy.org/docs/05/metadata.html#indexes
 
 
 .. _constraint-tutorial:
@@ -132,11 +148,27 @@ SQLAlchemy supports `index create/drop`_.
 Constraint
 ==========
 
-SQLAlchemy supports creating/dropping constraints at the same time a table is created/dropped. SQLAlchemy Migrate adds support for creating/dropping :class:`PrimaryKeyConstraint`/:class:`ForeignKeyConstraint`/:class:`CheckConstraint`/:class:`UniqueConstraint` constraints independently. (as ALTER TABLE statements).
+.. currentmodule:: migrate.changeset.constraint
+
+SQLAlchemy supports creating or dropping constraints at the same time
+a table is created or dropped. SQLAlchemy Migrate adds support for
+creating and dropping
+:class:`~sqlalchemy.schema.PrimaryKeyConstraint`,
+:class:`~sqlalchemy.schema.ForeignKeyConstraint`,
+:class:`~sqlalchemy.schema.CheckConstraint` and
+:class:`~sqlalchemy.schema.UniqueConstraint` constraints independently
+using ``ALTER TABLE`` statements.
 
 The following rundowns are true for all constraints classes:
 
-1. Make sure you do ``from migrate.changeset import *`` after SQLAlchemy imports since `migrate` does not patch SA's Constraints.
+1. Make sure you import the relevent constrain class Migrate and not
+   from SQLAlchemy, for example::
+
+    from migrate.changeset.constraint import ForeignKeyConstraint
+
+   The classes in that module have the extra
+   :meth:`~ConstraintChangeset.create` and
+   :meth:`~ConstraintChangeset.drop` methods.
 
 2. You can also use Constraints as in SQLAlchemy. In this case passing table argument explicitly is required::
 
@@ -148,11 +180,11 @@ The following rundowns are true for all constraints classes:
 	# Drop the constraint
 	cons.drop()
 
-or you can pass in column objects (and table argument can be left out)::
+   You can also pass in :class:`~sqlalchemy.schema.Column` objects (and table argument can be left out)::
 
 	cons = PrimaryKeyConstraint(col1, col2)
 
-3. Some dialects support CASCADE option when dropping constraints::
+3. Some dialects support ``CASCADE`` option when dropping constraints::
 
 	cons = PrimaryKeyConstraint(col1, col2)
 
@@ -164,7 +196,11 @@ or you can pass in column objects (and table argument can be left out)::
 
 
 .. note::
-	 SQLAlchemy Migrate will try to guess the name of the constraints for databases, but if it's something other than the default, you'll need to give its name. Best practice is to always name your constraints. Note that Oracle requires that you state the name of the constraint to be created/dropped.
+	 SQLAlchemy Migrate will try to guess the name of the
+	 constraints for databases, but if it's something other than
+	 the default, you'll need to give its name. Best practice is
+	 to always name your constraints. Note that Oracle requires
+	 that you state the name of the constraint to be created or dropped.
 
 
 Examples
@@ -172,7 +208,7 @@ Examples
 
 Primary key constraints::
 
- from migrate.changeset import *
+ from migrate.changeset.constraint import PrimaryKeyConstraint
 
  cons = PrimaryKeyConstraint(col1, col2)
 
@@ -184,7 +220,7 @@ Primary key constraints::
 
 Foreign key constraints::
 
- from migrate.changeset import *
+ from migrate.changeset.constraint import ForeignKeyConstraint
 
  cons = ForeignKeyConstraint([table.c.fkey], [othertable.c.id])
 
@@ -196,7 +232,7 @@ Foreign key constraints::
 
 Check constraints::
 
-	from migrate.changeset import *
+	from migrate.changeset.constraint import CheckConstraint
 
 	cons = CheckConstraint('id > 3', columns=[table.c.id])
 
@@ -208,7 +244,7 @@ Check constraints::
 
 Unique constraints::
 
-	from migrate.changeset import *
+	from migrate.changeset.constraint import UniqueConstraint
 
 	cons = UniqueConstraint('id', 'age', table=self.table)
 

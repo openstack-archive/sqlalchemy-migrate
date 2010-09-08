@@ -470,12 +470,7 @@ class TestColumnChange(fixture.DB):
         
     @fixture.usedb()
     def test_type(self):
-        """Can change a column's type"""
-        # Entire column definition given
-        self.table.c.data.alter(name='data', type=String(42))
-        self.refresh_table(self.table.name)
-        self.assert_(isinstance(self.table.c.data.type, String))
-        self.assertEquals(self.table.c.data.type.length, 42)
+        # Test we can change a column's type
 
         # Just the new type
         self.table.c.data.alter(type=String(43))
@@ -514,7 +509,7 @@ class TestColumnChange(fixture.DB):
 
         # Column object
         default = 'your_default'
-        self.table.c.data.alter(name='data', type=String(40), server_default=DefaultClause(default))
+        self.table.c.data.alter(type=String(40), server_default=DefaultClause(default))
         self.refresh_table(self.table.name)
         self.assert_(default in str(self.table.c.data.server_default.arg))
 
@@ -538,7 +533,7 @@ class TestColumnChange(fixture.DB):
         self.assertEquals(self.table.c.data.nullable, True)
 
         # Full column
-        self.table.c.data.alter(name='data', type=String(40), nullable=False)
+        self.table.c.data.alter(type=String(40), nullable=False)
         self.table.nullable = None
         self.refresh_table(self.table.name)
         self.assertEquals(self.table.c.data.nullable, False)
@@ -549,7 +544,7 @@ class TestColumnChange(fixture.DB):
         self.assertEquals(self.table.c.data.nullable, True)
 
     @fixture.usedb()
-    def test_alter_metadata_deprecated(self):
+    def test_alter_deprecated(self):
         try:
             # py 2.4 compatability :-/
             cw = catch_warnings(record=True)
@@ -578,8 +573,7 @@ class TestColumnChange(fixture.DB):
         self.assertEqual(self.table.c.data.type.length, 100)
 
         # nothing should change
-        self.table.c.data.alter(name='data', type=String(200),
-                                alter_metadata=False)
+        self.table.c.data.alter(type=String(200),alter_metadata=False)
         self.assert_(isinstance(self.table.c.data.type, String))
         self.assertEqual(self.table.c.data.type.length, 100)
 
@@ -587,7 +581,7 @@ class TestColumnChange(fixture.DB):
     def test_alter_returns_delta(self):
         """Test if alter constructs return delta"""
 
-        delta = self.table.c.data.alter(name='data', type=String(100))
+        delta = self.table.c.data.alter(type=String(100))
         self.assert_('type' in delta)
 
     @fixture.usedb()

@@ -90,12 +90,30 @@ def rename_index(index, name, table=None, engine=None, **kw):
 def alter_column(*p, **k):
     """Alter a column.
 
-    Direct API to :class:`ColumnDelta`.
+    This is a helper function that creates a :class:`ColumnDelta` and
+    runs it.
 
-    :param table: Table or table name (will issue reflection).
-    :param engine: Will be used for reflection.
-    :param alter_metadata: Defaults to True. It will alter changes also to objects.
-    :returns: :class:`Columndelta` instance
+    :argument column:
+      The name of the column to be altered or a
+      :class:`ChangesetColumn` column representing it.
+
+    :param table:
+      A :class:`~sqlalchemy.schema.Table` or table name to
+      for the table where the column will be changed.
+
+    :param engine:
+      The :class:`~sqlalchemy.engine.base.Engine` to use for table
+      reflection and schema alterations.
+    
+    :param alter_metadata:
+      If `True`, which is the default, the
+      :class:`~sqlalchemy.schema.Column` will also modified.
+      If `False`, the :class:`~sqlalchemy.schema.Column` will be left
+      as it was.
+    
+    :returns: A :class:`ColumnDelta` instance representing the change.
+
+    
     """
     
     k.setdefault('alter_metadata', DEFAULT_ALTER_METADATA)
@@ -466,20 +484,8 @@ class ChangesetColumn(object):
     """Changeset extensions to SQLAlchemy columns."""
 
     def alter(self, *p, **k):
-        """Alter a column's definition: ``ALTER TABLE ALTER COLUMN``.
-
-        Column name, type, server_default, and nullable may be changed
-        here.
-
-        Direct API to :func:`alter_column`
-
-        Example::
-
-            col.alter(name='foobar', type=Integer(), server_default=text("a"))
-
-        Supported parameters: name, type, primary_key, nullable,
-        server_onupdate, server_default, autoincrement
-
+        """Makes a call to :func:`alter_column` for the column this
+        method is called on. 
         """
         if 'table' not in k:
             k['table'] = self.table

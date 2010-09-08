@@ -567,7 +567,7 @@ class TestColumnChange(fixture.DB):
     def test_alter_metadata(self):
         """Test if alter_metadata is respected"""
 
-        self.table.c.data.alter(name='data', type=String(100))
+        self.table.c.data.alter(type=String(100))
 
         self.assert_(isinstance(self.table.c.data.type, String))
         self.assertEqual(self.table.c.data.type.length, 100)

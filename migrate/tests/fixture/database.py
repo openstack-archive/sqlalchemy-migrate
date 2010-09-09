@@ -126,6 +126,8 @@ class DB(Base):
         # TODO: seems like 0.5.x branch does not work with engine.dispose and staticpool
         #self.engine = create_engine(url, echo=True, poolclass=StaticPool)
         self.engine = create_engine(url, echo=True)
+        # silence the logger added by SA, nose adds its own!
+        logging.getLogger('sqlalchemy').handlers=[]
         self.meta = MetaData(bind=self.engine)
         if self.level < self.CONNECT:
             return

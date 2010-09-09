@@ -13,6 +13,7 @@ Fixed bugs
 - some documentation fixes
 - fixed bug with column dropping in sqlite (issue 96)
 - fixed bug with column dropping involving foreign keys
+- implemented column adding when foreign keys are present for sqlite
 
 0.6 (11.07.2010)
 ---------------------------

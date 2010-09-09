@@ -51,14 +51,27 @@ class SQLiteHelper(SQLiteCommon):
         self.append('DROP TABLE migration_tmp')
         self.execute()
 
-class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon, 
-                            ansisql.ANSIColumnGenerator):
+class SQLiteColumnGenerator(SQLiteSchemaGenerator, 
+                            ansisql.ANSIColumnGenerator,
+                            # at the end so we get the normal
+                            # visit_column by default
+                            SQLiteHelper,
+                            SQLiteCommon
+                            ):
     """SQLite ColumnGenerator"""
 
-    def add_foreignkey(self, constraint):
-        """Does not support ALTER TABLE ADD FOREIGN KEY"""
-        self._not_supported("ALTER TABLE ADD CONSTRAINT")
+    def _modify_table(self, table, column, delta):
+        columns = ' ,'.join(map(
+                self.preparer.format_column,
+                [c for c in table.columns if c.name!=column.name]))
+        return ('INSERT INTO %%(table_name)s (%(cols)s) '
+                'SELECT %(cols)s from migration_tmp')%{'cols':columns}
 
+    def visit_column(self,column):
+        if column.foreign_keys:
+            SQLiteHelper.visit_column(self,column)
+        else:
+            super(SQLiteColumnGenerator,self).visit_column(column)
 
 class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
     """SQLite ColumnDropper"""
@@ -73,7 +86,6 @@ class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
     """SQLite SchemaChanger"""
 
     def _modify_table(self, table, column, delta):
-        column = table.columns[delta.current_name]
         return 'INSERT INTO %(table_name)s SELECT * from migration_tmp'
 
     def visit_index(self, index):

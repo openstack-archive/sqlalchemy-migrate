@@ -166,23 +166,19 @@ class TestAddDropColumn(fixture.DB):
 
         # create column with fk
         col = Column('data', Integer, ForeignKey(reftable.c.id))
-        if self.url.startswith('sqlite'):
-            self.assertRaises(exceptions.NotSupportedError,
-                col.create, self.table)
+        col.create(self.table)
+
+        # check if constraint is added
+        for cons in self.table.constraints:
+            if isinstance(cons, sqlalchemy.schema.ForeignKeyConstraint):
+                break
         else:
-            col.create(self.table)
+            self.fail('No constraint found')
 
-            # check if constraint is added
-            for cons in self.table.constraints:
-                if isinstance(cons, sqlalchemy.schema.ForeignKeyConstraint):
-                    break
-            else:
-                self.fail('No constraint found')
+        # TODO: test on db level if constraints work
 
-            # TODO: test on db level if constraints work
-
-            self.assertEqual(reftable.c.id.name, col.foreign_keys[0].column.name)
-            col.drop(self.table)
+        self.assertEqual(reftable.c.id.name, col.foreign_keys[0].column.name)
+        col.drop(self.table)
 
         if self.engine.has_table(reftable.name):
             reftable.drop()

@@ -77,7 +77,7 @@ def usedb(supported=None, not_supported=None):
     @decorator
     def dec(f, self, *a, **kw):
         failed_for = []
-        exception = None
+        fail = False
         for url in my_urls:
             try:
                 log.debug("Running test with engine %s", url)
@@ -104,12 +104,12 @@ def usedb(supported=None, not_supported=None):
                         )%(setup_exception,teardown_exception))
             except Exception,e:
                 failed_for.append(url)
-                exception = exception or e
+                fail = True
         for url in failed_for:
             log.error('Failed for %s', url)
-        if exception:
+        if fail:
             # cause the failure :-)
-            raise exception
+            raise
     return dec
 
 

@@ -73,7 +73,7 @@ Dialect support
       - yes
       - not supported
     * - :ref:`ALTER TABLE ADD COLUMN <column-create>`
-      - yes (with limitations) [#2]_
+      - yes (workaround) [#2]_
       - yes
       - yes
       - yes
@@ -94,14 +94,14 @@ Dialect support
       - yes [#4]_
       - not supported
     * - :ref:`ALTER TABLE ADD CONSTRAINT <constraint-tutorial>`
-      - no
+      - partial (workaround) [#1]_
       - yes
       - yes
       - yes
       - yes
       - not supported
     * - :ref:`ALTER TABLE DROP CONSTRAINT <constraint-tutorial>`
-      - no
+      - partial (workaround) [#1]_
       - yes
       - yes
       - yes
@@ -117,7 +117,8 @@ Dialect support
 
 
 .. [#1] Table is renamed to temporary table, new table is created followed by INSERT statements.
-.. [#2] Visit http://www.sqlite.org/lang_altertable.html for more information.
+.. [#2] See http://www.sqlite.org/lang_altertable.html for more information.
+        In cases not supported my sqlite, table is renamed to temporary table, new table is created followed by INSERT statements.
 .. [#3] You can not change datatype or rename column if table has NOT NULL data, see http://blogs.x2line.com/al/archive/2005/08/30/1231.aspx for more information.
 .. [#4] Changing nullable is not supported
 

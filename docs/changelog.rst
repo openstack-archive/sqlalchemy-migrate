@@ -11,6 +11,7 @@ Fixed bugs
   to :mod:`migrate.exceptions`
 - cleared up test output and improved testing of deprecation warnings.
 - some documentation fixes
+- fixed bug with column dropping in sqlite (issue 96)
 
 0.6 (11.07.2010)
 ---------------------------

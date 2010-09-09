@@ -299,7 +299,41 @@ class TestAddDropColumn(fixture.DB):
     # TODO: test quoting
     # TODO: test non-autoname constraints
 
+    @fixture.usedb()
+    def test_drop_doesnt_delete_other_indexes(self):
+        # add two indexed columns
+        self.table.drop()
+        self.meta.clear()
+        self.table = Table(
+            self.table_name, self.meta,
+            Column('id', Integer, primary_key=True),
+            Column('d1', String(10), index=True),
+            Column('d2', String(10), index=True),
+            )
+        self.table.create()
 
+        # paranoid check
+        if SQLA_06:
+            self.refresh_table()
+            self.assertEqual(
+                sorted([i.name for i in self.table.indexes]),
+                [u'ix_tmp_adddropcol_d1', u'ix_tmp_adddropcol_d2']
+                )
+            
+        # delete one
+        self.table.c.d2.drop()
+
+        # ensure the other index is still there
+        if SQLA_06:
+            self.refresh_table()
+            self.assertEqual(
+                sorted([i.name for i in self.table.indexes]),
+                [u'ix_tmp_adddropcol_d1']
+                )
+        else:
+            # a crude test for 0.5.x
+            Index('ix_tmp_adddropcol_d1',self.table.c.d1).drop()
+            
 class TestRename(fixture.DB):
     """Tests for table and index rename methods"""
     level = fixture.DB.CONNECT

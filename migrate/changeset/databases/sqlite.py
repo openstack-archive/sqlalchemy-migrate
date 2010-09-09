@@ -35,11 +35,10 @@ class SQLiteHelper(SQLiteCommon):
             table = self._to_table(column.table)
         table_name = self.preparer.format_table(table)
 
-        # we remove all constraints, indexes so it doesnt recreate them
-        ixbackup = copy(table.indexes)
-        consbackup = copy(table.constraints)
-        table.indexes = set()
-        table.constraints = set()
+        # we remove all indexes so as not to have
+        # problems during copy and re-create
+        for index in table.indexes:
+            index.drop()
 
         self.append('ALTER TABLE %s RENAME TO migration_tmp' % table_name)
         self.execute()
@@ -51,10 +50,6 @@ class SQLiteHelper(SQLiteCommon):
         self.execute()
         self.append('DROP TABLE migration_tmp')
         self.execute()
-
-        # restore indexes, constraints
-        table.indexes = ixbackup
-        table.constraints = consbackup
 
 class SQLiteColumnGenerator(SQLiteSchemaGenerator, SQLiteCommon, 
                             ansisql.ANSIColumnGenerator):

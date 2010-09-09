@@ -568,9 +568,20 @@ populated with defaults
             self._set_parent(table)
 
     def remove_from_table(self, table, unset_table=True):
-        # TODO: remove indexes, primary keys, constraints, etc
+        # TODO: remove primary keys, constraints, etc
         if unset_table:
             self.table = None
+        to_drop = set()
+        for index in table.indexes:
+            columns = []
+            for col in index.columns:
+                if col.name!=self.name:
+                    columns.append(col)
+            if columns:
+                index.columns=columns
+            else:
+                to_drop.add(index)
+        table.indexes = table.indexes - to_drop
         if table.c.contains_column(self):
             table.c.remove(self)
 

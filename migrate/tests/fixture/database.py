@@ -76,29 +76,40 @@ def usedb(supported=None, not_supported=None):
 
     @decorator
     def dec(f, self, *a, **kw):
+        failed_for = []
+        exception = None
         for url in my_urls:
-            log.debug("Running test with engine %s", url)
             try:
+                log.debug("Running test with engine %s", url)
                 try:
-                    self._setup(url)
-                except Exception,e:
-                    setup_exception=e
-                else:
-                    setup_exception=None
-                    f(self, *a, **kw)
-            finally:
-                try:
-                    self._teardown()
-                except Exception,e:
-                    teardown_exception=e
-                else:
-                    teardown_exception=None
-            if setup_exception or teardown_exception:
-                raise RuntimeError((
-                    'Exception during _setup/_teardown:\n'
-                    'setup: %r\n'
-                    'teardown: %r\n'
-                    )%(setup_exception,teardown_exception))
+                    try:
+                        self._setup(url)
+                    except Exception,e:
+                        setup_exception=e
+                    else:
+                        setup_exception=None
+                        f(self, *a, **kw)
+                finally:
+                    try:
+                        self._teardown()
+                    except Exception,e:
+                        teardown_exception=e
+                    else:
+                        teardown_exception=None
+                if setup_exception or teardown_exception:
+                    raise RuntimeError((
+                        'Exception during _setup/_teardown:\n'
+                        'setup: %r\n'
+                        'teardown: %r\n'
+                        )%(setup_exception,teardown_exception))
+            except Exception,e:
+                failed_for.append(url)
+                exception = exception or e
+        for url in failed_for:
+            log.error('Failed for %s', url)
+        if exception:
+            # cause the failure :-)
+            raise exception
     return dec
 
 

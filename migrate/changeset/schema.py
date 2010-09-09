@@ -2,9 +2,12 @@
    Schema module providing common schema operations.
 """
 import warnings
+
 from UserDict import DictMixin
 
 import sqlalchemy
+
+from sqlalchemy.schema import ForeignKeyConstraint
 
 from migrate.exceptions import *
 from migrate.changeset import SQLA_06
@@ -571,6 +574,7 @@ populated with defaults
         # TODO: remove primary keys, constraints, etc
         if unset_table:
             self.table = None
+            
         to_drop = set()
         for index in table.indexes:
             columns = []
@@ -582,6 +586,20 @@ populated with defaults
             else:
                 to_drop.add(index)
         table.indexes = table.indexes - to_drop
+        
+        to_drop = set()
+        for cons in table.constraints:
+            # TODO: deal with other types of constraint
+            if isinstance(cons,ForeignKeyConstraint):
+                col_names = []
+                for col_name in cons.columns:
+                    if not isinstance(col_name,basestring):
+                        col_name = col_name.name
+                    col_names.append(col_name)
+                if self.name in col_names:
+                    to_drop.add(cons)
+        table.constraints = table.constraints - to_drop
+        
         if table.c.contains_column(self):
             table.c.remove(self)
 

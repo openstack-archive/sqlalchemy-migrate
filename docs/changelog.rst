@@ -12,6 +12,7 @@ Fixed bugs
 - cleared up test output and improved testing of deprecation warnings.
 - some documentation fixes
 - fixed bug with column dropping in sqlite (issue 96)
+- fixed bug with column dropping involving foreign keys
 
 0.6 (11.07.2010)
 ---------------------------

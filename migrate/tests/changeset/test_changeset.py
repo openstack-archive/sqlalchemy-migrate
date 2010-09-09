@@ -334,6 +334,96 @@ class TestAddDropColumn(fixture.DB):
             # a crude test for 0.5.x
             Index('ix_tmp_adddropcol_d1',self.table.c.d1).drop()
             
+    def _actual_foreign_keys(self):
+        from sqlalchemy.schema import ForeignKeyConstraint
+        result = []
+        for cons in self.table.constraints:
+            if isinstance(cons,ForeignKeyConstraint):
+                col_names = []
+                for col_name in cons.columns:
+                    if not isinstance(col_name,basestring):
+                        col_name = col_name.name
+                    col_names.append(col_name)
+                result.append(col_names)
+        result.sort()
+        return result
+        
+    @fixture.usedb()
+    def test_drop_with_foreign_keys(self):
+        self.table.drop()
+        self.meta.clear()
+        
+        # create FK's target
+        reftable = Table('tmp_ref', self.meta,
+            Column('id', Integer, primary_key=True),
+        )
+        if self.engine.has_table(reftable.name):
+            reftable.drop()
+        reftable.create()
+        
+        # add a table with two foreign key columns
+        self.table = Table(
+            self.table_name, self.meta,
+            Column('id', Integer, primary_key=True),
+            Column('r1', Integer, ForeignKey('tmp_ref.id')),
+            Column('r2', Integer, ForeignKey('tmp_ref.id')),
+            )
+        self.table.create()
+
+        # paranoid check
+        self.assertEqual([['r1'],['r2']],
+                         self._actual_foreign_keys())
+        
+        # delete one
+        self.table.c.r2.drop()
+        
+        # check remaining foreign key is there
+        self.assertEqual([['r1']],
+                         self._actual_foreign_keys())
+        
+    @fixture.usedb()
+    def test_drop_with_complex_foreign_keys(self):
+        from sqlalchemy.schema import ForeignKeyConstraint
+        from sqlalchemy.schema import UniqueConstraint
+        
+        self.table.drop()
+        self.meta.clear()
+        
+        # create FK's target
+        reftable = Table('tmp_ref', self.meta,
+            Column('id', Integer, primary_key=True),
+            Column('jd', Integer),
+            UniqueConstraint('id','jd')
+            )
+        if self.engine.has_table(reftable.name):
+            reftable.drop()
+        reftable.create()
+        
+        # add a table with a complex foreign key constraint
+        self.table = Table(
+            self.table_name, self.meta,
+            Column('id', Integer, primary_key=True),
+            Column('r1', Integer),
+            Column('r2', Integer),
+            ForeignKeyConstraint(['r1','r2'],
+                                 [reftable.c.id,reftable.c.jd])
+            )
+        self.table.create()
+
+        # paranoid check
+        self.assertEqual([['r1','r2']],
+                         self._actual_foreign_keys())
+        
+        # delete one
+        self.table.c.r2.drop()
+        
+        # check the constraint is gone, since part of it
+        # is no longer there - if people hit this,
+        # they may be confused, maybe we should raise an error
+        # and insist that the constraint is deleted first, separately?
+        self.assertEqual([],
+                         self._actual_foreign_keys())
+        
 class TestRename(fixture.DB):
     """Tests for table and index rename methods"""
     level = fixture.DB.CONNECT

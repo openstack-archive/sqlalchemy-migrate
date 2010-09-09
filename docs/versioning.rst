@@ -487,9 +487,6 @@ Here are the commands' descriptions as given by ``migrate help <command>``:
   stdout.
 - ``make_update_script_for_model``: Create a script changing the old
   Python model to the new (current) Python model, sending to stdout.
-- ``upgrade_db_from_model``: Modify the database to match the
-  structure of the current Python model. This also sets the db_version
-  number to the latest in the repository.
 
 As this sections headline says: These features are EXPERIMENTAL. Take
 the necessary arguments to the commands from the output of ``migrate

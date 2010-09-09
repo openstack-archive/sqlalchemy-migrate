@@ -108,10 +108,7 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
 
         # add indexes and unique constraints
         if column.index_name:
-            ix = Index(column.index_name,
-                       column,
-                       unique=bool(column.index_name or column.index))
-            ix.create()
+            Index(column.index_name,column).create()
         elif column.unique_name:
             constraint.UniqueConstraint(column,
                                         name=column.unique_name).create()

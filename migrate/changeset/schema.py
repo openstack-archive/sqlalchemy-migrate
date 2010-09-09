@@ -8,6 +8,7 @@ from UserDict import DictMixin
 import sqlalchemy
 
 from sqlalchemy.schema import ForeignKeyConstraint
+from sqlalchemy.schema import UniqueConstraint
 
 from migrate.exceptions import *
 from migrate.changeset import SQLA_06
@@ -570,6 +571,9 @@ populated with defaults
         if table is not None  and self.table is None:
             self._set_parent(table)
 
+    def _col_name_in_constraint(self,cons,name):
+        return False
+    
     def remove_from_table(self, table, unset_table=True):
         # TODO: remove primary keys, constraints, etc
         if unset_table:
@@ -590,14 +594,13 @@ populated with defaults
         to_drop = set()
         for cons in table.constraints:
             # TODO: deal with other types of constraint
-            if isinstance(cons,ForeignKeyConstraint):
-                col_names = []
+            if isinstance(cons,(ForeignKeyConstraint,
+                                UniqueConstraint)):
                 for col_name in cons.columns:
                     if not isinstance(col_name,basestring):
                         col_name = col_name.name
-                    col_names.append(col_name)
-                if self.name in col_names:
-                    to_drop.add(cons)
+                    if self.name==col_name:
+                        to_drop.add(cons)
         table.constraints = table.constraints - to_drop
         
         if table.c.contains_column(self):

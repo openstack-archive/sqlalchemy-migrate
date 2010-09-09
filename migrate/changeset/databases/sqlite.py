@@ -26,13 +26,7 @@ class SQLiteCommon(object):
 
 class SQLiteHelper(SQLiteCommon):
 
-    def visit_column(self, delta):
-        if isinstance(delta, DictMixin):
-            column = delta.result_column
-            table = self._to_table(delta.table)
-        else:
-            column = delta
-            table = self._to_table(column.table)
+    def recreate_table(self,table,column=None,delta=None):
         table_name = self.preparer.format_table(table)
 
         # we remove all indexes so as not to have
@@ -50,6 +44,15 @@ class SQLiteHelper(SQLiteCommon):
         self.execute()
         self.append('DROP TABLE migration_tmp')
         self.execute()
+        
+    def visit_column(self, delta):
+        if isinstance(delta, DictMixin):
+            column = delta.result_column
+            table = self._to_table(delta.table)
+        else:
+            column = delta
+            table = self._to_table(column.table)
+        self.recreate_table(table,column,delta)
 
 class SQLiteColumnGenerator(SQLiteSchemaGenerator, 
                             ansisql.ANSIColumnGenerator,
@@ -93,7 +96,7 @@ class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):
         self._not_supported('ALTER INDEX')
 
 
-class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator, SQLiteCommon):
+class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator, SQLiteHelper, SQLiteCommon):
 
     def visit_migrate_primary_key_constraint(self, constraint):
         tmpl = "CREATE UNIQUE INDEX %s ON %s ( %s )"
@@ -104,11 +107,14 @@ class SQLiteConstraintGenerator(ansisql.ANSIConstraintGenerator, SQLiteCommon):
         self.append(msg)
         self.execute()
 
+    def _modify_table(self, table, column, delta):
+        return 'INSERT INTO %(table_name)s SELECT * from migration_tmp'
+
     def visit_migrate_foreign_key_constraint(self, *p, **k):
-        self._not_supported('ALTER TABLE ADD CONSTRAINT')
+        self.recreate_table(p[0].table)
 
     def visit_migrate_unique_constraint(self, *p, **k):
-        self._not_supported('ALTER TABLE ADD CONSTRAINT')
+        self.recreate_table(p[0].table)
 
 
 class SQLiteConstraintDropper(ansisql.ANSIColumnDropper,

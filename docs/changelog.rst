@@ -14,6 +14,11 @@ Fixed bugs
 - fixed bug with column dropping in sqlite (issue 96)
 - fixed bug with column dropping involving foreign keys
 - implemented column adding when foreign keys are present for sqlite
+- fixed bug that prevented non-unique indexes being created (issue 94)
+- implemented columns adding with unique constraints for sqlite
+- implemented adding unique and foreign key constraints to columns
+  for sqlite
+- fixed bug when dropping columns with unique constraints in sqlite
 
 0.6 (11.07.2010)
 ---------------------------

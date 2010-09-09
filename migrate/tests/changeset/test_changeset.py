@@ -223,11 +223,11 @@ class TestAddDropColumn(fixture.DB):
 
         col.drop()
 
-    @fixture.usedb(not_supported='sqlite')
-    def test_unique(self):
-        """Can create columns with unique constraint"""
+    @fixture.usedb()
+    def test_unique_constraint(self):
         self.assertRaises(exceptions.InvalidConstraintError,
             Column('data', Integer, unique=True).create, self.table)
+
         col = Column('data', Integer)
         col.create(self.table, unique_name='data_unique')
 
@@ -244,13 +244,33 @@ class TestAddDropColumn(fixture.DB):
         col.drop(self.table)
 
 # TODO: remove already attached columns with indexes, uniques, pks, fks ..
+
+    def _check_index(self,expected):
+        if 'mysql' in self.engine.name or 'postgres' in self.engine.name:
+            for index in tuple(
+                Table(self.table.name, MetaData(),
+                      autoload=True, autoload_with=self.engine).indexes
+                ):
+                if index.name=='ix_data':
+                    break
+            self.assertEqual(expected,index.unique)
+        
     @fixture.usedb()
     def test_index(self):
-        """Can create columns with indexes"""
-        self.assertRaises(exceptions.InvalidConstraintError,
-            Column('data', Integer).create, self.table, index_name=True)
         col = Column('data', Integer)
         col.create(self.table, index_name='ix_data')
+
+        self._check_index(False)
+
+        Index('ix_data', col).drop(bind=self.engine)
+        col.drop()
+        
+    @fixture.usedb()
+    def test_index_unique(self):
+        # shows how to create a unique index
+        col = Column('data', Integer)
+        col.create(self.table)
+        Index('ix_data', col, unique=True).create(bind=self.engine)
 
         # check if index was added
         self.table.insert(values={'data': 5}).execute()
@@ -262,9 +282,11 @@ class TestAddDropColumn(fixture.DB):
         else:
             self.fail()
 
+        self._check_index(True)
+
         Index('ix_data', col).drop(bind=self.engine)
         col.drop()
-
+        
     @fixture.usedb()
     def test_server_defaults(self):
         """Can create columns with server_default values"""

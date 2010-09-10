@@ -166,14 +166,17 @@ class SchemaDiff(object):
                     )
                 
         for name,td in sorted(self.tables_different.items()):
+            out.append(
+               '  table with differences: %s' % name
+               )
             for names,label in (
                 (td.columns_missing_from_A,self.labelA),
                 (td.columns_missing_from_B,self.labelB),
                 ):
                 if names:
                     out.append(
-                        '    %s missing columns from %s: %s' % (
-                            name, label,', '.join(sorted(names))
+                        '    %s missing these columns: %s' % (
+                            label,', '.join(sorted(names))
                             )
                         )
                 

@@ -58,7 +58,9 @@ class Test_getDiffOfModelAgainstDatabase(fixture.DB):
         # run diff
         diff = self._run_diff()
         self.assertTrue(diff)
-        eq_('Schema diffs:\n    xtable missing columns from database: xcol',
+        eq_('Schema diffs:\n'
+            '  table with differences: xtable\n'
+            '    database missing these columns: xcol',
             str(diff))
 
     @fixture.usedb()
@@ -75,7 +77,9 @@ class Test_getDiffOfModelAgainstDatabase(fixture.DB):
         # run diff
         diff = self._run_diff()
         self.assertTrue(diff)
-        eq_('Schema diffs:\n    xtable missing columns from model: xcol',
+        eq_('Schema diffs:\n'
+            '  table with differences: xtable\n'
+            '    model missing these columns: xcol',
             str(diff))
 
     @fixture.usedb()

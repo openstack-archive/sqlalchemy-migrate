@@ -62,11 +62,10 @@ class PythonScript(base.BaseScript):
         diff = schemadiff.getDiffOfModelAgainstModel(
             oldmodel,
             model,
-            engine,
             excludeTables=[repository.version_table])
         # TODO: diff can be False (there is no difference?)
         decls, upgradeCommands, downgradeCommands = \
-            genmodel.ModelGenerator(diff).toUpgradeDowngradePython()
+            genmodel.ModelGenerator(diff,engine).toUpgradeDowngradePython()
 
         # Store differences into file.
         src = Template(opts.pop('templates_path', None)).get_script(opts.pop('templates_theme', None))

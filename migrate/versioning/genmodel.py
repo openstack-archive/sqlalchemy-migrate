@@ -35,8 +35,9 @@ Base = declarative.declarative_base()
 
 class ModelGenerator(object):
 
-    def __init__(self, diff, declarative=False):
+    def __init__(self, diff, engine, declarative=False):
         self.diff = diff
+        self.engine = engine
         self.declarative = declarative
 
     def column_repr(self, col):
@@ -111,6 +112,17 @@ class ModelGenerator(object):
             out.append(")")
         return out
 
+    def _get_tables(self,missingA=False,missingB=False,modified=False):
+        to_process = []
+        for bool_,names,metadata in (
+            (missingA,self.diff.tables_missing_from_A,self.diff.metadataB),
+            (missingB,self.diff.tables_missing_from_B,self.diff.metadataA),
+            (modified,self.diff.tables_different,self.diff.metadataA),
+                ):
+            if bool_:
+                for name in names:
+                    yield metadata.tables.get(name)
+        
     def toPython(self):
         """Assume database is current and model is empty."""
         out = []
@@ -119,7 +131,7 @@ class ModelGenerator(object):
         else:
             out.append(HEADER)
         out.append("")
-        for table in self.diff.tablesMissingInModel:
+        for table in self._get_tables(missingA=True):
             out.extend(self.getTableDefn(table))
             out.append("")
         return '\n'.join(out)
@@ -128,25 +140,22 @@ class ModelGenerator(object):
         ''' Assume model is most current and database is out-of-date. '''
         decls = ['from migrate.changeset import schema',
                  'meta = MetaData()']
-        for table in self.diff.tablesMissingInModel + \
-                self.diff.tablesMissingInDatabase + \
-                self.diff.tablesWithDiff:
+        for table in self._get_tables(
+            missingA=True,missingB=True,modified=True
+            ):
             decls.extend(self.getTableDefn(table))
 
         upgradeCommands, downgradeCommands = [], []
-        for table in self.diff.tablesMissingInModel:
-            tableName = table.name
+        for tableName in self.diff.tables_missing_from_A:
             upgradeCommands.append("%(table)s.drop()" % {'table': tableName})
             downgradeCommands.append("%(table)s.create()" % \
                                          {'table': tableName})
-        for table in self.diff.tablesMissingInDatabase:
-            tableName = table.name
+        for tableName in self.diff.tables_missing_from_B:
             upgradeCommands.append("%(table)s.create()" % {'table': tableName})
             downgradeCommands.append("%(table)s.drop()" % {'table': tableName})
 
-        for modelTable in self.diff.tablesWithDiff:
-            dbTable = self.diff.reflected_model.tables[modelTable.name]
-            tableName = modelTable.name
+        for tableName in self.diff.tables_different:
+            dbTable = self.diff.metadataB.tables[tableName]
             missingInDatabase, missingInModel, diffDecl = \
                 self.diff.colDiffs[tableName]
             for col in missingInDatabase:
@@ -173,38 +182,40 @@ class ModelGenerator(object):
             '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in upgradeCommands]),
             '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in downgradeCommands]))
 
+    def _db_can_handle_this_change(self,td):
+        if (td.columns_missing_from_B
+            and not td.columns_missing_from_A
+            and not td.columns_different):
+            # Even sqlite can handle this.
+            return True
+        else:
+            return not self.engine.url.drivername.startswith('sqlite')
+
     def applyModel(self):
         """Apply model to current database."""
 
-        def dbCanHandleThisChange(missingInDatabase, missingInModel, diffDecl):
-            if missingInDatabase and not missingInModel and not diffDecl:
-                # Even sqlite can handle this.
-                return True
-            else:
-                return not self.diff.conn.url.drivername.startswith('sqlite')
+        meta = sqlalchemy.MetaData(self.engine)
 
-        meta = sqlalchemy.MetaData(self.diff.conn.engine)
-
-        for table in self.diff.tablesMissingInModel:
+        for table in self._get_tables(missingA=True):
             table = table.tometadata(meta)
             table.drop()
-        for table in self.diff.tablesMissingInDatabase:
+        for table in self._get_tables(missingB=True):
             table = table.tometadata(meta)
             table.create()
-        for modelTable in self.diff.tablesWithDiff:
-            modelTable = modelTable.tometadata(meta)
-            dbTable = self.diff.reflected_model.tables[modelTable.name]
+        for modelTable in self._get_tables(modified=True):
             tableName = modelTable.name
-            missingInDatabase, missingInModel, diffDecl = \
-                self.diff.colDiffs[tableName]
-            if dbCanHandleThisChange(missingInDatabase, missingInModel,
-                                     diffDecl):
-                for col in missingInDatabase:
-                    modelTable.columns[col.name].create()
-                for col in missingInModel:
-                    dbTable.columns[col.name].drop()
-                for modelCol, databaseCol, modelDecl, databaseDecl in diffDecl:
-                    databaseCol.alter(modelCol)
+            modelTable = modelTable.tometadata(meta)
+            dbTable = self.diff.metadataB.tables[tableName]
+
+            td = self.diff.tables_different[tableName]
+            
+            if self._db_can_handle_this_change(td):
+                
+                for col in td.columns_missing_from_B:
+                    modelTable.columns[col].create()
+                for col in td.columns_missing_from_A:
+                    dbTable.columns[col].drop()
+                # XXX handle column changes here.
             else:
                 # Sqlite doesn't support drop column, so you have to
                 # do more: create temp table, copy data to it, drop
@@ -214,7 +225,7 @@ class ModelGenerator(object):
                 tempName = '_temp_%s' % modelTable.name
 
                 def getCopyStatement():
-                    preparer = self.diff.conn.engine.dialect.preparer
+                    preparer = self.engine.dialect.preparer
                     commonCols = []
                     for modelCol in modelTable.columns:
                         if modelCol.name in dbTable.columns:
@@ -225,7 +236,7 @@ class ModelGenerator(object):
 
                 # Move the data in one transaction, so that we don't
                 # leave the database in a nasty state.
-                connection = self.diff.conn.connect()
+                connection = self.engine.connect()
                 trans = connection.begin()
                 try:
                     connection.execute(

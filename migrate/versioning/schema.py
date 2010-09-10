@@ -108,8 +108,9 @@ class ControlledSchema(object):
         model = load_model(model)
 
         diff = schemadiff.getDiffOfModelAgainstDatabase(
-            model, self.engine, excludeTables=[self.repository.version_table])
-        genmodel.ModelGenerator(diff).applyModel()
+            model, self.engine, excludeTables=[self.repository.version_table]
+            )
+        genmodel.ModelGenerator(diff,self.engine).applyModel()
 
         self.update_repository_table(self.version, int(self.repository.latest))
 
@@ -207,5 +208,6 @@ class ControlledSchema(object):
             repository = Repository(repository)
 
         diff = schemadiff.getDiffOfModelAgainstDatabase(
-            MetaData(), engine, excludeTables=[repository.version_table])
-        return genmodel.ModelGenerator(diff, declarative).toPython()
+            MetaData(), engine, excludeTables=[repository.version_table]
+            )
+        return genmodel.ModelGenerator(diff, engine, declarative).toPython()

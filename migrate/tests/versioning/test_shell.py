@@ -479,14 +479,14 @@ class TestShellDatabase(Shell, DB):
         # Model is defined but database is empty.
         result = self.env.run('migrate compare_model_to_db %s %s --model=%s' \
             % (self.url, repos_path, model_module))
-        self.assert_("tables missing in database: tmp_account_rundiffs" in result.stdout)
+        self.assert_("tables missing from database: tmp_account_rundiffs" in result.stdout)
 
         # Test Deprecation
         result = self.env.run('migrate compare_model_to_db %s %s --model=%s' \
             % (self.url, repos_path, model_module.replace(":", ".")), expect_error=True)
         self.assertEqual(result.returncode, 0)
         self.assertTrue("DeprecationWarning" in result.stderr)
-        self.assert_("tables missing in database: tmp_account_rundiffs" in result.stdout)
+        self.assert_("tables missing from database: tmp_account_rundiffs" in result.stdout)
 
         # Update db to latest model.
         result = self.env.run('migrate update_db_from_model %s %s %s'\

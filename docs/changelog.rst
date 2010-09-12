@@ -23,6 +23,7 @@ Fixed bugs
 - fixed bug with column dropping involving foreign keys
 - fixed bug that prevented non-unique indexes being created (issue 94)
 - fixed bug when dropping columns with unique constraints in sqlite
+- fixed bug when passing empty list in :func:`migrate.versioning.shell.main` failed
 
 0.6 (11.07.2010)
 ---------------------------

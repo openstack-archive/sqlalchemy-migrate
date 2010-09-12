@@ -17,6 +17,8 @@ Unknown milestone
 - bash autocompletion
 - clarify ImportError in load_model
 - implement debug flag to jump into the error
+- sqlautocode support
+- serializers (json, yaml, etc)
 
 
 0.6.1

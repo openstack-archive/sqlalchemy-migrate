@@ -64,7 +64,10 @@ def main(argv=None, **kwargs):
     :param disable_logging: Let migrate configure logging
     :type disable_logging: bool
     """
-    argv = argv or list(sys.argv[1:])
+    if argv is not None:
+        argv = argv
+    else:
+        argv = list(sys.argv[1:])
     commands = list(api.__all__)
     commands.sort()
 

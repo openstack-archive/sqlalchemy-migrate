@@ -23,6 +23,8 @@ Fixed bugs
 - fixed bug with column dropping involving foreign keys
 - fixed bug that prevented non-unique indexes being created (issue 94)
 - fixed bug when dropping columns with unique constraints in sqlite
+- rewrite of the schema diff internals, now supporting column
+  differences in additon to missing columns and tables.
 
 0.6 (11.07.2010)
 ---------------------------

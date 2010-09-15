@@ -1,11 +1,12 @@
 """
    Schema differencing support.
 """
+
 import logging
-
 import sqlalchemy
-from migrate.changeset import SQLA_06
 
+from migrate.changeset import SQLA_06
+from sqlalchemy.types import Float
 
 log = logging.getLogger(__name__)
 
@@ -33,9 +34,66 @@ def getDiffOfModelAgainstModel(metadataA, metadataB, excludeTables=None):
     return SchemaDiff(metadataA, metadataB, excludeTables)
 
 
+class ColDiff(object):
+    """
+    Container for differences in one :class:`~sqlalchemy.schema.Column`
+    between two :class:`~sqlalchemy.schema.Table` instances, ``A``
+    and ``B``.
+    
+    .. attribute:: col_A
+
+      The :class:`~sqlalchemy.schema.Column` object for A.
+      
+    .. attribute:: col_B
+
+      The :class:`~sqlalchemy.schema.Column` object for B.
+
+    .. attribute:: type_A
+
+      The most generic type of the :class:`~sqlalchemy.schema.Column`
+      object in A. 
+      
+    .. attribute:: type_B
+
+      The most generic type of the :class:`~sqlalchemy.schema.Column`
+      object in A. 
+      
+    """
+    
+    diff = False
+
+    def __init__(self,col_A,col_B):
+        self.col_A = col_A
+        self.col_B = col_B
+
+        self.type_A = col_A.type
+        self.type_B = col_B.type
+
+        self.affinity_A = self.type_A._type_affinity
+        self.affinity_B = self.type_B._type_affinity
+
+        if self.affinity_A is not self.affinity_B:
+            self.diff = True
+            return
+
+        if isinstance(self.type_A,Float) or isinstance(self.type_B,Float):
+            if not (isinstance(self.type_A,Float) and isinstance(self.type_B,Float)):
+                self.diff=True
+                return
+
+        for attr in ('precision','scale','length'):
+            A = getattr(self.type_A,attr,None)
+            B = getattr(self.type_B,attr,None)
+            if not (A is None or B is None) and A!=B:
+                self.diff=True
+                return
+        
+    def __nonzero__(self):
+        return self.diff
+    
 class TableDiff(object):
     """
-    Container for differences in one :class:`~sqlalchemy.schema.Table
+    Container for differences in one :class:`~sqlalchemy.schema.Table`
     between two :class:`~sqlalchemy.schema.MetaData` instances, ``A``
     and ``B``.
 
@@ -51,7 +109,10 @@ class TableDiff(object):
       
     .. attribute:: columns_different
 
-      An empty dictionary, for future use...
+      A dictionary containing information about columns that were
+      found to be different.
+      It maps column names to a :class:`ColDiff` objects describing the
+      differences found.
     """
     __slots__ = (
         'columns_missing_from_A',
@@ -59,11 +120,11 @@ class TableDiff(object):
         'columns_different',
         )
 
-    def __len__(self):
-        return (
-            len(self.columns_missing_from_A)+
-            len(self.columns_missing_from_B)+
-            len(self.columns_different)
+    def __nonzero__(self):
+        return bool(
+            self.columns_missing_from_A or
+            self.columns_missing_from_B or
+            self.columns_different
             )
     
 class SchemaDiff(object):
@@ -95,6 +156,23 @@ class SchemaDiff(object):
     
     :param excludeTables:
       A sequence of table names to exclude.
+      
+    .. attribute:: tables_missing_from_A
+
+      A sequence of table names that were found in B but weren't in
+      A.
+      
+    .. attribute:: tables_missing_from_B
+
+      A sequence of table names that were found in A but weren't in
+      B.
+      
+    .. attribute:: tables_different
+
+      A dictionary containing information about tables that were found
+      to be different.
+      It maps table names to a :class:`TableDiff` objects describing the
+      differences found.
     """
 
     def __init__(self,
@@ -105,6 +183,7 @@ class SchemaDiff(object):
 
         self.metadataA, self.metadataB = metadataA, metadataB
         self.labelA, self.labelB = labelA, labelB
+        self.label_width = max(len(labelA),len(labelB))
         excludeTables = set(excludeTables or [])
 
         A_table_names = set(metadataA.tables.keys())
@@ -138,12 +217,16 @@ class SchemaDiff(object):
             
             td.columns_different = {}
 
-            # XXX - should check columns differences
-            #for col_name in A_column_names.intersection(B_column_names):
-            #
-            #    A_col = A_table.columns.get(col_name)
-            #    B_col = B_table.columns.get(col_name)
-            
+            for col_name in A_column_names.intersection(B_column_names):
+
+                cd = ColDiff(
+                    A_table.columns.get(col_name),
+                    B_table.columns.get(col_name)
+                    )
+
+                if cd:
+                    td.columns_different[col_name]=cd
+                
             # XXX - index and constraint differences should
             #       be checked for here
 
@@ -153,6 +236,7 @@ class SchemaDiff(object):
     def __str__(self):
         ''' Summarize differences. '''
         out = []
+        column_template ='      %%%is: %%r' % self.label_width
         
         for names,label in (
             (self.tables_missing_from_A,self.labelA),
@@ -179,6 +263,10 @@ class SchemaDiff(object):
                             label,', '.join(sorted(names))
                             )
                         )
+            for name,cd in td.columns_different.items():
+                out.append('    column with differences: %s' % name)
+                out.append(column_template % (self.labelA,cd.col_A))
+                out.append(column_template % (self.labelB,cd.col_B))
                 
         if out:
             out.insert(0, 'Schema diffs:')

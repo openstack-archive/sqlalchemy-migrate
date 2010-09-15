@@ -25,6 +25,8 @@ Fixed bugs
 - fixed bug when dropping columns with unique constraints in sqlite
 - rewrite of the schema diff internals, now supporting column
   differences in additon to missing columns and tables.
+- fixed bug when passing empty list in
+  :func:`migrate.versioning.shell.main` failed 
 
 0.6 (11.07.2010)
 ---------------------------

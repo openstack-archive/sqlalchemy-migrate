@@ -7,16 +7,16 @@ import logging
 from StringIO import StringIO
 
 import migrate
-from migrate import exceptions
 from migrate.versioning import genmodel, schemadiff
 from migrate.versioning.config import operations
 from migrate.versioning.template import Template
 from migrate.versioning.script import base
 from migrate.versioning.util import import_path, load_model, with_engine
-
+from migrate.exceptions import MigrateDeprecationWarning, InvalidScriptError, ScriptError
 
 log = logging.getLogger(__name__)
 __all__ = ['PythonScript']
+
 
 class PythonScript(base.BaseScript):
     """Base for Python scripts"""
@@ -96,7 +96,7 @@ class PythonScript(base.BaseScript):
         try:
             assert callable(module.upgrade)
         except Exception, e:
-            raise exceptions.InvalidScriptError(path + ': %s' % str(e))
+            raise InvalidScriptError(path + ': %s' % str(e))
         return module
 
     def preview_sql(self, url, step, **args):
@@ -131,7 +131,7 @@ class PythonScript(base.BaseScript):
         elif step < 0:
             op = 'downgrade'
         else:
-            raise exceptions.ScriptError("%d is not a valid step" % step)
+            raise ScriptError("%d is not a valid step" % step)
 
         funcname = base.operations[op]
         script_func = self._func(funcname)
@@ -140,7 +140,7 @@ class PythonScript(base.BaseScript):
             script_func(engine)
         except TypeError:
             warnings.warn("upgrade/downgrade functions must accept engine"
-                " parameter (since version > 0.5.4)", exceptions.MigrateDeprecationWarning)
+                " parameter (since version > 0.5.4)", MigrateDeprecationWarning)
             raise
 
     @property
@@ -155,5 +155,5 @@ class PythonScript(base.BaseScript):
     def _func(self, funcname):
         if not hasattr(self.module, funcname):
             msg = "Function '%s' is not defined in this script"
-            raise exceptions.ScriptError(msg % funcname)
+            raise ScriptError(msg % funcname)
         return getattr(self.module, funcname)

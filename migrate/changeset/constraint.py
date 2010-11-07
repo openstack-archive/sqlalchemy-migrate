@@ -126,9 +126,9 @@ class ForeignKeyConstraint(ConstraintChangeset, schema.ForeignKeyConstraint):
 
     def autoname(self):
         """Mimic the database's automatic constraint names"""
-        ret = "%(table)s_%(reftable)s_fkey" % dict(
+        ret = "%(table)s_%(firstcolumn)s_fkey" % dict(
             table=self.table.name,
-            reftable=self.reftable.name,)
+            firstcolumn=self.columns[0],)
         return ret
 
 

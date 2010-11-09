@@ -167,11 +167,24 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
 
     def visit_index(self, index):
         """Rename an index"""
-        self.append("ALTER INDEX %s RENAME TO %s" %
-            (self.preparer.quote(self._validate_identifier(index.name,
-                                                           True), index.quote),
-             self.preparer.quote(self._validate_identifier(index.new_name,
-                                                           True), index.quote)))
+        if hasattr(self, '_validate_identifier'):
+            # SA <= 0.6.3
+            self.append("ALTER INDEX %s RENAME TO %s" % (
+                    self.preparer.quote(
+                        self._validate_identifier(
+                            index.name, True), index.quote),
+                    self.preparer.quote(
+                        self._validate_identifier(
+                            index.new_name, True), index.quote)))
+        else:
+            # SA >= 0.6.5
+            self.append("ALTER INDEX %s RENAME TO %s" % (
+                    self.preparer.quote(
+                        self._index_identifier(
+                            index.name), index.quote),
+                    self.preparer.quote(
+                        self._index_identifier(
+                            index.new_name), index.quote)))
         self.execute()
 
     def visit_column(self, delta):

@@ -135,6 +135,7 @@ The versioning API is available as the :ref:`migrate <command-line-usage>` comma
    versioning
    changeset
    tools
+   faq
 
 .. _`google's summer of code`: http://code.google.com/soc
 .. _`Google Code project`: http://code.google.com/p/sqlalchemy-migrate

@@ -23,7 +23,7 @@ class ControlledSchema(object):
     """A database under version control"""
 
     def __init__(self, engine, repository):
-        if isinstance(repository, str):
+        if isinstance(repository, basestring):
             repository = Repository(repository)
         self.engine = engine
         self.repository = repository

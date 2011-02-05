@@ -20,11 +20,12 @@ Fixed bugs
 - fixed case sensitivity in setup.py dependencies
 - moved :mod:`migrate.changeset.exceptions` and :mod:`migrate.versioning.exceptions`
   to :mod:`migrate.exceptions`
-- cleared up test output and improved testing of deprecation warnings.
+- cleared up test output and improved testing of deprecation warnings. 
 - some documentation fixes
-- fixed bug with column dropping in sqlite (issue 96)
+- #107: fixed syntax error in genmodel.py 
+- #96: fixed bug with column dropping in sqlite
+- #94: fixed bug that prevented non-unique indexes being created
 - fixed bug with column dropping involving foreign keys
-- fixed bug that prevented non-unique indexes being created (issue 94)
 - fixed bug when dropping columns with unique constraints in sqlite
 - rewrite of the schema diff internals, now supporting column
   differences in additon to missing columns and tables.

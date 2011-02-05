@@ -170,11 +170,11 @@ class ModelGenerator(object):
                         modelTable, col.name))
             for modelCol, databaseCol, modelDecl, databaseDecl in diffDecl:
                 upgradeCommands.append(
-                    'assert False, "Can\'t alter columns: %s:%s=>%s"',
-                    modelTable, modelCol.name, databaseCol.name)
+                    'assert False, "Can\'t alter columns: %s:%s=>%s"' % (
+                    modelTable, modelCol.name, databaseCol.name))
                 downgradeCommands.append(
-                    'assert False, "Can\'t alter columns: %s:%s=>%s"',
-                    modelTable, modelCol.name, databaseCol.name)
+                    'assert False, "Can\'t alter columns: %s:%s=>%s"' % (
+                    modelTable, modelCol.name, databaseCol.name))
         pre_command = '    meta.bind = migrate_engine'
 
         return (

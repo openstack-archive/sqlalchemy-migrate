@@ -13,7 +13,10 @@ Fixed bugs
 ******************
 
 - updated tests for Python 2.7
+- repository keyword in :func:`api.version_control` can also be unicode
 - added if main condition for manage.py script
+- make :func:`migrate.changeset.constraint.ForeignKeyConstraint.autoname`
+  work with SQLAlchemy 0.5 and 0.6
 - fixed case sensitivity in setup.py dependencies
 - moved :mod:`migrate.changeset.exceptions` and :mod:`migrate.versioning.exceptions`
   to :mod:`migrate.exceptions`

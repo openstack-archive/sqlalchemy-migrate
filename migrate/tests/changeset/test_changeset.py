@@ -422,7 +422,8 @@ class TestAddDropColumn(fixture.DB):
             Column('r1', Integer),
             Column('r2', Integer),
             ForeignKeyConstraint(['r1','r2'],
-                                 [reftable.c.id,reftable.c.jd])
+                                 [reftable.c.id,reftable.c.jd],
+                                 name='test_fk')
             )
         self.table.create()
 

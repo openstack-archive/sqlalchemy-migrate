@@ -86,10 +86,8 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
             ' from migration_tmp'
 
     def visit_column(self,column):
-        # For SQLite, we *have* to remove the column so the table
+        # For SQLite, we *have* to remove the column here so the table
         # is re-created properly.
-        # This violates the alter_metadata settting, but that
-        # is going away...
         column.remove_from_table(column.table,unset_table=False)
         super(SQLiteColumnDropper,self).visit_column(column)
 

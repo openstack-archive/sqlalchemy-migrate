@@ -7,7 +7,7 @@ Features
 - implemented columns adding with unique constraints for sqlite
 - implemented adding unique and foreign key constraints to columns
   for sqlite
-
+- remove experimental `alter_metadata` parameter
 
 Fixed bugs
 ******************
@@ -31,6 +31,7 @@ Fixed bugs
   differences in additon to missing columns and tables.
 - fixed bug when passing empty list in
   :func:`migrate.versioning.shell.main` failed 
+- #108: Fixed issues with firebird support.
 
 0.6 (11.07.2010)
 ---------------------------

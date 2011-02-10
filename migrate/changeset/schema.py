@@ -559,11 +559,10 @@ populated with defaults
         if table is not None:
             self.table = table
         engine = self.table.bind
-        if self.alter_metadata:
-            self.remove_from_table(self.table, unset_table=False)
         visitorcallable = get_engine_visitor(engine, 'columndropper')
         engine._run_visitor(visitorcallable, self, connection, **kwargs)
         if self.alter_metadata:
+            self.remove_from_table(self.table, unset_table=False)
             self.table = None
         return self
 

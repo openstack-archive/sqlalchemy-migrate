@@ -40,7 +40,12 @@ class FBColumnDropper(ansisql.ANSIColumnDropper):
                 # will be deleted only when the column its on
                 # is deleted!
                 continue
-            if cons.contains_column(column) and cons.name:
+
+            if SQLA_06:
+                should_drop = column.name in cons.columns
+            else:
+                should_drop = cons.contains_column(column) and cons.name
+            if should_drop:
                 self.start_alter_table(column)
                 self.append("DROP CONSTRAINT ")
                 self.append(self.preparer.format_constraint(cons))

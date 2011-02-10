@@ -262,7 +262,6 @@ class TestAddDropColumn(fixture.DB):
 
         self._check_index(False)
 
-        Index('ix_data', col).drop(bind=self.engine)
         col.drop()
         
     @fixture.usedb()
@@ -284,7 +283,6 @@ class TestAddDropColumn(fixture.DB):
 
         self._check_index(True)
 
-        Index('ix_data', col).drop(bind=self.engine)
         col.drop()
         
     @fixture.usedb()

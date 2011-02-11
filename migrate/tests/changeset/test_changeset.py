@@ -790,15 +790,13 @@ class TestColumnDelta(fixture.DB):
 
     def test_deltas_two_columns(self):
         """Testing ColumnDelta with two columns"""
-        col_orig = lambda :self.mkcol(primary_key=True)
-        col_new = lambda: self.mkcol(name='ids', primary_key=True)
-        # we have to create new columns, since comparing the ColumnDelta
-        # will apply differences
-        self.verify([], col_orig(), col_orig())
-        self.verify(['name'], col_orig(), col_orig(), 'ids')
-        self.verify(['name'], col_orig(), col_orig(), name='ids')
-        self.verify(['name'], col_orig(), col_new())
-        self.verify(['name', 'type'], col_orig(), col_new(), type=String)
+        col_orig = self.mkcol(primary_key=True)
+        col_new = self.mkcol(name='ids', primary_key=True)
+        self.verify([], col_orig, col_orig)
+        self.verify(['name'], col_orig, col_orig, 'ids')
+        self.verify(['name'], col_orig, col_orig, name='ids')
+        self.verify(['name'], col_orig, col_new)
+        self.verify(['name', 'type'], col_orig, col_new, type=String)
 
         # Type comparisons
         self.verify([], self.mkcol(type=String), self.mkcol(type=String))
@@ -827,11 +825,12 @@ class TestColumnDelta(fixture.DB):
         self.verify(['type'], self.mkcol(server_default='foobar'), self.mkcol('id', Text, DefaultClause('foobar')))
 
         col = self.mkcol(server_default='foobar')
-        self.verify(['type'], col, self.mkcol('id', Text, DefaultClause('foobar')))
+        self.verify(['type'], col, self.mkcol('id', Text, DefaultClause('foobar')), alter_metadata=True)
         self.assert_(isinstance(col.type, Text))
 
         col = self.mkcol()
-        self.verify(['name', 'server_default', 'type'], col, self.mkcol('beep', Text, DefaultClause('foobar')))
+        self.verify(['name', 'server_default', 'type'], col, self.mkcol('beep', Text, DefaultClause('foobar')),
+                    alter_metadata=True)
         self.assert_(isinstance(col.type, Text))
         self.assertEqual(col.name, 'beep')
         self.assertEqual(col.server_default.arg, 'foobar')
@@ -847,19 +846,23 @@ class TestColumnDelta(fixture.DB):
         self.verify(['type'], 'ids', table=self.table.name, type=String(80), metadata=self.meta)
 
         self.meta.clear()
-        delta = self.verify(['type'], 'ids', table=self.table.name, type=String(80), metadata=self.meta)
+        delta = self.verify(['type'], 'ids', table=self.table.name, type=String(80), metadata=self.meta,
+                            alter_metadata=True)
         self.assert_(self.table.name in self.meta)
         self.assertEqual(delta.result_column.type.length, 80)
         self.assertEqual(self.meta.tables.get(self.table.name).c.ids.type.length, 80)
 
         # test defaults
         self.meta.clear()
-        self.verify(['server_default'], 'ids', table=self.table.name, server_default='foobar', metadata=self.meta)
+        self.verify(['server_default'], 'ids', table=self.table.name, server_default='foobar',
+                    metadata=self.meta,
+                    alter_metadata=True)
         self.meta.tables.get(self.table.name).c.ids.server_default.arg == 'foobar'
 
         # test missing parameters
         self.assertRaises(ValueError, ColumnDelta, table=self.table.name)
-        self.assertRaises(ValueError, ColumnDelta, 'ids', table=self.table.name)
+        self.assertRaises(ValueError, ColumnDelta, 'ids', table=self.table.name, alter_metadata=True)
+        self.assertRaises(ValueError, ColumnDelta, 'ids', table=self.table.name, alter_metadata=False)
 
     def test_deltas_one_column(self):
         """Testing ColumnDelta with one column"""
@@ -878,7 +881,7 @@ class TestColumnDelta(fixture.DB):
         self.assertEquals(delta.current_name, 'id')
 
         col_orig = self.mkcol(primary_key=True)
-        self.verify(['name', 'type'], col_orig, name='id12', type=Text)
+        self.verify(['name', 'type'], col_orig, name='id12', type=Text, alter_metadata=True)
         self.assert_(isinstance(col_orig.type, Text))
         self.assertEqual(col_orig.name, 'id12')
 

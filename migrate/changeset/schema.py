@@ -124,6 +124,12 @@ def alter_column(*p, **k):
             MigrateDeprecationWarning
             )
     engine = k['engine']
+
+    # enough tests seem to break when metadata is always altered
+    # that this crutch has to be left in until they can be sorted
+    # out
+    k['alter_metadata']=True
+    
     delta = ColumnDelta(*p, **k)
 
     visitorcallable = get_engine_visitor(engine, 'schemachanger')
@@ -201,6 +207,11 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
     __visit_name__ = 'column'
 
     def __init__(self, *p, **kw):
+        # 'alter_metadata' is not a public api. It exists purely
+        # as a crutch until the tests that fail when 'alter_metadata'
+        # behaviour always happens can be sorted out
+        self.alter_metadata = kw.pop("alter_metadata", False)
+        
         self.meta = kw.pop("metadata", None)
         self.engine = kw.pop("engine", None)
 
@@ -224,8 +235,11 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
         self.apply_diffs(diffs)
 
     def __repr__(self):
-        return '<ColumnDelta %s>' % super(ColumnDelta, self).__repr__()
-
+        return '<ColumnDelta altermetadata=%r, %s>' % (
+            self.alter_metadata,
+            super(ColumnDelta, self).__repr__()
+            )
+    
     def __getitem__(self, key):
         if key not in self.keys():
             raise KeyError("No such diff key, available: %s" % self.diffs )
@@ -300,7 +314,7 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
             self.result_column.type = self.result_column.type()
 
         # add column to the table
-        if self.table is not None:
+        if self.table is not None and self.alter_metadata:
             self.result_column.add_to_table(self.table)
 
     def are_column_types_eq(self, old_type, new_type):
@@ -362,27 +376,37 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
 
     def _set_table(self, table):
         if isinstance(table, basestring):
-            if not self.engine and not self.meta:
-                raise ValueError("engine or metadata must be specified"
-                                 " to reflect tables")
-            if not self.meta:
-                self.meta = sqlalchemy.MetaData()
-            meta = self.meta
-            if self.engine:
-                meta.bind = self.engine
+            if self.alter_metadata:
+                if not self.meta:
+                    raise ValueError("metadata must be specified for table"
+                        " reflection when using alter_metadata")
+                meta = self.meta
+                if self.engine:
+                    meta.bind = self.engine
+            else:
+                if not self.engine and not self.meta:
+                    raise ValueError("engine or metadata must be specified"
+                        " to reflect tables")
+                if not self.engine:
+                    self.engine = self.meta.bind
+                meta = sqlalchemy.MetaData(bind=self.engine)
             self._table = sqlalchemy.Table(table, meta, autoload=True)
         elif isinstance(table, sqlalchemy.Table):
             self._table = table
-
+            if not self.alter_metadata:
+                self._table.meta = sqlalchemy.MetaData(bind=self._table.bind)
     def _get_result_column(self):
         return getattr(self, '_result_column', None)
 
     def _set_result_column(self, column):
-        """Set Column to Table."""
+        """Set Column to Table based on alter_metadata evaluation."""
         self.process_column(column)
         if not hasattr(self, 'current_name'):
             self.current_name = column.name
-        self._result_column = column
+        if self.alter_metadata:
+            self._result_column = column
+        else:
+            self._result_column = column.copy_fixed()
 
     table = property(_get_table, _set_table)
     result_column = property(_get_result_column, _set_result_column)

@@ -9,6 +9,6 @@ pytz
 http://initd.org/psycopg/tarballs/psycopg2-2.2.2.tar.gz
 pysqlite
 mysql-python
-http://downloads.sourceforge.net/firebird/kinterbasdb-3.3.0.tar.bz2
+http://jenkins.gnuviech-server.de/userContent/kinterbasdb-3.3.0.tar.bz2
 virtualenv
 unittest2

@@ -1,4 +1,7 @@
-0.6.1 (xxxxxxx)
+0.6.2 (XXXX-XX-XX)
+---------------------------
+
+0.6.1 (2011-02-11)
 ---------------------------
 
 Features
@@ -7,26 +10,31 @@ Features
 - implemented columns adding with unique constraints for sqlite
 - implemented adding unique and foreign key constraints to columns
   for sqlite
-
+- remove experimental `alter_metadata` parameter
 
 Fixed bugs
 ******************
 
 - updated tests for Python 2.7
+- repository keyword in :func:`api.version_control` can also be unicode
 - added if main condition for manage.py script
+- make :func:`migrate.changeset.constraint.ForeignKeyConstraint.autoname`
+  work with SQLAlchemy 0.5 and 0.6
 - fixed case sensitivity in setup.py dependencies
 - moved :mod:`migrate.changeset.exceptions` and :mod:`migrate.versioning.exceptions`
   to :mod:`migrate.exceptions`
-- cleared up test output and improved testing of deprecation warnings.
+- cleared up test output and improved testing of deprecation warnings. 
 - some documentation fixes
-- fixed bug with column dropping in sqlite (issue 96)
+- #107: fixed syntax error in genmodel.py 
+- #96: fixed bug with column dropping in sqlite
+- #94: fixed bug that prevented non-unique indexes being created
 - fixed bug with column dropping involving foreign keys
-- fixed bug that prevented non-unique indexes being created (issue 94)
 - fixed bug when dropping columns with unique constraints in sqlite
 - rewrite of the schema diff internals, now supporting column
   differences in additon to missing columns and tables.
 - fixed bug when passing empty list in
   :func:`migrate.versioning.shell.main` failed 
+- #108: Fixed issues with firebird support.
 
 0.6 (11.07.2010)
 ---------------------------

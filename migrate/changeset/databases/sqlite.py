@@ -80,9 +80,16 @@ class SQLiteColumnDropper(SQLiteHelper, ansisql.ANSIColumnDropper):
     """SQLite ColumnDropper"""
 
     def _modify_table(self, table, column, delta):
+        
         columns = ' ,'.join(map(self.preparer.format_column, table.columns))
         return 'INSERT INTO %(table_name)s SELECT ' + columns + \
             ' from migration_tmp'
+
+    def visit_column(self,column):
+        # For SQLite, we *have* to remove the column here so the table
+        # is re-created properly.
+        column.remove_from_table(column.table,unset_table=False)
+        super(SQLiteColumnDropper,self).visit_column(column)
 
 
 class SQLiteSchemaChanger(SQLiteHelper, ansisql.ANSISchemaChanger):

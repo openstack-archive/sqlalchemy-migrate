@@ -4,6 +4,7 @@
 import shutil
 import warnings
 import logging
+import inspect
 from StringIO import StringIO
 
 import migrate
@@ -136,12 +137,12 @@ class PythonScript(base.BaseScript):
         funcname = base.operations[op]
         script_func = self._func(funcname)
 
-        try:
-            script_func(engine)
-        except TypeError:
-            warnings.warn("upgrade/downgrade functions must accept engine"
-                " parameter (since version > 0.5.4)", MigrateDeprecationWarning)
-            raise
+        # check for old way of using engine
+        if not inspect.getargspec(script_func)[0]:
+            raise TypeError("upgrade/downgrade functions must accept engine"
+                " parameter (since version 0.5.4)")
+
+        script_func(engine)
 
     @property
     def module(self):

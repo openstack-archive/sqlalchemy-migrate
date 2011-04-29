@@ -29,9 +29,6 @@ __all__ = [
     'ColumnDelta',
 ]
 
-DEFAULT_ALTER_METADATA = True
-
-
 def create_column(column, table=None, *p, **kw):
     """Create a column, given the table.
     
@@ -109,19 +106,11 @@ def alter_column(*p, **k):
       The :class:`~sqlalchemy.engine.base.Engine` to use for table
       reflection and schema alterations.
     
-    :param alter_metadata:
-      If `True`, which is the default, the
-      :class:`~sqlalchemy.schema.Column` will also modified.
-      If `False`, the :class:`~sqlalchemy.schema.Column` will be left
-      as it was.
-    
     :returns: A :class:`ColumnDelta` instance representing the change.
 
     
     """
     
-    k.setdefault('alter_metadata', DEFAULT_ALTER_METADATA)
-
     if 'table' not in k and isinstance(p[0], sqlalchemy.Column):
         k['table'] = p[0].table
     if 'engine' not in k:
@@ -135,6 +124,12 @@ def alter_column(*p, **k):
             MigrateDeprecationWarning
             )
     engine = k['engine']
+
+    # enough tests seem to break when metadata is always altered
+    # that this crutch has to be left in until they can be sorted
+    # out
+    k['alter_metadata']=True
+    
     delta = ColumnDelta(*p, **k)
 
     visitorcallable = get_engine_visitor(engine, 'schemachanger')
@@ -188,11 +183,10 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
         :param table: Table at which current Column should be bound to.\
         If table name is given, reflection will be used.
         :type table: string or Table instance
-        :param alter_metadata: If True, it will apply changes to metadata.
-        :type alter_metadata: bool
-        :param metadata: If `alter_metadata` is true, \
-        metadata is used to reflect table names into
-        :type metadata: :class:`MetaData` instance
+        
+        :param metadata: A :class:`MetaData` instance to store
+                         reflected table names
+                         
         :param engine: When reflecting tables, either engine or metadata must \
         be specified to acquire engine object.
         :type engine: :class:`Engine` instance
@@ -213,7 +207,11 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
     __visit_name__ = 'column'
 
     def __init__(self, *p, **kw):
+        # 'alter_metadata' is not a public api. It exists purely
+        # as a crutch until the tests that fail when 'alter_metadata'
+        # behaviour always happens can be sorted out
         self.alter_metadata = kw.pop("alter_metadata", False)
+        
         self.meta = kw.pop("metadata", None)
         self.engine = kw.pop("engine", None)
 
@@ -237,9 +235,11 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
         self.apply_diffs(diffs)
 
     def __repr__(self):
-        return '<ColumnDelta altermetadata=%r, %s>' % (self.alter_metadata,
-            super(ColumnDelta, self).__repr__())
-
+        return '<ColumnDelta altermetadata=%r, %s>' % (
+            self.alter_metadata,
+            super(ColumnDelta, self).__repr__()
+            )
+    
     def __getitem__(self, key):
         if key not in self.keys():
             raise KeyError("No such diff key, available: %s" % self.diffs )
@@ -395,7 +395,6 @@ class ColumnDelta(DictMixin, sqlalchemy.schema.SchemaItem):
             self._table = table
             if not self.alter_metadata:
                 self._table.meta = sqlalchemy.MetaData(bind=self._table.bind)
-
     def _get_result_column(self):
         return getattr(self, '_result_column', None)
 
@@ -456,22 +455,18 @@ class ChangesetTable(object):
 
         :param name: New name of the table.
         :type name: string
-        :param alter_metadata: If True, table will be removed from metadata
-        :type alter_metadata: bool
         :param connection: reuse connection istead of creating new one.
         :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
-        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         engine = self.bind
         self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
         run_single_visitor(engine, visitorcallable, self, connection, **kwargs)
 
         # Fix metadata registration
-        if self.alter_metadata:
-            self.name = name
-            self.deregister()
-            self._set_parent(self.metadata)
+        self.name = name
+        self.deregister()
+        self._set_parent(self.metadata)
 
     def _meta_key(self):
         return sqlalchemy.schema._get_table_key(self.name, self.schema)
@@ -510,7 +505,6 @@ class ChangesetColumn(object):
 `~migrate.changeset.constraint.UniqueConstraint` on this column.
         :param primary_key_name: Creates :class:\
 `~migrate.changeset.constraint.PrimaryKeyConstraint` on this column.
-        :param alter_metadata: If True, column will be added to table object.
         :param populate_default: If True, created column will be \
 populated with defaults
         :param connection: reuse connection istead of creating new one.
@@ -518,22 +512,19 @@ populated with defaults
         :type index_name: string
         :type unique_name: string
         :type primary_key_name: string
-        :type alter_metadata: bool
         :type populate_default: bool
         :type connection: :class:`sqlalchemy.engine.base.Connection` instance
 
         :returns: self
         """
         self.populate_default = populate_default
-        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         self.index_name = index_name
         self.unique_name = unique_name
         self.primary_key_name = primary_key_name
         for cons in ('index_name', 'unique_name', 'primary_key_name'):
             self._check_sanity_constraints(cons)
 
-        if self.alter_metadata:
-            self.add_to_table(table)
+        self.add_to_table(table)
         engine = self.table.bind
         visitorcallable = get_engine_visitor(engine, 'columngenerator')
         engine._run_visitor(visitorcallable, self, connection, **kwargs)
@@ -550,21 +541,16 @@ populated with defaults
 
         ``ALTER TABLE DROP COLUMN``, for most databases.
 
-        :param alter_metadata: If True, column will be removed from table object.
-        :type alter_metadata: bool
         :param connection: reuse connection istead of creating new one.
         :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
-        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         if table is not None:
             self.table = table
         engine = self.table.bind
-        if self.alter_metadata:
-            self.remove_from_table(self.table, unset_table=False)
         visitorcallable = get_engine_visitor(engine, 'columndropper')
         engine._run_visitor(visitorcallable, self, connection, **kwargs)
-        if self.alter_metadata:
-            self.table = None
+        self.remove_from_table(self.table, unset_table=False)
+        self.table = None
         return self
 
     def add_to_table(self, table):
@@ -643,18 +629,14 @@ class ChangesetIndex(object):
 
         :param name: New name of the Index.
         :type name: string
-        :param alter_metadata: If True, Index object will be altered.
-        :type alter_metadata: bool
         :param connection: reuse connection istead of creating new one.
         :type connection: :class:`sqlalchemy.engine.base.Connection` instance
         """
-        self.alter_metadata = kwargs.pop('alter_metadata', DEFAULT_ALTER_METADATA)
         engine = self.table.bind
         self.new_name = name
         visitorcallable = get_engine_visitor(engine, 'schemachanger')
         engine._run_visitor(visitorcallable, self, connection, **kwargs)
-        if self.alter_metadata:
-            self.name = name
+        self.name = name
 
 
 class ChangesetDefaultClause(object):

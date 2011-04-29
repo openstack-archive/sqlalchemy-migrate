@@ -2,7 +2,7 @@
    Firebird database specific implementations of changeset classes.
 """
 from sqlalchemy.databases import firebird as sa_base
-
+from sqlalchemy.schema import PrimaryKeyConstraint
 from migrate import exceptions
 from migrate.changeset import ansisql, SQLA_06
 
@@ -27,13 +27,32 @@ class FBColumnDropper(ansisql.ANSIColumnDropper):
             if column.table.primary_key.columns.contains_column(column):
                 column.table.primary_key.drop()
                 # TODO: recreate primary key if it references more than this column
-        if column.unique or getattr(column, 'unique_name', None):
-            for cons in column.table.constraints:
-                if cons.contains_column(column):
-                    cons.drop()
-                    # TODO: recreate unique constraint if it refenrences more than this column
 
-        table = self.start_alter_table(column)
+        for index in column.table.indexes:
+            # "column in index.columns" causes problems as all
+            # column objects compare equal and return a SQL expression
+            if column.name in [col.name for col in index.columns]:
+                index.drop()
+                # TODO: recreate index if it references more than this column
+        
+        for cons in column.table.constraints:
+            if isinstance(cons,PrimaryKeyConstraint):
+                # will be deleted only when the column its on
+                # is deleted!
+                continue
+
+            if SQLA_06:
+                should_drop = column.name in cons.columns
+            else:
+                should_drop = cons.contains_column(column) and cons.name
+            if should_drop:
+                self.start_alter_table(column)
+                self.append("DROP CONSTRAINT ")
+                self.append(self.preparer.format_constraint(cons))
+                self.execute()
+            # TODO: recreate unique constraint if it refenrences more than this column
+
+        self.start_alter_table(column)
         self.append('DROP %s' % self.preparer.format_column(column))
         self.execute()
 

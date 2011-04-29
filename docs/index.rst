@@ -123,6 +123,14 @@ Dialect support
 .. [#4] Changing nullable is not supported
 
 
+Tutorials
+--------------
+
+List of useful tutorials:
+
+* `Using migrate with Elixir <http://www.karoltomala.com/blog/?p=633>`_
+
+
 User guide
 -------------
 

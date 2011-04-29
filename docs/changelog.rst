@@ -57,7 +57,7 @@ Features
 - added `populate_default` bool argument to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` which issues corresponding UPDATE statements to set defaults after column creation
 - :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
 
-Bug fixes
+Fixed bugs
 *****************
 
 - ORM methods now accept `connection` parameter commonly used for transactions

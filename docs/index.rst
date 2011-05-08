@@ -129,6 +129,7 @@ Tutorials
 List of useful tutorials:
 
 * `Using migrate with Elixir <http://www.karoltomala.com/blog/?p=633>`_
+* `Developing with migrations <http://caneypuggies.alwaysreformed.com/wiki/DevelopingWithMigrations>`_
 
 
 User guide

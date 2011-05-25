@@ -4,9 +4,7 @@ nosexcover
 # NOTE: scripttest 1.0.1 removes base_path argument to ScriptTest
 scripttest==1.0
 pytz
-# work around initd.org download problems.
-# psycopg2
-http://initd.org/psycopg/tarballs/psycopg2-2.2.2.tar.gz
+psycopg2
 pysqlite
 mysql-python
 http://jenkins.gnuviech-server.de/userContent/kinterbasdb-3.3.0.tar.bz2

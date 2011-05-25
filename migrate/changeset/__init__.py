@@ -14,6 +14,7 @@ warnings.simplefilter('always', DeprecationWarning)
 
 _sa_version = tuple(int(re.match("\d+", x).group(0)) for x in _sa_version.split("."))
 SQLA_06 = _sa_version >= (0, 6)
+SQLA_07 = _sa_version >= (0, 7)
 
 del re
 del _sa_version

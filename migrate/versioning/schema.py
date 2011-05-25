@@ -11,6 +11,7 @@ from sqlalchemy import exceptions as sa_exceptions
 from sqlalchemy.sql import bindparam
 
 from migrate import exceptions
+from migrate.changeset import SQLA_07
 from migrate.versioning import genmodel, schemadiff
 from migrate.versioning.repository import Repository
 from migrate.versioning.util import load_model
@@ -57,10 +58,16 @@ class ControlledSchema(object):
         """
         Remove version control from a database.
         """
-        try:
-            self.table.drop()
-        except (sa_exceptions.SQLError):
-            raise exceptions.DatabaseNotControlledError(str(self.table))
+        if SQLA_07:
+            try:
+                self.table.drop()
+            except sa_exceptions.ProgrammingError:
+                raise exceptions.DatabaseNotControlledError(str(self.table))
+        else:
+            try:
+                self.table.drop()
+            except (sa_exceptions.SQLError):
+                raise exceptions.DatabaseNotControlledError(str(self.table))
 
     def changeset(self, version=None):
         """API to Changeset creation.

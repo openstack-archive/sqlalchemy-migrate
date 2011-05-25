@@ -149,7 +149,10 @@ class TestAddDropColumn(fixture.DB):
         def add_func(col):
             return self.table.create_column(col)
         def drop_func(col):
-            self.table.c.remove(col)
+            if SQLA_07:
+                self.table._columns.remove(col)
+            else:
+                self.table.c.remove(col)
             return self.table.drop_column(col.name)
         self.run_(add_func, drop_func)
 

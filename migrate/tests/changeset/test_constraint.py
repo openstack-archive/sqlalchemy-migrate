@@ -79,12 +79,18 @@ class TestConstraint(CommonTestConstraint):
         pk.create()
 
         # Add a FK by creating a FK constraint
-        self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
+        if SQLA_07:
+            self.assertEquals(list(self.table.c.fkey.foreign_keys), [])
+        else:
+            self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
         fk = ForeignKeyConstraint([self.table.c.fkey],
                                   [self.table.c.id],
                                   name="fk_id_fkey",
                                   ondelete="CASCADE")
-        self.assert_(self.table.c.fkey.foreign_keys._list is not [])
+        if SQLA_07:
+            self.assert_(list(self.table.c.fkey.foreign_keys) is not [])
+        else:
+            self.assert_(self.table.c.fkey.foreign_keys._list is not [])
         for key in fk.columns:
             self.assertEquals(key, self.table.c.fkey.name)
         self.assertEquals([e.column for e in fk.elements], [self.table.c.id])
@@ -97,16 +103,25 @@ class TestConstraint(CommonTestConstraint):
         fk.create()
 
         # test for ondelete/onupdate
-        fkey = self.table.c.fkey.foreign_keys._list[0]
+        if SQLA_07:
+            fkey = list(self.table.c.fkey.foreign_keys)[0]
+        else:
+            fkey = self.table.c.fkey.foreign_keys._list[0]
         self.assertEquals(fkey.ondelete, "CASCADE")
         # TODO: test on real db if it was set
 
         self.refresh_table()
-        self.assert_(self.table.c.fkey.foreign_keys._list is not [])
+        if SQLA_07:
+            self.assert_(list(self.table.c.fkey.foreign_keys) is not [])
+        else:
+            self.assert_(self.table.c.fkey.foreign_keys._list is not [])
 
         fk.drop()
         self.refresh_table()
-        self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
+        if SQLA_07:
+            self.assertEquals(list(self.table.c.fkey.foreign_keys), [])
+        else:
+            self.assertEquals(self.table.c.fkey.foreign_keys._list, [])
 
     @fixture.usedb()
     def test_define_pk(self):
@@ -212,19 +227,28 @@ class TestAutoname(CommonTestConstraint):
         cons = ForeignKeyConstraint([self.table.c.fkey], [self.table.c.id])
         cons.create()
         self.refresh_table()
-        self.table.c.fkey.foreign_keys[0].column is self.table.c.id
+        if SQLA_07:
+            list(self.table.c.fkey.foreign_keys)[0].column is self.table.c.id
+        else:
+            self.table.c.fkey.foreign_keys[0].column is self.table.c.id
 
         # Remove the name, drop the constraint; it should succeed
         cons.name = None
         cons.drop()
         self.refresh_table()
-        self.assertEquals(self.table.c.fkey.foreign_keys._list, list())
+        if SQLA_07:
+            self.assertEquals(list(self.table.c.fkey.foreign_keys), list())
+        else:
+            self.assertEquals(self.table.c.fkey.foreign_keys._list, list())
 
         # test string names
         cons = ForeignKeyConstraint(['fkey'], ['%s.id' % self.tablename], table=self.table)
         cons.create()
         self.refresh_table()
-        self.table.c.fkey.foreign_keys[0].column is self.table.c.id
+        if SQLA_07:
+            list(self.table.c.fkey.foreign_keys)[0].column is self.table.c.id
+        else:
+            self.table.c.fkey.foreign_keys[0].column is self.table.c.id
 
         # Remove the name, drop the constraint; it should succeed
         cons.name = None

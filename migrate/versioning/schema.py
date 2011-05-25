@@ -61,7 +61,7 @@ class ControlledSchema(object):
         if SQLA_07:
             try:
                 self.table.drop()
-            except sa_exceptions.ProgrammingError:
+            except sa_exceptions.DatabaseError:
                 raise exceptions.DatabaseNotControlledError(str(self.table))
         else:
             try:

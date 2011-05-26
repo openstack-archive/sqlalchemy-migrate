@@ -120,11 +120,6 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
         else:
             for fk in column.foreign_keys:
                 self.traverse_single(fk)
-            #for fk in list(column.foreign_keys):
-            #    fk.constraint = ForeignKeyConstraint([column],
-            #        [fk.target_fullname], table=column.table)
-            #    self.add_foreignkey(fk.constraint)
-            #    import pdb; pdb.set_trace()
 
         # add primary key constraint if needed
         if column.primary_key_name:

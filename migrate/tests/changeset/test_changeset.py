@@ -169,6 +169,8 @@ class TestAddDropColumn(fixture.DB):
 
         # create column with fk
         col = Column('data', Integer, ForeignKey(reftable.c.id))
+        if SQLA_07:
+            self.table.append_column(col)
         col.create(self.table)
 
         # check if constraint is added
@@ -180,7 +182,12 @@ class TestAddDropColumn(fixture.DB):
 
         # TODO: test on db level if constraints work
 
-        self.assertEqual(reftable.c.id.name, col.foreign_keys[0].column.name)
+        if SQLA_07:
+            self.assertEqual(reftable.c.id.name,
+                list(col.foreign_keys)[0].column.name)
+        else:
+            self.assertEqual(reftable.c.id.name,
+                col.foreign_keys[0].column.name)
         col.drop(self.table)
 
         if self.engine.has_table(reftable.name):

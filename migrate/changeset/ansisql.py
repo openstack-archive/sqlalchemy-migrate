@@ -17,7 +17,7 @@ from sqlalchemy.schema import (ForeignKeyConstraint,
                                Index)
 
 from migrate import exceptions
-from migrate.changeset import constraint, SQLA_06, SQLA_07
+from migrate.changeset import constraint, SQLA_06
 
 if not SQLA_06:
     from sqlalchemy.sql.compiler import SchemaGenerator, SchemaDropper
@@ -114,13 +114,9 @@ class ANSIColumnGenerator(AlterTableVisitor, SchemaGenerator):
                                         name=column.unique_name).create()
 
         # SA bounds FK constraints to table, add manually
-        if not SQLA_07:
-            for fk in column.foreign_keys:
-                self.add_foreignkey(fk.constraint)
-        else:
-            for fk in column.foreign_keys:
-                self.traverse_single(fk)
-
+        for fk in column.foreign_keys:
+            self.add_foreignkey(fk.constraint)
+        
         # add primary key constraint if needed
         if column.primary_key_name:
             cons = constraint.PrimaryKeyConstraint(column,

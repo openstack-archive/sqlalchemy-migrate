@@ -1,3 +1,15 @@
+0.7.1 (YYYY-MM-DD)
+---------------------------
+
+Features
+******************
+
+Fixed Bugs
+******************
+
+- docs/_build is excluded from source tarball builds
+
+
 0.7 (2011-05-27)
 ---------------------------
 

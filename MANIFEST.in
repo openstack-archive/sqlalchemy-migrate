@@ -4,3 +4,4 @@ recursive-include migrate *
 recursive-include tests *
 global-exclude *pyc
 exclude .hgtags
+recursive-exclude docs/_build *

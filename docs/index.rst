@@ -6,8 +6,8 @@
 
 :Author: Evan Rosson
 :Maintainer: Domen Kožar <domenNO@SPAMdev.si>
-:Source code: http://code.google.com/p/sqlalchemy-migrate/issues/list
-:Issues: http://code.google.com/p/sqlalchemy-migrate/
+:Issues: http://code.google.com/p/sqlalchemy-migrate/issues/list
+:Source Code: http://code.google.com/p/sqlalchemy-migrate/
 :Continuous Integration: http://jenkins.gnuviech-server.de/job/sqlalchemy-migrate-all/
 :Generated: |today|
 :License: MIT

@@ -10,6 +10,7 @@ Fixed Bugs
 - docs/_build is excluded from source tarball builds
 - use table.append_column() instead of column._set_parent() in
   ChangesetColumn.add_to_table()
+- fix source and issue tracking URLs in documentation
 
 0.7 (2011-05-27)
 ---------------------------

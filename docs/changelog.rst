@@ -5,6 +5,7 @@ Features
 ******************
 
 - compatibility with SQLAlchemy 0.7
+- add migrate.__version__
 
 Fixed bugs
 ******************

@@ -555,7 +555,10 @@ populated with defaults
 
     def add_to_table(self, table):
         if table is not None  and self.table is None:
-            self._set_parent(table)
+            if SQLA_07:
+                table.append_column(self)
+            else:
+                self._set_parent(table)
 
     def _col_name_in_constraint(self,cons,name):
         return False

@@ -169,8 +169,6 @@ class TestAddDropColumn(fixture.DB):
 
         # create column with fk
         col = Column('data', Integer, ForeignKey(reftable.c.id))
-        if SQLA_07:
-            self.table.append_column(col)
         col.create(self.table)
 
         # check if constraint is added

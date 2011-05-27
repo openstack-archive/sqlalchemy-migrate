@@ -8,6 +8,7 @@
 :Maintainer: Domen Kožar <domenNO@SPAMdev.si>
 :Source code: http://code.google.com/p/sqlalchemy-migrate/issues/list
 :Issues: http://code.google.com/p/sqlalchemy-migrate/
+:Continuous Integration: http://jenkins.gnuviech-server.de/job/sqlalchemy-migrate-all/
 :Generated: |today|
 :License: MIT
 :Version: |release|
@@ -26,12 +27,14 @@
 	project`_. During the hosting change the project was renamed to
 	SQLAlchemy Migrate.
 
-	Currently, sqlalchemy-migrate supports Python versions from 2.4 to 2.6.
-	SQLAlchemy Migrate 0.6.0 supports SQLAlchemy both 0.5.x and 0.6.x branches.
+	Currently, sqlalchemy-migrate supports Python versions from 2.4 to 2.7.
+        SQLAlchemy Migrate 0.7.0 supports SQLAlchemy 0.5.x, 0.6.x and 0.7.x
+        branches.
 
 .. warning::
 
-	 Version **0.6** breaks backward compatability, please read :ref:`changelog <backwards-06>` for more info.
+         Version **0.6** breaks backward compatibility, please read
+         :ref:`changelog <backwards-06>` for more info.
 
 
 Download and Development

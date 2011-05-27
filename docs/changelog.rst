@@ -1,11 +1,22 @@
-0.6.2 (XXXX-XX-XX)
+0.7 (2011-05-27)
 ---------------------------
+
+Features
+******************
+
+- compatibility with SQLAlchemy 0.7
+
+Fixed bugs
+******************
+
+- fix compatibility issues with SQLAlchemy 0.7
 
 0.6.1 (2011-02-11)
 ---------------------------
 
 Features
 ******************
+
 - implemented column adding when foreign keys are present for sqlite
 - implemented columns adding with unique constraints for sqlite
 - implemented adding unique and foreign key constraints to columns

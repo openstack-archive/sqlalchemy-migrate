@@ -8,4 +8,4 @@
 from migrate.versioning import *
 from migrate.changeset import *
 
-__version__ = '0.7'
+__version__ = '0.7.1'

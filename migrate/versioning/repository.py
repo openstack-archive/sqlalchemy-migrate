@@ -157,10 +157,10 @@ class Repository(pathed.Pathed):
         k['use_timestamp_numbering'] = self.use_timestamp_numbering
         self.versions.create_new_python_version(description, **k)
 
-    def create_script_sql(self, database, **k):
+    def create_script_sql(self, database, description, **k):
         """API to :meth:`migrate.versioning.version.Collection.create_new_sql_version`"""
         k['use_timestamp_numbering'] = self.use_timestamp_numbering
-        self.versions.create_new_sql_version(database, **k)
+        self.versions.create_new_sql_version(database, description, **k)
 
     @property
     def latest(self):

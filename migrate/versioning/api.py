@@ -110,19 +110,19 @@ def script(description, repository, **opts):
 
 
 @catch_known_errors
-def script_sql(database, repository, **opts):
-    """%prog script_sql DATABASE REPOSITORY_PATH
+def script_sql(database, description, repository, **opts):
+    """%prog script_sql DATABASE DESCRIPTION REPOSITORY_PATH
 
     Create empty change SQL scripts for given DATABASE, where DATABASE
-    is either specific ('postgres', 'mysql', 'oracle', 'sqlite', etc.)
+    is either specific ('postgresql', 'mysql', 'oracle', 'sqlite', etc.)
     or generic ('default').
 
-    For instance, manage.py script_sql postgres creates:
-    repository/versions/001_postgres_upgrade.sql and
-    repository/versions/001_postgres_postgres.sql
+    For instance, manage.py script_sql postgresql description creates:
+    repository/versions/001_description_postgresql_upgrade.sql and
+    repository/versions/001_description_postgresql_postgres.sql
     """
     repo = Repository(repository)
-    repo.create_script_sql(database, **opts)
+    repo.create_script_sql(database, description, **opts)
 
 
 def version(repository, **opts):

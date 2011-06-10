@@ -10,6 +10,7 @@ from migrate.versioning.script import *
 from nose.tools import raises
 
 from migrate.tests import fixture
+from datetime import datetime
 
 
 class TestRepository(fixture.Pathed):
@@ -95,6 +96,24 @@ class TestVersionedRepository(fixture.Pathed):
         self.assert_(repos.latest >= 1)
         self.assert_(repos.latest >= 2)
         self.assert_(repos.latest < 3)
+
+
+    def test_timestmap_numbering_version(self):
+        repos = Repository(self.path_repos)
+        repos.config.set('db_settings', 'use_timestamp_numbering', True)
+
+        # Get latest version, or detect if a specified version exists
+        self.assertEquals(repos.latest, 0)
+        # repos.latest isn't an integer, but a VerNum
+        # (so we can't just assume the following tests are correct)
+        self.assert_(repos.latest >= 0)
+        self.assert_(repos.latest < 1)
+
+        # Create a script and test again
+        now = int(datetime.utcnow().strftime('%Y%m%d%H%M%S'))
+        repos.create_script('')
+        print repos.latest
+        self.assertEquals(repos.latest, now)
 
     def test_source(self):
         """Get a script object by version number and view its source"""

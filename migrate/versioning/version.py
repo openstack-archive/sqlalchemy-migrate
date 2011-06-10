@@ -8,6 +8,7 @@ import logging
 
 from migrate import exceptions
 from migrate.versioning import pathed, script
+from datetime import datetime
 
 
 log = logging.getLogger(__name__)
@@ -88,9 +89,17 @@ class Collection(pathed.Pathed):
         """:returns: Latest version in Collection"""
         return max([VerNum(0)] + self.versions.keys())
 
+    def _next_ver_num(self, use_timestamp_numbering):
+        print use_timestamp_numbering
+        if use_timestamp_numbering == True:
+            print "Creating new timestamp version!"
+            return VerNum(int(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
+        else:
+            return self.latest + 1
+
     def create_new_python_version(self, description, **k):
         """Create Python files for new version"""
-        ver = self.latest + 1
+        ver = self._next_ver_num(k.pop('use_timestamp_numbering', False))
         extra = str_to_filename(description)
 
         if extra:
@@ -107,7 +116,7 @@ class Collection(pathed.Pathed):
         
     def create_new_sql_version(self, database, **k):
         """Create SQL files for new version"""
-        ver = self.latest + 1
+        ver = self._next_ver_num(k.pop('use_timestamp_numbering', False))
         self.versions[ver] = Version(ver, self.path, [])
 
         # Create new files.

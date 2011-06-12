@@ -89,8 +89,8 @@ class TestVersion(fixture.Pathed):
         """Let's see how we handle versions collection"""
         coll = Collection(self.temp_usable_dir)
         coll.create_new_python_version("foo bar")
-        coll.create_new_sql_version("postgres")
-        coll.create_new_sql_version("sqlite")
+        coll.create_new_sql_version("postgres", "foo bar")
+        coll.create_new_sql_version("sqlite", "foo bar")
         coll.create_new_python_version("")
 
         self.assertEqual(coll.latest, 4)
@@ -118,7 +118,7 @@ class TestVersion(fixture.Pathed):
 
     def test_create_new_sql_version(self):
         coll = Collection(self.temp_usable_dir)
-        coll.create_new_sql_version("sqlite")
+        coll.create_new_sql_version("sqlite", "foo bar")
 
         ver = coll.version()
         ver_up = ver.script('sqlite', 'upgrade')

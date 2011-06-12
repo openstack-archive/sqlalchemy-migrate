@@ -37,7 +37,7 @@ class TestAPI(Pathed):
     def test_script_sql(self):
         repo = self.tmp_repos()
         api.create(repo, 'temp')
-        api.script_sql('postgres', repo)
+        api.script_sql('postgres', 'desc', repo)
 
     def test_version(self):
         repo = self.tmp_repos()
@@ -48,7 +48,7 @@ class TestAPI(Pathed):
         repo = self.tmp_repos()
         api.create(repo, 'temp')
         api.script('first version', repo)
-        api.script_sql('default', repo)
+        api.script_sql('default', 'desc', repo)
 
         # no repository
         self.assertRaises(UsageError, api.source, 1)
@@ -95,7 +95,7 @@ class TestSchemaAPI(fixture.DB, Pathed):
         out = api.upgrade(self.url, self.repo, preview_sql=True)
 
         api.upgrade(self.url, self.repo, 1)
-        api.script_sql('default', self.repo)
+        api.script_sql('default', 'desc', self.repo)
         self.assertRaises(UsageError, api.upgrade, self.url, self.repo, 2, preview_py=True)
         out = api.upgrade(self.url, self.repo, 2, preview_sql=True)
 

@@ -127,14 +127,14 @@ class TestShellCommands(Shell):
         repos = self.tmp_repos()
         result = self.env.run('migrate create %s repository_name' % repos)
 
-        result = self.env.run('migrate script_sql mydb %s' % repos)
-        self.assert_(os.path.exists('%s/versions/001_mydb_upgrade.sql' % repos))
-        self.assert_(os.path.exists('%s/versions/001_mydb_downgrade.sql' % repos))
+        result = self.env.run('migrate script_sql mydb foo %s' % repos)
+        self.assert_(os.path.exists('%s/versions/001_foo_mydb_upgrade.sql' % repos))
+        self.assert_(os.path.exists('%s/versions/001_foo_mydb_downgrade.sql' % repos))
 
         # Test creating a second
-        result = self.env.run('migrate script_sql postgres --repository=%s' % repos)
-        self.assert_(os.path.exists('%s/versions/002_postgres_upgrade.sql' % repos))
-        self.assert_(os.path.exists('%s/versions/002_postgres_downgrade.sql' % repos))
+        result = self.env.run('migrate script_sql postgres foo --repository=%s' % repos)
+        self.assert_(os.path.exists('%s/versions/002_foo_postgres_upgrade.sql' % repos))
+        self.assert_(os.path.exists('%s/versions/002_foo_postgres_downgrade.sql' % repos))
 
         # TODO: test --previews
 

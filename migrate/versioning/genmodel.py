@@ -101,15 +101,17 @@ class ModelGenerator(object):
         tableName = table.name
         if self.declarative:
             out.append("class %(table)s(Base):" % {'table': tableName})
-            out.append("  __tablename__ = '%(table)s'" % {'table': tableName})
+            out.append("    __tablename__ = '%(table)s'\n" %
+                            {'table': tableName})
             for col in table.columns:
-                out.append("  %s" % self.column_repr(col))
+                out.append("    %s" % self.column_repr(col))
+            out.append('\n')
         else:
-            out.append("%(table)s = Table('%(table)s', meta," % \
-                           {'table': tableName})
+            out.append("%(table)s = Table('%(table)s', meta," %
+                            {'table': tableName})
             for col in table.columns:
-                out.append("  %s," % self.column_repr(col))
-            out.append(")")
+                out.append("    %s," % self.column_repr(col))
+            out.append(")\n")
         return out
 
     def _get_tables(self,missingA=False,missingB=False,modified=False):
@@ -133,7 +135,6 @@ class ModelGenerator(object):
         out.append("")
         for table in self._get_tables(missingA=True):
             out.extend(self.getTableDefn(table))
-            out.append("")
         return '\n'.join(out)
 
     def toUpgradeDowngradePython(self, indent='    '):

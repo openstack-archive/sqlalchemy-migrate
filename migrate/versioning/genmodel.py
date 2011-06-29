@@ -59,7 +59,7 @@ class ModelGenerator(object):
                 pass
             else:
                 kwarg.append('default')
-        ks = ', '.join('%s=%r' % (k, getattr(col, k)) for k in kwarg)
+        args = ['%s=%r' % (k, getattr(col, k)) for k in kwarg]
 
         # crs: not sure if this is good idea, but it gets rid of extra
         # u''
@@ -73,28 +73,21 @@ class ModelGenerator(object):
                     type_ = cls()
                 break
 
+        type_repr = repr(type_)
+        if type_repr.endswith('()'):
+            type_repr = type_repr[:-2]
+
+        constraints = [repr(cn) for cn in col.constraints]
+
         data = {
             'name': name,
-            'type': type_,
-            'constraints': ', '.join([repr(cn) for cn in col.constraints]),
-            'args': ks and ks or ''}
+            'commonStuff': ', '.join([type_repr] + args + constraints),
+        }
 
-        if data['constraints']:
-            if data['args']:
-                data['args'] = ',' + data['args']
-
-        if data['constraints'] or data['args']:
-            data['maybeComma'] = ','
-        else:
-            data['maybeComma'] = ''
-
-        commonStuff = """ %(maybeComma)s %(constraints)s %(args)s)""" % data
-        commonStuff = commonStuff.strip()
-        data['commonStuff'] = commonStuff
         if self.declarative:
-            return """%(name)s = Column(%(type)r%(commonStuff)s""" % data
+            return """%(name)s = Column(%(commonStuff)s)""" % data
         else:
-            return """Column(%(name)r, %(type)r%(commonStuff)s""" % data
+            return """Column(%(name)r, %(commonStuff)s)""" % data
 
     def getTableDefn(self, table):
         out = []

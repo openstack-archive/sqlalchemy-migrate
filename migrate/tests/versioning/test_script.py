@@ -161,23 +161,44 @@ def upgrade(migrate_engine):
         self.assertTrue('User.create()' in source_script)
         self.assertTrue('User.drop()' in source_script)
 
-    #@fixture.usedb()
-    #def test_make_update_script_for_model_equals(self):
-    #    """Try to make update script from two identical models"""
+    @fixture.usedb()
+    def test_make_update_script_for_equal_models(self):
+        """Try to make update script from two identical models"""
 
-    #    self.setup_model_params()
-    #    self.write_file(self.first_model_path, self.base_source + self.model_source)
-    #    self.write_file(self.second_model_path, self.base_source + self.model_source)
+        self.setup_model_params()
+        self.write_file(self.first_model_path, self.base_source + self.model_source)
+        self.write_file(self.second_model_path, self.base_source + self.model_source)
 
-    #    source_script = self.pyscript.make_update_script_for_model(
-    #        engine=self.engine,
-    #        oldmodel=load_model('testmodel_first:meta'),
-    #        model=load_model('testmodel_second:meta'),
-    #        repository=self.repo_path,
-    #    )
+        source_script = self.pyscript.make_update_script_for_model(
+            engine=self.engine,
+            oldmodel=load_model('testmodel_first:meta'),
+            model=load_model('testmodel_second:meta'),
+            repository=self.repo_path,
+        )
 
-    #    self.assertFalse('User.create()' in source_script)
-    #    self.assertFalse('User.drop()' in source_script)
+        self.assertFalse('User.create()' in source_script)
+        self.assertFalse('User.drop()' in source_script)
+
+    @fixture.usedb()
+    def test_make_update_script_direction(self):
+        """Check update scripts go in the right direction"""
+
+        self.setup_model_params()
+        self.write_file(self.first_model_path, self.base_source)
+        self.write_file(self.second_model_path, self.base_source + self.model_source)
+
+        source_script = self.pyscript.make_update_script_for_model(
+            engine=self.engine,
+            oldmodel=load_model('testmodel_first:meta'),
+            model=load_model('testmodel_second:meta'),
+            repository=self.repo_path,
+        )
+
+        self.assertTrue(0
+                        < source_script.find('upgrade')
+                        < source_script.find('User.create()')
+                        < source_script.find('downgrade')
+                        < source_script.find('User.drop()'))
 
     def setup_model_params(self):
         self.script_path = self.tmp_py()
@@ -195,6 +216,8 @@ User = Table('User', meta,
 
         self.repo = repository.Repository.create(self.repo_path, 'repo')
         self.pyscript = PythonScript.create(self.script_path)
+        sys.modules.pop('testmodel_first', None)
+        sys.modules.pop('testmodel_second', None)
 
     def write_file(self, path, contents):
         f = open(path, 'w')

@@ -1,9 +1,9 @@
 """
-   Code to generate a Python model from a database or differences
-   between a model and database.
+Code to generate a Python model from a database or differences
+between a model and database.
 
-   Some of this is borrowed heavily from the AutoCode project at:
-   http://code.google.com/p/sqlautocode/
+Some of this is borrowed heavily from the AutoCode project at:
+http://code.google.com/p/sqlautocode/
 """
 
 import sys
@@ -34,6 +34,13 @@ Base = declarative.declarative_base()
 
 
 class ModelGenerator(object):
+    """Various transformations from an A, B diff.
+
+    In the implementation, A tends to be called the model and B
+    the database (although this is not true of all diffs).
+    The diff is directionless, but transformations apply the diff
+    in a particular direction, described in the method name.
+    """
 
     def __init__(self, diff, engine, declarative=False):
         self.diff = diff
@@ -89,7 +96,7 @@ class ModelGenerator(object):
         else:
             return """Column(%(name)r, %(commonStuff)s)""" % data
 
-    def getTableDefn(self, table):
+    def _getTableDefn(self, table):
         out = []
         tableName = table.name
         if self.declarative:
@@ -117,9 +124,15 @@ class ModelGenerator(object):
             if bool_:
                 for name in names:
                     yield metadata.tables.get(name)
-        
-    def toPython(self):
-        """Assume database is current and model is empty."""
+
+    def genBDefinition(self):
+        """Generates the source code for a definition of B.
+
+        Assumes a diff where A is empty.
+
+        Was: toPython. Assume database (B) is current and model (A) is empty.
+        """
+
         out = []
         if self.declarative:
             out.append(DECLARATIVE_HEADER)
@@ -127,17 +140,22 @@ class ModelGenerator(object):
             out.append(HEADER)
         out.append("")
         for table in self._get_tables(missingA=True):
-            out.extend(self.getTableDefn(table))
+            out.extend(self._getTableDefn(table))
         return '\n'.join(out)
 
-    def toUpgradeDowngradePython(self, indent='    '):
-        ''' Assume model is most current and database is out-of-date. '''
+    def genB2AMigration(self, indent='    '):
+        '''Generate a migration from B to A.
+
+        Was: toUpgradeDowngradePython
+        Assume model (A) is most current and database (B) is out-of-date.
+        '''
+
         decls = ['from migrate.changeset import schema',
                  'meta = MetaData()']
         for table in self._get_tables(
             missingA=True,missingB=True,modified=True
             ):
-            decls.extend(self.getTableDefn(table))
+            decls.extend(self._getTableDefn(table))
 
         upgradeCommands, downgradeCommands = [], []
         for tableName in self.diff.tables_missing_from_A:
@@ -175,16 +193,21 @@ class ModelGenerator(object):
             '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in downgradeCommands]))
 
     def _db_can_handle_this_change(self,td):
+        """Check if the database can handle going from B to A."""
+
         if (td.columns_missing_from_B
             and not td.columns_missing_from_A
             and not td.columns_different):
-            # Even sqlite can handle this.
+            # Even sqlite can handle column additions.
             return True
         else:
             return not self.engine.url.drivername.startswith('sqlite')
 
-    def applyModel(self):
-        """Apply model to current database."""
+    def runB2A(self):
+        """Goes from B to A.
+
+        Was: applyModel. Apply model (A) to current database (B).
+        """
 
         meta = sqlalchemy.MetaData(self.engine)
 
@@ -200,9 +223,9 @@ class ModelGenerator(object):
             dbTable = self.diff.metadataB.tables[tableName]
 
             td = self.diff.tables_different[tableName]
-            
+
             if self._db_can_handle_this_change(td):
-                
+
                 for col in td.columns_missing_from_B:
                     modelTable.columns[col].create()
                 for col in td.columns_missing_from_A:

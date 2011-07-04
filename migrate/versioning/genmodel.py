@@ -150,25 +150,23 @@ class ModelGenerator(object):
 
         for tableName in self.diff.tables_different:
             dbTable = self.diff.metadataB.tables[tableName]
-            missingInDatabase, missingInModel, diffDecl = \
-                self.diff.colDiffs[tableName]
-            for col in missingInDatabase:
-                upgradeCommands.append('%s.columns[%r].create()' % (
-                        modelTable, col.name))
-                downgradeCommands.append('%s.columns[%r].drop()' % (
-                        modelTable, col.name))
-            for col in missingInModel:
-                upgradeCommands.append('%s.columns[%r].drop()' % (
-                        modelTable, col.name))
-                downgradeCommands.append('%s.columns[%r].create()' % (
-                        modelTable, col.name))
-            for modelCol, databaseCol, modelDecl, databaseDecl in diffDecl:
+            td = self.diff.tables_different[tableName]
+            for col in td.columns_missing_from_A:
+                upgradeCommands.append('%s.append_column(%s)' % (
+                   tableName,
+                   self.column_repr(
+                      self.diff.metadataB.tables[tableName].columns[col])))
+                downgradeCommands.append('%s.columns[%r].drop()' % (tableName, col))
+            for col in td.columns_missing_from_B:
+                upgradeCommands.append('%s.columns[%r].drop()' % (tableName, col))
+                downgradeCommands.append('%s.columns[%r].create()' % (tableName, col))
+            for modelCol, databaseCol, modelDecl, databaseDecl in td.columns_different:
                 upgradeCommands.append(
                     'assert False, "Can\'t alter columns: %s:%s=>%s"' % (
-                    modelTable, modelCol.name, databaseCol.name))
+                    tableName, modelCol.name, databaseCol.name))
                 downgradeCommands.append(
                     'assert False, "Can\'t alter columns: %s:%s=>%s"' % (
-                    modelTable, modelCol.name, databaseCol.name))
+                    tableName, modelCol.name, databaseCol.name))
         pre_command = '    meta.bind = migrate_engine'
 
         return (
@@ -246,3 +244,4 @@ class ModelGenerator(object):
                 except:
                     trans.rollback()
                     raise
+

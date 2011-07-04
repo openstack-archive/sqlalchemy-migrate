@@ -76,7 +76,7 @@ class TestSchemaDiff(fixture.DB):
             from migrate.changeset import schema
             meta = MetaData()
             tmp_schemadiff = Table('tmp_schemadiff', meta,
-                Column('id', Integer(), primary_key=True, nullable=False),
+                Column('id', Integer, primary_key=True, nullable=False),
                 Column('name', UnicodeText(length=None)),
                 Column('data', UnicodeText(length=None)),
             )

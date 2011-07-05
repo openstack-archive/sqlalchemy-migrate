@@ -88,7 +88,7 @@ class ModelGenerator(object):
 
         data = {
             'name': name,
-            'commonStuff': ', '.join([type_repr] + args + constraints),
+            'commonStuff': ', '.join([type_repr] + constraints + args),
         }
 
         if self.declarative:

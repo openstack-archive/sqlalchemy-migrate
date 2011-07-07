@@ -96,7 +96,7 @@ class ModelGenerator(object):
         else:
             return """Column(%(name)r, %(commonStuff)s)""" % data
 
-    def _getTableDefn(self, table):
+    def _getTableDefn(self, table, metaName='meta'):
         out = []
         tableName = table.name
         if self.declarative:
@@ -107,8 +107,8 @@ class ModelGenerator(object):
                 out.append("    %s" % self.column_repr(col))
             out.append('\n')
         else:
-            out.append("%(table)s = Table('%(table)s', meta," %
-                            {'table': tableName})
+            out.append("%(table)s = Table('%(table)s', %(meta)s," %
+                       {'table': tableName, 'meta': metaName})
             for col in table.columns:
                 out.append("    %s," % self.column_repr(col))
             out.append(")\n")
@@ -151,46 +151,61 @@ class ModelGenerator(object):
         '''
 
         decls = ['from migrate.changeset import schema',
-                 'meta = MetaData()']
-        for table in self._get_tables(
-            missingA=True,missingB=True,modified=True
-            ):
-            decls.extend(self._getTableDefn(table))
+                 'pre_meta = MetaData()',
+                 'post_meta = MetaData()',
+                ]
+        upgradeCommands = ['pre_meta.bind = migrate_engine',
+                           'post_meta.bind = migrate_engine']
+        downgradeCommands = list(upgradeCommands)
 
-        upgradeCommands, downgradeCommands = [], []
-        for tableName in self.diff.tables_missing_from_A:
-            upgradeCommands.append("%(table)s.drop()" % {'table': tableName})
-            downgradeCommands.append("%(table)s.create()" % \
-                                         {'table': tableName})
-        for tableName in self.diff.tables_missing_from_B:
-            upgradeCommands.append("%(table)s.create()" % {'table': tableName})
-            downgradeCommands.append("%(table)s.drop()" % {'table': tableName})
+        for tn in self.diff.tables_missing_from_A:
+            pre_table = self.diff.metadataB.tables[tn]
+            decls.extend(self._getTableDefn(pre_table, metaName='pre_meta'))
+            upgradeCommands.append(
+                "pre_meta.tables[%(table)r].drop()" % {'table': tn})
+            downgradeCommands.append(
+                "pre_meta.tables[%(table)r].create()" % {'table': tn})
 
-        for tableName in self.diff.tables_different:
-            dbTable = self.diff.metadataB.tables[tableName]
-            td = self.diff.tables_different[tableName]
+        for tn in self.diff.tables_missing_from_B:
+            post_table = self.diff.metadataA.tables[tn]
+            decls.extend(self._getTableDefn(post_table, metaName='post_meta'))
+            upgradeCommands.append(
+                "post_meta.tables[%(table)r].create()" % {'table': tn})
+            downgradeCommands.append(
+                "post_meta.tables[%(table)r].drop()" % {'table': tn})
+
+        for (tn, td) in self.diff.tables_different.iteritems():
+            if td.columns_missing_from_A or td.columns_different:
+                pre_table = self.diff.metadataB.tables[tn]
+                decls.extend(self._getTableDefn(
+                    pre_table, metaName='pre_meta'))
+            if td.columns_missing_from_B or td.columns_different:
+                post_table = self.diff.metadataA.tables[tn]
+                decls.extend(self._getTableDefn(
+                    post_table, metaName='post_meta'))
+
             for col in td.columns_missing_from_A:
-                upgradeCommands.append('%s.append_column(%s)' % (
-                   tableName,
-                   self.column_repr(
-                      self.diff.metadataB.tables[tableName].columns[col])))
-                downgradeCommands.append('%s.columns[%r].drop()' % (tableName, col))
+                upgradeCommands.append(
+                    'pre_meta.tables[%r].columns[%r].drop()' % (tn, col))
+                downgradeCommands.append(
+                    'pre_meta.tables[%r].columns[%r].create()' % (tn, col))
             for col in td.columns_missing_from_B:
-                upgradeCommands.append('%s.columns[%r].drop()' % (tableName, col))
-                downgradeCommands.append('%s.columns[%r].create()' % (tableName, col))
+                upgradeCommands.append(
+                    'post_meta.tables[%r].columns[%r].create()' % (tn, col))
+                downgradeCommands.append(
+                    'post_meta.tables[%r].columns[%r].drop()' % (tn, col))
             for modelCol, databaseCol, modelDecl, databaseDecl in td.columns_different:
                 upgradeCommands.append(
                     'assert False, "Can\'t alter columns: %s:%s=>%s"' % (
-                    tableName, modelCol.name, databaseCol.name))
+                    tn, modelCol.name, databaseCol.name))
                 downgradeCommands.append(
                     'assert False, "Can\'t alter columns: %s:%s=>%s"' % (
-                    tableName, modelCol.name, databaseCol.name))
-        pre_command = '    meta.bind = migrate_engine'
+                    tn, modelCol.name, databaseCol.name))
 
         return (
             '\n'.join(decls),
-            '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in upgradeCommands]),
-            '\n'.join([pre_command] + ['%s%s' % (indent, line) for line in downgradeCommands]))
+            '\n'.join('%s%s' % (indent, line) for line in upgradeCommands),
+            '\n'.join('%s%s' % (indent, line) for line in downgradeCommands))
 
     def _db_can_handle_this_change(self,td):
         """Check if the database can handle going from B to A."""

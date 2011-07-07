@@ -158,8 +158,8 @@ def upgrade(migrate_engine):
             repository=self.repo_path,
         )
 
-        self.assertTrue('User.create()' in source_script)
-        self.assertTrue('User.drop()' in source_script)
+        self.assertTrue("['User'].create()" in source_script)
+        self.assertTrue("['User'].drop()" in source_script)
 
     @fixture.usedb()
     def test_make_update_script_for_equal_models(self):
@@ -196,9 +196,9 @@ def upgrade(migrate_engine):
 
         self.assertTrue(0
                         < source_script.find('upgrade')
-                        < source_script.find('User.create()')
+                        < source_script.find("['User'].create()")
                         < source_script.find('downgrade')
-                        < source_script.find('User.drop()'))
+                        < source_script.find("['User'].drop()"))
 
     def setup_model_params(self):
         self.script_path = self.tmp_py()

@@ -42,14 +42,15 @@ class TestSchemaDiff(fixture.DB):
 
         def assertDiff(isDiff, tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff):
             diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
-            eq_(bool(diff), isDiff)
             eq_(
                 (diff.tables_missing_from_B,
                  diff.tables_missing_from_A,
-                 diff.tables_different.keys()),
+                 diff.tables_different.keys(),
+                 bool(diff)),
                 (tablesMissingInDatabase,
                  tablesMissingInModel,
-                 tablesWithDiff)
+                 tablesWithDiff,
+                 isDiff)
                 )
 
         # Model is defined but database is empty.
@@ -64,8 +65,9 @@ class TestSchemaDiff(fixture.DB):
         if repr(String()) == 'String()':
             self.assertEqualsIgnoreWhitespace(decls, '''
             from migrate.changeset import schema
-            meta = MetaData()
-            tmp_schemadiff = Table('tmp_schemadiff', meta,
+            pre_meta = MetaData()
+            post_meta = MetaData()
+            tmp_schemadiff = Table('tmp_schemadiff', post_meta,
                 Column('id', Integer, primary_key=True, nullable=False),
                 Column('name', UnicodeText),
                 Column('data', UnicodeText),
@@ -74,19 +76,14 @@ class TestSchemaDiff(fixture.DB):
         else:
             self.assertEqualsIgnoreWhitespace(decls, '''
             from migrate.changeset import schema
-            meta = MetaData()
-            tmp_schemadiff = Table('tmp_schemadiff', meta,
+            pre_meta = MetaData()
+            post_meta = MetaData()
+            tmp_schemadiff = Table('tmp_schemadiff', post_meta,
                 Column('id', Integer, primary_key=True, nullable=False),
                 Column('name', UnicodeText(length=None)),
                 Column('data', UnicodeText(length=None)),
             )
             ''')
-        self.assertEqualsIgnoreWhitespace(upgradeCommands,
-            '''meta.bind = migrate_engine
-            tmp_schemadiff.create()''')
-        self.assertEqualsIgnoreWhitespace(downgradeCommands,
-            '''meta.bind = migrate_engine
-            tmp_schemadiff.drop()''')
 
         # Create table in database, now model should match database.
         self._applyLatestModel()
@@ -111,17 +108,49 @@ class TestSchemaDiff(fixture.DB):
             else:
                 dataId = result.last_inserted_ids()[0]
 
-        # Modify table in model (by removing it and adding it back to model) -- drop column data and add column data2.
+        # Modify table in model (by removing it and adding it back to model)
+        # Drop column data, add columns data2 and data3.
         self.meta.remove(self.table)
         self.table = Table(self.table_name,self.meta,
             Column('id',Integer(),primary_key=True),
             Column('name',UnicodeText(length=None)),
             Column('data2',Integer(),nullable=True),
+            Column('data3',Integer(),nullable=True),
         )
         assertDiff(True, [], [], [self.table_name])
 
         # Apply latest model changes and find no more diffs.
         self._applyLatestModel()
+        assertDiff(False, [], [], [])
+
+        # Drop column data3, add data4
+        self.meta.remove(self.table)
+        self.table = Table(self.table_name,self.meta,
+            Column('id',Integer(),primary_key=True),
+            Column('name',UnicodeText(length=None)),
+            Column('data2',Integer(),nullable=True),
+            Column('data4',Float(),nullable=True),
+        )
+        assertDiff(True, [], [], [self.table_name])
+
+        diff = schemadiff.getDiffOfModelAgainstDatabase(
+            self.meta, self.engine, excludeTables=['migrate_version'])
+        decls, upgradeCommands, downgradeCommands = genmodel.ModelGenerator(diff,self.engine).genB2AMigration(indent='')
+
+        # decls have changed since genBDefinition
+        exec decls in locals()
+        # migration commands expect a namespace containing migrate_engine
+        migrate_engine = self.engine
+        # run the migration up and down
+        exec upgradeCommands in locals()
+        assertDiff(False, [], [], [])
+
+        exec decls in locals()
+        exec downgradeCommands in locals()
+        assertDiff(True, [], [], [self.table_name])
+
+        exec decls in locals()
+        exec upgradeCommands in locals()
         assertDiff(False, [], [], [])
 
         if not self.engine.name == 'oracle':

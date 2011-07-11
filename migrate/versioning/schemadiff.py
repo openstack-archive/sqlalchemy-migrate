@@ -17,8 +17,16 @@ def getDiffOfModelAgainstDatabase(metadata, engine, excludeTables=None):
     :return: object which will evaluate to :keyword:`True` if there \
       are differences else :keyword:`False`.
     """
-    return SchemaDiff(metadata,
-                      sqlalchemy.MetaData(engine, reflect=True),
+    db_metadata = sqlalchemy.MetaData(engine, reflect=True)
+
+    # sqlite will include a dynamically generated 'sqlite_sequence' table if
+    # there are autoincrement sequences in the database; this should not be
+    # compared.
+    if engine.dialect.name == 'sqlite':
+        if 'sqlite_sequence' in db_metadata.tables:
+            db_metadata.remove(db_metadata.tables['sqlite_sequence'])
+
+    return SchemaDiff(metadata, db_metadata,
                       labelA='model',
                       labelB='database',
                       excludeTables=excludeTables)

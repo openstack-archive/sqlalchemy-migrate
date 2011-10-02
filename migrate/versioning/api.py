@@ -212,14 +212,15 @@ def test(url, repository, **opts):
     """
     engine = opts.pop('engine')
     repos = Repository(repository)
-    script = repos.version(None).script()
 
     # Upgrade
     log.info("Upgrading...")
+    script = repos.version(None).script(engine.name, 'upgrade')
     script.run(engine, 1)
     log.info("done")
 
     log.info("Downgrading...")
+    script = repos.version(None).script(engine.name, 'downgrade')
     script.run(engine, -1)
     log.info("done")
     log.info("Success")

@@ -119,7 +119,7 @@ def script_sql(database, description, repository, **opts):
 
     For instance, manage.py script_sql postgresql description creates:
     repository/versions/001_description_postgresql_upgrade.sql and
-    repository/versions/001_description_postgresql_postgres.sql
+    repository/versions/001_description_postgresql_downgrade.sql
     """
     repo = Repository(repository)
     repo.create_script_sql(database, description, **opts)

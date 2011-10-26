@@ -39,7 +39,7 @@ class SQLiteHelper(SQLiteCommon):
 
         insertion_string = self._modify_table(table, column, delta)
 
-        table.create()
+        table.create(bind=self.connection)
         self.append(insertion_string % {'table_name': table_name})
         self.execute()
         self.append('DROP TABLE migration_tmp')

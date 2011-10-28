@@ -508,10 +508,18 @@ class TestRename(fixture.DB):
                 # object is inconsistent
                 self.index.name = expected
             # TODO: Index DB check
-            
+
+        def add_table_to_meta(name):
+            # trigger the case where table_name2 needs to be
+            # removed from the metadata in ChangesetTable.deregister()
+            tmp = Table(name, self.meta, Column(c_name, Integer))
+            tmp.create()
+            tmp.drop()
+
         try:
             # Table renames
             assert_table_name(table_name1)
+            add_table_to_meta(table_name2)
             rename_table(self.table, table_name2)
             assert_table_name(table_name2)
             self.table.rename(table_name1)

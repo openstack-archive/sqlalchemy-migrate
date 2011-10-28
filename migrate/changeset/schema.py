@@ -468,15 +468,9 @@ class ChangesetTable(object):
         self.deregister()
         self._set_parent(self.metadata)
 
-    def _meta_key(self):
-        return sqlalchemy.schema._get_table_key(self.name, self.schema)
-
     def deregister(self):
         """Remove this table from its metadata"""
-        key = self._meta_key()
-        meta = self.metadata
-        if key in meta.tables:
-            del meta.tables[key]
+        self.metadata._remove_table(self.name, self.schema)
 
 
 class ChangesetColumn(object):

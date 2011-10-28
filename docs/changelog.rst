@@ -4,8 +4,21 @@
 Features
 ******************
 
+- improved PEP-8 compliance (issue 122)
+- optionally number versions with timestamps instead of sequences (by Pete
+  Keen)
+- allow descriptions in SQL change script filenames (by Pete Keen)
+- improved model generation
+
 Fixed Bugs
 ******************
+
+- fix issue 118: upgrade and downgrade functions are reversed when using the
+  command "make_update_script_for_model"
+- fix issue 113 and issue 123: column creation in make_update_script_for_model
+  and required API change
+- fix issue 124: compare_model_to_db gets confused by sqlite_sequence (pulled
+  from Dustin J. Mitchell)
 
 0.7.1 (2011-05-27)
 ---------------------------

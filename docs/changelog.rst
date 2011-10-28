@@ -19,6 +19,7 @@ Features
 Fixed Bugs
 ******************
 
+- fix issue 83: api test downgrade/upgrade does not work with sql scripts
 - fix issue 118: upgrade and downgrade functions are reversed when using the
   command "make_update_script_for_model"
 - fix issue 113 and issue 123: column creation in make_update_script_for_model
@@ -26,6 +27,7 @@ Fixed Bugs
 - fix issue 124: compare_model_to_db gets confused by sqlite_sequence (pulled
   from Dustin J. Mitchell)
 - fix issue 128: table rename failure with sqlalchemy 0.7.x
+- fix issue 129: update documentation and help text
 
 0.7.1 (2011-05-27)
 ---------------------------

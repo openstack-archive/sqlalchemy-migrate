@@ -1,6 +1,12 @@
 0.7.2 (YYYY-MM-DD)
 ---------------------------
 
+Changes
+******************
+
+- support for SQLAlchemy 0.5.x has been dropped
+- Python 2.6 is the minimum supported Python version
+
 Features
 ******************
 
@@ -19,6 +25,7 @@ Fixed Bugs
   and required API change
 - fix issue 124: compare_model_to_db gets confused by sqlite_sequence (pulled
   from Dustin J. Mitchell)
+- fix issue 128: table rename failure with sqlalchemy 0.7.x
 
 0.7.1 (2011-05-27)
 ---------------------------

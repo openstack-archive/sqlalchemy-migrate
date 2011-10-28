@@ -11,8 +11,8 @@ Features
 ******************
 
 - improved PEP-8 compliance (issue 122)
-- optionally number versions with timestamps instead of sequences (by Pete
-  Keen)
+- optionally number versions with timestamps instead of sequences (partly
+  pulled from Pete Keen)
 - allow descriptions in SQL change script filenames (by Pete Keen)
 - improved model generation
 

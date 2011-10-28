@@ -90,9 +90,7 @@ class Collection(pathed.Pathed):
         return max([VerNum(0)] + self.versions.keys())
 
     def _next_ver_num(self, use_timestamp_numbering):
-        print use_timestamp_numbering
         if use_timestamp_numbering == True:
-            print "Creating new timestamp version!"
             return VerNum(int(datetime.utcnow().strftime('%Y%m%d%H%M%S')))
         else:
             return self.latest + 1

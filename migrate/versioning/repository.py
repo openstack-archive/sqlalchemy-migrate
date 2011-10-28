@@ -115,7 +115,7 @@ class Repository(pathed.Pathed):
         options.setdefault('version_table', 'migrate_version')
         options.setdefault('repository_id', name)
         options.setdefault('required_dbs', [])
-        options.setdefault('use_timestamp_numbering', '0')
+        options.setdefault('use_timestamp_numbering', False)
 
         tmpl = open(os.path.join(tmpl_dir, cls._config)).read()
         ret = TempitaTemplate(tmpl).substitute(options)
@@ -180,9 +180,9 @@ class Repository(pathed.Pathed):
     @property
     def use_timestamp_numbering(self):
         """Returns use_timestamp_numbering specified in config"""
-        ts_numbering = self.config.get('db_settings', 'use_timestamp_numbering', raw=True)
-        
-        return ts_numbering
+        if self.config.has_option('db_settings', 'use_timestamp_numbering'):
+            return self.config.getboolean('db_settings', 'use_timestamp_numbering')
+        return False
 
     def version(self, *p, **k):
         """API to :attr:`migrate.versioning.version.Collection.version`"""

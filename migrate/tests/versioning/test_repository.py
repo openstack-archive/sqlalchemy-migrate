@@ -100,7 +100,7 @@ class TestVersionedRepository(fixture.Pathed):
 
     def test_timestmap_numbering_version(self):
         repos = Repository(self.path_repos)
-        repos.config.set('db_settings', 'use_timestamp_numbering', True)
+        repos.config.set('db_settings', 'use_timestamp_numbering', 'True')
 
         # Get latest version, or detect if a specified version exists
         self.assertEquals(repos.latest, 0)

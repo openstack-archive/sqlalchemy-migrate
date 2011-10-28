@@ -211,10 +211,7 @@ class TestAutoname(CommonTestConstraint):
         self.refresh_table()
         if not self.url.startswith('sqlite'):
             # TODO: test for index for sqlite
-            if SQLA_06:
-                self.compare_columns_equal(cons.columns, self.table.primary_key)
-            else:
-                self.compare_columns_equal(cons.columns, self.table.primary_key, ['autoincrement'])
+            self.compare_columns_equal(cons.columns, self.table.primary_key)
         cons.name = None
         cons.drop()
 

@@ -337,26 +337,21 @@ class TestAddDropColumn(fixture.DB):
         self.table.create()
 
         # paranoid check
-        if SQLA_06:
-            self.refresh_table()
-            self.assertEqual(
-                sorted([i.name for i in self.table.indexes]),
-                [u'ix_tmp_adddropcol_d1', u'ix_tmp_adddropcol_d2']
-                )
+        self.refresh_table()
+        self.assertEqual(
+            sorted([i.name for i in self.table.indexes]),
+            [u'ix_tmp_adddropcol_d1', u'ix_tmp_adddropcol_d2']
+            )
             
         # delete one
         self.table.c.d2.drop()
 
         # ensure the other index is still there
-        if SQLA_06:
-            self.refresh_table()
-            self.assertEqual(
-                sorted([i.name for i in self.table.indexes]),
-                [u'ix_tmp_adddropcol_d1']
-                )
-        else:
-            # a crude test for 0.5.x
-            Index('ix_tmp_adddropcol_d1',self.table.c.d1).drop()
+        self.refresh_table()
+        self.assertEqual(
+            sorted([i.name for i in self.table.indexes]),
+            [u'ix_tmp_adddropcol_d1']
+            )
             
     def _actual_foreign_keys(self):
         from sqlalchemy.schema import ForeignKeyConstraint
@@ -678,10 +673,7 @@ class TestColumnChange(fixture.DB):
         # server_default isn't necessarily None for Oracle
         #self.assert_(self.table.c.data.server_default is None,self.table.c.data.server_default)
         self.engine.execute(self.table.insert(), id=11)
-        if SQLA_06:
-            row = self.table.select(self.table.c.id == 11).execution_options(autocommit=True).execute().fetchone()
-        else:
-            row = self.table.select(self.table.c.id == 11, autocommit=True).execute().fetchone()
+        row = self.table.select(self.table.c.id == 11).execution_options(autocommit=True).execute().fetchone()
         self.assert_(row['data'] is None, row['data'])
 
     @fixture.usedb(not_supported='firebird')

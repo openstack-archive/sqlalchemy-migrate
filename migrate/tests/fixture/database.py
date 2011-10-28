@@ -9,7 +9,6 @@ from sqlalchemy import create_engine, Table, MetaData
 from sqlalchemy.orm import create_session
 from sqlalchemy.pool import StaticPool
 
-from migrate.changeset import SQLA_06
 from migrate.changeset.schema import ColumnDelta
 from migrate.versioning.util import Memoize
 
@@ -174,11 +173,8 @@ class DB(Base):
 
     def _select_row(self):
         """Select rows, used in multiple tests"""
-        if SQLA_06:
-            row = self.table.select().execution_options(autocommit=True).execute().fetchone()
-        else:
-            row = self.table.select(autocommit=True).execute().fetchone()
-        return row
+        return self.table.select().execution_options(
+            autocommit=True).execute().fetchone()
 
     def refresh_table(self, name=None):
         """Reload the table from the database

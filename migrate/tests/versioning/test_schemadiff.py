@@ -6,7 +6,6 @@ from sqlalchemy import *
 from nose.tools import eq_
 
 from migrate.versioning import schemadiff
-from migrate.changeset import SQLA_06
 
 from migrate.tests import fixture
 

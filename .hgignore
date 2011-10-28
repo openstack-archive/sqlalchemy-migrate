@@ -13,6 +13,7 @@ syntax: glob
 *lib/*
 lib64
 sa06/*
+.idea/*
 .coverage
 test_db.cfg
 nosexcover

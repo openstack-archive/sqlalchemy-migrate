@@ -28,7 +28,7 @@ Fixed Bugs
 - fix issue 124: compare_model_to_db gets confused by sqlite_sequence (pulled
   from Dustin J. Mitchell)
 - fix issue 125: drop column does not work on persistent sqlite databases
-  (pulled from al.yazdi)
+  (pulled from Benoît Allard)
 - fix issue 128: table rename failure with sqlalchemy 0.7.x
 - fix issue 129: update documentation and help text
 

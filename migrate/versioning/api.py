@@ -119,7 +119,7 @@ def script_sql(database, description, repository, **opts):
 
     For instance, manage.py script_sql postgresql description creates:
     repository/versions/001_description_postgresql_upgrade.sql and
-    repository/versions/001_description_postgresql_postgres.sql
+    repository/versions/001_description_postgresql_downgrade.sql
     """
     repo = Repository(repository)
     repo.create_script_sql(database, description, **opts)
@@ -212,14 +212,15 @@ def test(url, repository, **opts):
     """
     engine = opts.pop('engine')
     repos = Repository(repository)
-    script = repos.version(None).script()
 
     # Upgrade
     log.info("Upgrading...")
+    script = repos.version(None).script(engine.name, 'upgrade')
     script.run(engine, 1)
     log.info("done")
 
     log.info("Downgrading...")
+    script = repos.version(None).script(engine.name, 'downgrade')
     script.run(engine, -1)
     log.info("done")
     log.info("Success")

@@ -63,7 +63,7 @@ The database is specified as a `SQLAlchemy database url`_.
 
 ::
 
- $ python my_repository/manage.py version_control sqlite:///project.db
+ $ python my_repository/manage.py version_control sqlite:///project.db my_repository
 
 We can have any number of databases under this repository's version
 control.
@@ -72,7 +72,7 @@ Each schema has a version that SQLAlchemy Migrate manages. Each change
 script applied to the database increments this version number. You can
 see a database's current version::
 
- $ python my_repository/manage.py db_version sqlite:///project.db
+ $ python my_repository/manage.py db_version sqlite:///project.db my_repository
  0 
 
 A freshly versioned database begins at version 0 by default. This
@@ -84,7 +84,7 @@ and applying change scripts changes the database's version number.
 Similarly, we can also see the latest version available in a
 repository with the command::
 
- $ python my_repository/manage.py version
+ $ python my_repository/manage.py version my_repository
  0
 
 We've entered no changes so far, so our repository cannot upgrade a

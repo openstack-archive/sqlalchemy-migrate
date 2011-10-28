@@ -20,10 +20,11 @@ Fixed Bugs
 ******************
 
 - fix issue 83: api test downgrade/upgrade does not work with sql scripts
-- fix issue 118: upgrade and downgrade functions are reversed when using the
-  command "make_update_script_for_model"
 - fix issue 113 and issue 123: column creation in make_update_script_for_model
   and required API change
+- fix issue 118: upgrade and downgrade functions are reversed when using the
+  command "make_update_script_for_model"
+- fix issue 121: manage.py should use the "if __name__=='__main__'" trick
 - fix issue 124: compare_model_to_db gets confused by sqlite_sequence (pulled
   from Dustin J. Mitchell)
 - fix issue 125: drop column does not work on persistent sqlite databases

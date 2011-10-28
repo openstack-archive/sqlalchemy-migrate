@@ -20,6 +20,8 @@ Fixed Bugs
 ******************
 
 - fix issue 83: api test downgrade/upgrade does not work with sql scripts
+- fix issue 105: passing a unicode string as the migrate repository fails (add
+  regression test)
 - fix issue 113 and issue 123: column creation in make_update_script_for_model
   and required API change
 - fix issue 118: upgrade and downgrade functions are reversed when using the

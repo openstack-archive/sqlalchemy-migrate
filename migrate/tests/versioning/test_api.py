@@ -44,6 +44,12 @@ class TestAPI(Pathed):
         api.create(repo, 'temp')
         api.version(repo)
 
+    def test_version_control(self):
+        repo = self.tmp_repos()
+        api.create(repo, 'temp')
+        api.version_control('sqlite:///', repo)
+        api.version_control('sqlite:///', unicode(repo))
+
     def test_source(self):
         repo = self.tmp_repos()
         api.create(repo, 'temp')

@@ -1,0 +1,6 @@
+SQLAlchemy >= 0.6
+decorator
+Tempita >= 0.4
+setuptools
+Sphinx
+sphinxcontrib_issuetracker

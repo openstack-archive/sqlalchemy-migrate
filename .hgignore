@@ -18,3 +18,5 @@ sa06/*
 test_db.cfg
 nosexcover
 .ropeproject
+.*.swp
+docs/_static

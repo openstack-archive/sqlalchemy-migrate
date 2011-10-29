@@ -28,10 +28,12 @@ sys.path.append(os.path.dirname(os.path.abspath('.')))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinxcontrib.issuetracker']
 
 # link to sqlalchemy docs
-intersphinx_mapping = {'http://www.sqlalchemy.org/docs/06/': None}
+intersphinx_mapping = {
+    'sqlalchemy': ('http://www.sqlalchemy.org/docs/', None),
+    'python': ('http://docs.python.org/2.7', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -91,6 +93,12 @@ exclude_trees = ['_build']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+# Options for sphinxcontrib.issuetracker
+# --------------------------------------
+
+issuetracker = 'google code'
+issuetracker_project = 'sqlalchemy-migrate'
 
 
 # Options for HTML output

@@ -7,10 +7,22 @@ Changes
 - support for SQLAlchemy 0.5.x has been dropped
 - Python 2.6 is the minimum supported Python version
 
+Documentation
+******************
+
+- add :ref:`glossary <glossary>`
+- improve :ref:`advice on testing production changes <production testing
+  warning>`
+- improve Sphinx markup
+- refine :ref:`Database Schema Versioning <versioning-system>` texts, add
+  example for adding/droping columns (#104)
+- add more developer related information to :ref:`development` section
+- use sphinxcontrib.issuetracker to link to Google Code issue tracker
+
 Features
 ******************
 
-- improved PEP-8 compliance (issue 122)
+- improved :pep:`8` compliance (#122)
 - optionally number versions with timestamps instead of sequences (partly
   pulled from Pete Keen)
 - allow descriptions in SQL change script filenames (by Pete Keen)
@@ -19,20 +31,23 @@ Features
 Fixed Bugs
 ******************
 
-- fix issue 83: api test downgrade/upgrade does not work with sql scripts
-- fix issue 105: passing a unicode string as the migrate repository fails (add
+- #83: api test downgrade/upgrade does not work with sql scripts (pulled from
+  Yuen Ho Wong)
+- #105: passing a unicode string as the migrate repository fails (add
   regression test)
-- fix issue 113 and issue 123: column creation in make_update_script_for_model
-  and required API change
-- fix issue 118: upgrade and downgrade functions are reversed when using the
-  command "make_update_script_for_model"
-- fix issue 121: manage.py should use the "if __name__=='__main__'" trick
-- fix issue 124: compare_model_to_db gets confused by sqlite_sequence (pulled
-  from Dustin J. Mitchell)
-- fix issue 125: drop column does not work on persistent sqlite databases
-  (pulled from Benoît Allard)
-- fix issue 128: table rename failure with sqlalchemy 0.7.x
-- fix issue 129: update documentation and help text
+- #113: make_update_script_for_model fails with AttributeError: 'SchemaDiff'
+  object has no attribute 'colDiffs' (patch by Jeremy Cantrell)
+- #118: upgrade and downgrade functions are reversed when using the command
+  "make_update_script_for_model" (patch by Jeremy Cantrell)
+- #121: manage.py should use the "if __name__=='__main__'" trick
+- #123: column creation in make_update_script_for_model and required API change
+  (by Gabriel de Perthuis)
+- #124: compare_model_to_db gets confused by sqlite_sequence (pulled from
+  Dustin J. Mitchell)
+- #125: drop column does not work on persistent sqlite databases (pulled from
+  Benoît Allard)
+- #128: table rename failure with sqlalchemy 0.7.x (patch by Mark McLoughlin)
+- #129: update documentation and help text (pulled from Yuen Ho Wong)
 
 0.7.1 (2011-05-27)
 ---------------------------
@@ -52,7 +67,7 @@ Features
 ******************
 
 - compatibility with SQLAlchemy 0.7
-- add migrate.__version__
+- add :py:data:`migrate.__version__`
 
 Fixed bugs
 ******************
@@ -75,13 +90,14 @@ Fixed bugs
 ******************
 
 - updated tests for Python 2.7
-- repository keyword in :func:`api.version_control` can also be unicode
+- repository keyword in :py:func:`migrate.versioning.api.version_control` can
+  also be unicode
 - added if main condition for manage.py script
-- make :func:`migrate.changeset.constraint.ForeignKeyConstraint.autoname`
+- make :py:func:`migrate.changeset.constraint.ForeignKeyConstraint.autoname`
   work with SQLAlchemy 0.5 and 0.6
 - fixed case sensitivity in setup.py dependencies
-- moved :mod:`migrate.changeset.exceptions` and :mod:`migrate.versioning.exceptions`
-  to :mod:`migrate.exceptions`
+- moved :py:mod:`migrate.changeset.exceptions` and
+  :py:mod:`migrate.versioning.exceptions` to :py:mod:`migrate.exceptions`
 - cleared up test output and improved testing of deprecation warnings. 
 - some documentation fixes
 - #107: fixed syntax error in genmodel.py 
@@ -92,7 +108,7 @@ Fixed bugs
 - rewrite of the schema diff internals, now supporting column
   differences in additon to missing columns and tables.
 - fixed bug when passing empty list in
-  :func:`migrate.versioning.shell.main` failed 
+  :py:func:`migrate.versioning.shell.main` failed 
 - #108: Fixed issues with firebird support.
 
 0.6 (11.07.2010)
@@ -102,47 +118,69 @@ Fixed bugs
 
 .. warning:: **Backward incompatible changes**:
 
-    - :func:`api.test` and schema comparison functions now all accept `url` as first parameter and `repository` as second.
-    - python upgrade/downgrade scripts do not import `migrate_engine` magically, but recieve engine as the only parameter to function (eg. ``def upgrade(migrate_engine):``)
-    - :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>` does not accept `current_name` anymore, it extracts name from the old column.
+    - :py:func:`migrate.versioning.api.test` and schema comparison functions
+      now all accept `url` as first parameter and `repository` as second.
+    - python upgrade/downgrade scripts do not import `migrate_engine`
+      magically, but recieve engine as the only parameter to function (eg.
+      ``def upgrade(migrate_engine):``)
+    - :py:meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`
+      does not accept `current_name` anymore, it extracts name from the old
+      column.
 
 Features
 **************
 
 - added support for :ref:`firebird <firebird-d>`
-- added option to define custom templates through option ``--templates_path`` and ``--templates_theme``,
+- added option to define custom templates through option ``--templates_path``
+  and ``--templates_theme``,
   read more in :ref:`tutorial section <custom-templates>`
-- use Python logging for output, can be shut down by passing ``--disable_logging`` to :func:`migrate.versioning.shell.main`
-- deprecated `alter_column` comparing of columns. Just use explicit parameter change.
+- use Python logging for output, can be shut down by passing
+  ``--disable_logging`` to :py:func:`migrate.versioning.shell.main`
+- deprecated `alter_column` comparing of columns. Just use explicit parameter
+  change.
 - added support for SQLAlchemy 0.6.x by Michael Bayer
-- Constraint classes have `cascade=True` keyword argument to issue ``DROP CASCADE`` where supported
-- added :class:`~migrate.changeset.constraint.UniqueConstraint`/:class:`~migrate.changeset.constraint.CheckConstraint`
-  and corresponding create/drop methods
-- API `url` parameter can also be an :class:`Engine` instance (this usage is discouraged though sometimes necessary)
+- Constraint classes have `cascade=True` keyword argument to issue ``DROP
+  CASCADE`` where supported
+- added :py:class:`~migrate.changeset.constraint.UniqueConstraint`/
+  :py:class:`~migrate.changeset.constraint.CheckConstraint` and corresponding
+  create/drop methods
+- API `url` parameter can also be an :py:class:`Engine` instance (this usage is
+  discouraged though sometimes necessary)
 - code coverage is up to 80% with more than 100 tests
-- alter, create, drop column / rename table / rename index constructs now accept `alter_metadata` parameter. If True, it will modify Column/Table objects according to changes. Otherwise, everything will be untouched.
-- added `populate_default` bool argument to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` which issues corresponding UPDATE statements to set defaults after column creation
-- :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` accepts `primary_key_name`, `unique_name` and `index_name` as string value which is used as contraint name when adding a column
+- alter, create, drop column / rename table / rename index constructs now
+  accept `alter_metadata` parameter. If True, it will modify Column/Table
+  objects according to changes. Otherwise, everything will be untouched.
+- added `populate_default` bool argument to :py:meth:`Column.create
+  <migrate.changeset.schema.ChangesetColumn.create>` which issues corresponding
+  UPDATE statements to set defaults after column creation
+- :py:meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>`
+  accepts `primary_key_name`, `unique_name` and `index_name` as string value
+  which is used as contraint name when adding a column
 
 Fixed bugs
 *****************
 
-- ORM methods now accept `connection` parameter commonly used for transactions
-- `server_defaults` passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>`
-  are now issued correctly
-- use SQLAlchemy quoting system to avoid name conflicts (for issue 32)
-- complete refactoring of :class:`~migrate.changeset.schema.ColumnDelta` (fixes issue 23)
-- partial refactoring of :mod:`changeset` package
-- fixed bug when :meth:`Column.alter <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string') was not properly set
-- constraints passed to :meth:`Column.create <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted  (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
+- :term:`ORM` methods now accept `connection` parameter commonly used for
+  transactions
+- `server_defaults` passed to :py:meth:`Column.create
+  <migrate.changeset.schema.ChangesetColumn.create>` are now issued correctly
+- use SQLAlchemy quoting system to avoid name conflicts (#32)
+- complete refactoring of :py:class:`~migrate.changeset.schema.ColumnDelta`
+  (#23)
+- partial refactoring of :py:mod:`migrate.changeset` package
+- fixed bug when :py:meth:`Column.alter
+  <migrate.changeset.schema.ChangesetColumn.alter>`\(server_default='string')
+  was not properly set
+- constraints passed to :py:meth:`Column.create
+  <migrate.changeset.schema.ChangesetColumn.create>` are correctly interpreted
+  (``ALTER TABLE ADD CONSTRAINT`` is issued after ``ATLER TABLE ADD COLUMN``)
 - script names don't break with dot in the name
 
 Documentation
 *********************
 
 - :ref:`dialect support <dialect-support>` table was added to documentation
-- majoy update to documentation
-
+- major update to documentation
 
 
 0.5.4
@@ -192,7 +230,7 @@ Documentation
 - print statements removed from APIs
 - improved sphinx based documentation
 - removal of old commented code
-- PEP-8 clean code
+- :pep:`8` clean code
 
 0.4.5
 -----
@@ -244,24 +282,24 @@ Documentation
 
 - Removed lots of SA monkeypatching in Migrate's internals
 - SA 0.3.3 compatibility
-- Removed logsql (#75)
+- Removed logsql (trac issue 75)
 - Updated py.test version from 0.8 to 0.9; added a download link to setup.py
-- Fixed incorrect "function not defined" error (#88)
-- Fixed SQLite and .sql scripts (#87)
+- Fixed incorrect "function not defined" error (trac issue 88)
+- Fixed SQLite and .sql scripts (trac issue 87)
 
 0.2.2
 -----
 
-- Deprecated driver(engine) in favor of engine.name (#80)
-- Deprecated logsql (#75)
-- Comments in .sql scripts don't make things fail silently now (#74)
+- Deprecated driver(engine) in favor of engine.name (trac issue 80)
+- Deprecated logsql (trac issue 75)
+- Comments in .sql scripts don't make things fail silently now (trac issue 74)
 - Errors while downgrading (and probably other places) are shown on their own line
 - Created mailing list and announcements list, updated documentation accordingly
-- Automated tests now require py.test (#66)
-- Documentation fix to .sql script commits (#72)
-- Fixed a pretty major bug involving logengine, dealing with commits/tests (#64)
-- Fixes to the online docs - default DB versioning table name (#68)
-- Fixed the engine name in the scripts created by the command 'migrate script' (#69)
+- Automated tests now require py.test (trac issue 66)
+- Documentation fix to .sql script commits (trac issue 72)
+- Fixed a pretty major bug involving logengine, dealing with commits/tests (trac issue 64)
+- Fixes to the online docs - default DB versioning table name (trac issue 68)
+- Fixed the engine name in the scripts created by the command 'migrate script' (trac issue 69)
 - Added Evan's email to the online docs
 
 0.2.1
@@ -269,4 +307,4 @@ Documentation
 
 - Created this changelog
 - Now requires (and is now compatible with) SA 0.3
-- Commits across filesystems now allowed (shutil.move instead of os.rename) (#62)
+- Commits across filesystems now allowed (shutil.move instead of os.rename) (trac issue 62)

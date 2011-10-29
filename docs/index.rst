@@ -6,9 +6,10 @@
 
 :Author: Evan Rosson
 :Maintainer: Domen Kožar <domenNO@SPAMdev.si>
+:Maintainer: Jan Dittberner <jan.dittbernerNO@SPAMgooglemail.com>
 :Issues: http://code.google.com/p/sqlalchemy-migrate/issues/list
 :Source Code: http://code.google.com/p/sqlalchemy-migrate/
-:Continuous Integration: http://jenkins.gnuviech-server.de/job/sqlalchemy-migrate-all/
+:CI Tool: http://jenkins.gnuviech-server.de/job/sqlalchemy-migrate-all/
 :Generated: |today|
 :License: MIT
 :Version: |release|
@@ -16,25 +17,26 @@
 
 .. topic:: Overview
 
-	Inspired by Ruby on Rails' migrations, SQLAlchemy Migrate provides a
-	way to deal with database schema changes in SQLAlchemy_ projects.
+    Inspired by Ruby on Rails' migrations, SQLAlchemy Migrate provides a way to
+    deal with database schema changes in SQLAlchemy_ projects.
 
-	Migrate was started as part of `Google's Summer of Code`_ by Evan
-	Rosson, mentored by Jonathan LaCour.
+    Migrate was started as part of `Google's Summer of Code`_ by Evan Rosson,
+    mentored by Jonathan LaCour.
 
-	The project was taken over by a small group of volunteers when Evan
-	had no free time for the project. It is now hosted as a `Google Code
-	project`_. During the hosting change the project was renamed to
-	SQLAlchemy Migrate.
+    The project was taken over by a small group of volunteers when Evan had no
+    free time for the project. It is now hosted as a `Google Code project`_.
+    During the hosting change the project was renamed to SQLAlchemy Migrate.
 
-	Currently, sqlalchemy-migrate supports Python versions from 2.4 to 2.7.
-        SQLAlchemy Migrate 0.7.0 supports SQLAlchemy 0.5.x, 0.6.x and 0.7.x
-        branches.
+    Currently, sqlalchemy-migrate supports Python versions from 2.6 to 2.7.
+    SQLAlchemy Migrate 0.7.2 supports SQLAlchemy 0.6.x and 0.7.x branches.
+
+    Support for Python 2.4 and 2.5 as well as SQLAlchemy 0.5.x has been dropped
+    after sqlalchemy-migrate 0.7.1.
 
 .. warning::
 
-         Version **0.6** breaks backward compatibility, please read
-         :ref:`changelog <backwards-06>` for more info.
+    Version **0.6** broke backward compatibility, please read :ref:`changelog
+    <backwards-06>` for more info.
 
 
 Download and Development
@@ -119,10 +121,14 @@ Dialect support
       - not supported
 
 
-.. [#1] Table is renamed to temporary table, new table is created followed by INSERT statements.
+.. [#1] Table is renamed to temporary table, new table is created followed by
+        INSERT statements.
 .. [#2] See http://www.sqlite.org/lang_altertable.html for more information.
-        In cases not supported my sqlite, table is renamed to temporary table, new table is created followed by INSERT statements.
-.. [#3] You can not change datatype or rename column if table has NOT NULL data, see http://blogs.x2line.com/al/archive/2005/08/30/1231.aspx for more information.
+        In cases not supported my sqlite, table is renamed to temporary table,
+        new table is created followed by INSERT statements.
+.. [#3] You can not change datatype or rename column if table has NOT NULL
+        data, see http://blogs.x2line.com/al/archive/2005/08/30/1231.aspx for
+        more information.
 .. [#4] Changing nullable is not supported
 
 
@@ -132,15 +138,17 @@ Tutorials
 List of useful tutorials:
 
 * `Using migrate with Elixir <http://www.karoltomala.com/blog/?p=633>`_
-* `Developing with migrations <http://caneypuggies.alwaysreformed.com/wiki/DevelopingWithMigrations>`_
+* `Developing with migrations
+  <http://caneypuggies.alwaysreformed.com/wiki/DevelopingWithMigrations>`_
 
 
 User guide
 -------------
 
-SQLAlchemy Migrate is split into two parts, database schema versioning (:mod:`migrate.versioning`) and
-database migration management (:mod:`migrate.changeset`).
-The versioning API is available as the :ref:`migrate <command-line-usage>` command.
+SQLAlchemy Migrate is split into two parts, database schema versioning
+(:mod:`migrate.versioning`) and database migration management
+(:mod:`migrate.changeset`).  The versioning API is available as the
+:ref:`migrate <command-line-usage>` command.
 
 .. toctree::
 
@@ -148,6 +156,7 @@ The versioning API is available as the :ref:`migrate <command-line-usage>` comma
    changeset
    tools
    faq
+   glossary
 
 .. _`google's summer of code`: http://code.google.com/soc
 .. _`Google Code project`: http://code.google.com/p/sqlalchemy-migrate

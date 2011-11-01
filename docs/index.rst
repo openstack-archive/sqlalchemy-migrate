@@ -45,6 +45,7 @@ Download and Development
 .. toctree::
 
    download
+   credits
 
 
 .. _dialect-support:

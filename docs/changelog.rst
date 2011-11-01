@@ -10,6 +10,7 @@ Changes
 Documentation
 ******************
 
+- add :ref:`credits <credits>` for contributors
 - add :ref:`glossary <glossary>`
 - improve :ref:`advice on testing production changes <production testing
   warning>`

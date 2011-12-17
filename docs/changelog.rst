@@ -19,8 +19,8 @@ Features
 Fixed Bugs
 ******************
 
--
-
+- #140: excludeTablesgetDiffOfModelAgainstModel is not passing excludeTables
+  correctly (patch by Jason Michalski)
 
 0.7.2 (2011-11-01)
 ---------------------------

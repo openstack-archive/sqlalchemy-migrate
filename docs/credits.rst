@@ -54,10 +54,11 @@ improve sqlalchemy-migrate:
    - Ilya Shabalin
    - James Mills
    - Jarrod Chesney
+   - Jason Michalski
    - Jason R. Coombs
-   - Jayson Vantuyl
    - Jason Yamada-Hanff
    - Jay Pipes
+   - Jayson Vantuyl
    - Jeremy Cantrell
    - Jeremy Slade
    - Jeroen Ruigrok van der Werven

@@ -38,7 +38,7 @@ def getDiffOfModelAgainstModel(metadataA, metadataB, excludeTables=None):
     :return: object which will evaluate to :keyword:`True` if there \
       are differences else :keyword:`False`.
     """
-    return SchemaDiff(metadataA, metadataB, excludeTables)
+    return SchemaDiff(metadataA, metadataB, excludeTables=excludeTables)
 
 
 class ColDiff(object):

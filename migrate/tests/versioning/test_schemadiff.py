@@ -12,7 +12,6 @@ from migrate.tests import fixture
 class SchemaDiffBase(fixture.DB):
 
     level = fixture.DB.CONNECT
-    
     def _make_table(self,*cols,**kw):
         self.table = Table('xtable', self.meta,
             Column('id',Integer(), primary_key=True),
@@ -32,16 +31,23 @@ class SchemaDiffBase(fixture.DB):
         td = diff.tables_different.values()[0]
         eq_(1,len(td.columns_different))
         cd = td.columns_different.values()[0]
+        label_width = max(len(self.name1), len(self.name2))
         eq_(('Schema diffs:\n'
              '  table with differences: xtable\n'
              '    column with differences: data\n'
-             '         model: %r\n'
-             '      database: %r')%(
+             '      %*s: %r\n'
+             '      %*s: %r')%(
+                label_width,
+                self.name1,
                 cd.col_A,
+                label_width,
+                self.name2,
                 cd.col_B
                 ),str(diff))
         
 class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
+    name1 = 'model'
+    name2 = 'database'
     
     def _run_diff(self,**kw):
         return schemadiff.getDiffOfModelAgainstDatabase(
@@ -53,7 +59,7 @@ class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
         self._make_table(create=False)
         diff = self._run_diff()
         self.assertTrue(diff)
-        eq_('Schema diffs:\n  tables missing from database: xtable',
+        eq_('Schema diffs:\n  tables missing from %s: xtable' % self.name2,
             str(diff))
 
     @fixture.usedb()
@@ -62,7 +68,7 @@ class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
         self.meta.clear()
         diff = self._run_diff()
         self.assertTrue(diff)
-        eq_('Schema diffs:\n  tables missing from model: xtable',
+        eq_('Schema diffs:\n  tables missing from %s: xtable' % self.name1,
             str(diff))
 
     @fixture.usedb()
@@ -82,7 +88,7 @@ class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
         self.assertTrue(diff)
         eq_('Schema diffs:\n'
             '  table with differences: xtable\n'
-            '    database missing these columns: xcol',
+            '    %s missing these columns: xcol' % self.name2,
             str(diff))
 
     @fixture.usedb()
@@ -101,7 +107,7 @@ class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
         self.assertTrue(diff)
         eq_('Schema diffs:\n'
             '  table with differences: xtable\n'
-            '    model missing these columns: xcol',
+            '    %s missing these columns: xcol' % self.name1,
             str(diff))
 
     @fixture.usedb()
@@ -207,3 +213,13 @@ class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
         eq_('No schema diffs',str(diff))
         self.assertFalse(diff)
 
+class Test_getDiffOfModelAgainstModel(Test_getDiffOfModelAgainstDatabase):
+    name1 = 'metadataA'
+    name2 = 'metadataB'
+
+    def _run_diff(self,**kw):
+        db_meta= MetaData()
+        db_meta.reflect(self.engine)
+        return schemadiff.getDiffOfModelAgainstModel(
+            self.meta, db_meta, **kw
+            )

@@ -9,6 +9,7 @@ from migrate.exceptions import MigrateDeprecationWarning
 from migrate.tests import fixture
 from migrate.tests.fixture.warnings import catch_warnings
 from migrate.versioning.util import *
+from migrate.versioning import api
 
 import warnings
 
@@ -62,6 +63,15 @@ class TestUtil(fixture.Pathed):
 
         # unsupported argument
         self.assertRaises(ValueError, construct_engine, 1)
+
+    def test_passing_engine(self):
+        repo = self.tmp_repos()
+        api.create(repo, 'temp')
+        api.script('First Version', repo)
+        engine = construct_engine('sqlite:///:memory:')
+        
+        api.version_control(engine, repo)
+        api.upgrade(engine, repo)
 
     def test_asbool(self):
         """test asbool parsing"""

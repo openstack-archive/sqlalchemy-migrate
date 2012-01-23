@@ -158,7 +158,7 @@ def with_engine(f, *a, **kw):
         kw['engine'] = engine
         return f(*a, **kw)
     finally:
-        if isinstance(engine, Engine):
+        if isinstance(engine, Engine) and engine is not url:
             log.debug('Disposing SQLAlchemy engine %s', engine)
             engine.dispose()
 

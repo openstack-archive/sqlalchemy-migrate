@@ -116,5 +116,7 @@ improve sqlalchemy-migrate:
    - Yeeland Chen
    - Yuen Ho Wong
 
+   - asuffield (at) gmail (dot) com
+
 If you helped us in the past and miss your name please tell us about your
 contribution and we will add you to the list.

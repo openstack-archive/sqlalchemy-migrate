@@ -21,6 +21,8 @@ Fixed Bugs
 
 - #140: excludeTablesgetDiffOfModelAgainstModel is not passing excludeTables
   correctly (patch by Jason Michalski)
+- #72:  Regression against issue #38, migrate drops engine reference (patch by
+  asuffield@gmail.com)
 
 0.7.2 (2011-11-01)
 ---------------------------

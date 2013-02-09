@@ -7,7 +7,7 @@ import logging
 from sqlalchemy import (Table, Column, MetaData, String, Text, Integer,
     create_engine)
 from sqlalchemy.sql import and_
-from sqlalchemy import exceptions as sa_exceptions
+from sqlalchemy import exc as sa_exceptions
 from sqlalchemy.sql import bindparam
 
 from migrate import exceptions

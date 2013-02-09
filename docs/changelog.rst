@@ -23,6 +23,8 @@ Fixed Bugs
   correctly (patch by Jason Michalski)
 - #72:  Regression against issue #38, migrate drops engine reference (patch by
   asuffield@gmail.com)
+- #154: versioning/schema.py imports deprecated sqlalchemy.exceptions (patch by
+  Alex Favaro)
 
 0.7.2 (2011-11-01)
 ---------------------------

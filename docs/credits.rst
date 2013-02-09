@@ -23,6 +23,7 @@ improve sqlalchemy-migrate:
    - Adam Lowry
    - Adomas Paltanavicius
    - Alexander Artemenko
+   - Alex Favaro
    - Andrew Bialecki
    - Andrew Grossman
    - Andrew Lenards
@@ -93,6 +94,7 @@ improve sqlalchemy-migrate:
    - Nicholas Retallack
    - Nick Barendt
    - Patrick Shields
+   - Paul Bonser
    - Paul Johnston
    - Pawel Bylina
    - Pedro Algarvio

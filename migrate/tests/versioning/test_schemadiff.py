@@ -207,7 +207,7 @@ class Test_getDiffOfModelAgainstDatabase(SchemaDiffBase):
     @fixture.usedb()
     def test_text_identical(self):
         self._make_table(
-            Column('data', Text(255)),
+            Column('data', Text),
             )
         diff = self._run_diff()
         eq_('No schema diffs',str(diff))

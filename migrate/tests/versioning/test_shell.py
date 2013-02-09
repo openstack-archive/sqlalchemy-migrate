@@ -461,7 +461,7 @@ class TestShellDatabase(Shell, DB):
         old_model_module = 'migrate.tests.fixture.models:meta_old_rundiffs'
 
         # Create empty repository.
-        self.meta = MetaData(self.engine, reflect=True)
+        self.meta = MetaData(self.engine)
         self.meta.reflect()
         self.meta.drop_all()  # in case junk tables are lying around in the test database
 

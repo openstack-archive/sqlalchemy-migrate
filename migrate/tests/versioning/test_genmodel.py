@@ -18,9 +18,11 @@ class TestSchemaDiff(fixture.DB):
 
     def _setup(self, url):
         super(TestSchemaDiff, self)._setup(url)
-        self.meta = MetaData(self.engine, reflect=True)
+        self.meta = MetaData(self.engine)
+        self.meta.reflect()
         self.meta.drop_all()  # in case junk tables are lying around in the test database
-        self.meta = MetaData(self.engine, reflect=True)  # needed if we just deleted some tables
+        self.meta = MetaData(self.engine)
+        self.meta.reflect()  # needed if we just deleted some tables
         self.table = Table(self.table_name, self.meta,
             Column('id',Integer(), primary_key=True),
             Column('name', UnicodeText()),
@@ -29,7 +31,8 @@ class TestSchemaDiff(fixture.DB):
 
     def _teardown(self):
         if self.table.exists():
-            self.meta = MetaData(self.engine, reflect=True)
+            self.meta = MetaData(self.engine)
+            self.meta.reflect()
             self.meta.drop_all()
         super(TestSchemaDiff, self)._teardown()
 

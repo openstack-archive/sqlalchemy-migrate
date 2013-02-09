@@ -16,7 +16,8 @@ def getDiffOfModelAgainstDatabase(metadata, engine, excludeTables=None):
     :return: object which will evaluate to :keyword:`True` if there \
       are differences else :keyword:`False`.
     """
-    db_metadata = sqlalchemy.MetaData(engine, reflect=True)
+    db_metadata = sqlalchemy.MetaData(engine)
+    db_metadata.reflect()
 
     # sqlite will include a dynamically generated 'sqlite_sequence' table if
     # there are autoincrement sequences in the database; this should not be

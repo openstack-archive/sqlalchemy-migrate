@@ -128,7 +128,8 @@ class DB(Base):
     def _setup(self, url):
         self._connect(url)
         # make sure there are no tables lying around
-        meta = MetaData(self.engine, reflect=True)
+        meta = MetaData(self.engine)
+        meta.reflect()
         meta.drop_all()
 
     def _teardown(self):

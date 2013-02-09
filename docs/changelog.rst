@@ -25,6 +25,9 @@ Fixed Bugs
   asuffield@gmail.com)
 - #154: versioning/schema.py imports deprecated sqlalchemy.exceptions (patch by
   Alex Favaro)
+- fix deprecation warning using MetaData.reflect instead of reflect=True
+  constructor argument
+- fix test failure by removing unsupported length argument for Text column
 
 0.7.2 (2011-11-01)
 ---------------------------

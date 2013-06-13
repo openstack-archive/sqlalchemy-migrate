@@ -17,6 +17,7 @@ from sqlalchemy.schema import (ForeignKeyConstraint,
                                Index)
 
 from migrate import exceptions
+import sqlalchemy.sql.compiler
 from migrate.changeset import constraint
 
 from sqlalchemy.schema import AddConstraint, DropConstraint
@@ -152,6 +153,19 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     (ie. table for visit_table) and name is the object's new
     name. NONE means the name is unchanged.
     """
+
+    def _index_identifier(self, ident):
+        """This function is move in 0.8 to _prepared_index_name"""
+        if isinstance(ident, sqlalchemy.sql.compiler.sql._truncated_label):
+            max = self.dialect.max_index_name_length or \
+                        self.dialect.max_identifier_length
+            if len(ident) > max:
+                ident = ident[0:max - 8] + \
+                                "_" + sqlalchemy.sql.compiler.util.md5_hex(ident)[-4:]
+        else:
+            self.dialect.validate_identifier(ident)
+
+        return ident
 
     def visit_table(self, table):
         """Rename a table. Other ops aren't supported."""

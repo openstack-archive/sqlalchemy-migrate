@@ -2,21 +2,16 @@
 
 import os
 
-try:
-    from setuptools import setup, find_packages
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup, find_packages
+import setuptools
 
-required_deps = ['SQLAlchemy >= 0.6', 'decorator', 'Tempita >= 0.4', 'setuptools']
+required_deps = ['SQLAlchemy >= 0.6', 'decorator', 'Tempita >= 0.4']
 readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'README'))
 
-setup(
+setuptools.setup(
     name = "sqlalchemy-migrate",
     version = "0.7.3",
-    packages = find_packages(exclude=["migrate.tests*"]),
+    packages = setuptools.find_packages(exclude=["migrate.tests*"]),
     include_package_data = True,
     description = "Database schema migration for SQLAlchemy",
     long_description = readme_file.read(),

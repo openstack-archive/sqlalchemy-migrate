@@ -7,6 +7,5 @@ pytz
 psycopg2
 pysqlite
 mysql-python
-http://jenkins.gnuviech-server.de/userContent/kinterbasdb-3.3.0.tar.bz2
 virtualenv
 unittest2

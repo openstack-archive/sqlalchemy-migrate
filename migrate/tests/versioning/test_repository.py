@@ -7,7 +7,6 @@ import shutil
 from migrate import exceptions
 from migrate.versioning.repository import *
 from migrate.versioning.script import *
-from nose.tools import raises
 
 from migrate.tests import fixture
 from datetime import datetime
@@ -76,7 +75,7 @@ class TestVersionedRepository(fixture.Pathed):
         repos = Repository(self.path_repos)
 
         # Get latest version, or detect if a specified version exists
-        self.assertEquals(repos.latest, 0)
+        self.assertEqual(repos.latest, 0)
         # repos.latest isn't an integer, but a VerNum
         # (so we can't just assume the following tests are correct)
         self.assert_(repos.latest >= 0)
@@ -84,14 +83,14 @@ class TestVersionedRepository(fixture.Pathed):
 
         # Create a script and test again
         repos.create_script('')
-        self.assertEquals(repos.latest, 1)
+        self.assertEqual(repos.latest, 1)
         self.assert_(repos.latest >= 0)
         self.assert_(repos.latest >= 1)
         self.assert_(repos.latest < 2)
 
         # Create a new script and test again
         repos.create_script('')
-        self.assertEquals(repos.latest, 2)
+        self.assertEqual(repos.latest, 2)
         self.assert_(repos.latest >= 0)
         self.assert_(repos.latest >= 1)
         self.assert_(repos.latest >= 2)
@@ -103,7 +102,7 @@ class TestVersionedRepository(fixture.Pathed):
         repos.config.set('db_settings', 'use_timestamp_numbering', 'True')
 
         # Get latest version, or detect if a specified version exists
-        self.assertEquals(repos.latest, 0)
+        self.assertEqual(repos.latest, 0)
         # repos.latest isn't an integer, but a VerNum
         # (so we can't just assume the following tests are correct)
         self.assert_(repos.latest >= 0)
@@ -113,7 +112,7 @@ class TestVersionedRepository(fixture.Pathed):
         now = int(datetime.utcnow().strftime('%Y%m%d%H%M%S'))
         repos.create_script('')
         print repos.latest
-        self.assertEquals(repos.latest, now)
+        self.assertEqual(repos.latest, now)
 
     def test_source(self):
         """Get a script object by version number and view its source"""
@@ -148,7 +147,7 @@ class TestVersionedRepository(fixture.Pathed):
         def check_changeset(params, length):
             """Creates and verifies a changeset"""
             changeset = repos.changeset('postgres', *params)
-            self.assertEquals(len(changeset), length)
+            self.assertEqual(len(changeset), length)
             self.assertTrue(isinstance(changeset, Changeset))
             uniq = list()
             # Changesets are iterable
@@ -161,10 +160,10 @@ class TestVersionedRepository(fixture.Pathed):
 
         # Upgrade to a specified version...
         cs = check_changeset((0, 10), 10)
-        self.assertEquals(cs.keys().pop(0),0 ) # 0 -> 1: index is starting version
-        self.assertEquals(cs.keys().pop(), 9) # 9 -> 10: index is starting version
-        self.assertEquals(cs.start, 0) # starting version
-        self.assertEquals(cs.end, 10) # ending version
+        self.assertEqual(cs.keys().pop(0),0 ) # 0 -> 1: index is starting version
+        self.assertEqual(cs.keys().pop(), 9) # 9 -> 10: index is starting version
+        self.assertEqual(cs.start, 0) # starting version
+        self.assertEqual(cs.end, 10) # ending version
         check_changeset((0, 1), 1)
         check_changeset((0, 5), 5)
         check_changeset((0, 0), 0)
@@ -178,10 +177,10 @@ class TestVersionedRepository(fixture.Pathed):
 
         # Upgrade to the latest version...
         cs = check_changeset((0,), 10)
-        self.assertEquals(cs.keys().pop(0), 0)
-        self.assertEquals(cs.keys().pop(), 9)
-        self.assertEquals(cs.start, 0)
-        self.assertEquals(cs.end, 10)
+        self.assertEqual(cs.keys().pop(0), 0)
+        self.assertEqual(cs.keys().pop(), 9)
+        self.assertEqual(cs.start, 0)
+        self.assertEqual(cs.end, 10)
         check_changeset((1,), 9)
         check_changeset((5,), 5)
         check_changeset((9,), 1)
@@ -196,10 +195,10 @@ class TestVersionedRepository(fixture.Pathed):
 
         # Downgrade
         cs = check_changeset((10, 0),10)
-        self.assertEquals(cs.keys().pop(0), 10) # 10 -> 9
-        self.assertEquals(cs.keys().pop(), 1)    # 1 -> 0
-        self.assertEquals(cs.start, 10)
-        self.assertEquals(cs.end, 0)
+        self.assertEqual(cs.keys().pop(0), 10) # 10 -> 9
+        self.assertEqual(cs.keys().pop(), 1)    # 1 -> 0
+        self.assertEqual(cs.start, 10)
+        self.assertEqual(cs.end, 0)
         check_changeset((10, 5), 5)
         check_changeset((5, 0), 5)
         

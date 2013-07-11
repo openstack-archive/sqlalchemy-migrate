@@ -7,7 +7,6 @@ import tempfile
 
 from cStringIO import StringIO
 from sqlalchemy import MetaData, Table
-from nose.plugins.skip import SkipTest
 
 from migrate.exceptions import *
 from migrate.versioning.repository import Repository
@@ -48,7 +47,7 @@ class TestShellCommands(Shell):
 
     def test_main_with_runpy(self):
         if sys.version_info[:2] == (2, 4):
-            raise SkipTest("runpy is not part of python2.4")
+            self.skipTest("runpy is not part of python2.4")
         from runpy import run_module
         try:
             original = sys.argv
@@ -271,50 +270,50 @@ class TestShellDatabase(Shell, DB):
         repos_name = 'repos_name'
         repos_path = self.tmp()
         result = self.env.run('migrate create %(repos_path)s %(repos_name)s' % locals())
-        self.assertEquals(self.run_version(repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 0)
 
         # Version the DB
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
         result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
 
         # Upgrades with latest version == 0
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         result = self.env.run('migrate upgrade %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         result = self.env.run('migrate upgrade %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         result = self.env.run('migrate upgrade %s %s 1' % (self.url, repos_path), expect_error=True)
-        self.assertEquals(result.returncode, 1)
+        self.assertEqual(result.returncode, 1)
         result = self.env.run('migrate upgrade %s %s -1' % (self.url, repos_path), expect_error=True)
-        self.assertEquals(result.returncode, 2)
+        self.assertEqual(result.returncode, 2)
 
         # Add a script to the repository; upgrade the db
         result = self.env.run('migrate script Desc --repository=%s' % (repos_path))
-        self.assertEquals(self.run_version(repos_path), 1)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 1)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         # Test preview
         result = self.env.run('migrate upgrade %s %s 0 --preview_sql' % (self.url, repos_path))
         result = self.env.run('migrate upgrade %s %s 0 --preview_py' % (self.url, repos_path))
 
         result = self.env.run('migrate upgrade %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_db_version(self.url, repos_path), 1)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 1)
         
         # Downgrade must have a valid version specified
         result = self.env.run('migrate downgrade %s %s' % (self.url, repos_path), expect_error=True)
-        self.assertEquals(result.returncode, 2)
+        self.assertEqual(result.returncode, 2)
         result = self.env.run('migrate downgrade %s %s -1' % (self.url, repos_path), expect_error=True)
-        self.assertEquals(result.returncode, 2)
+        self.assertEqual(result.returncode, 2)
         result = self.env.run('migrate downgrade %s %s 2' % (self.url, repos_path), expect_error=True)
-        self.assertEquals(result.returncode, 2)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 1)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 1)
         
         result = self.env.run('migrate downgrade %s %s 0' % (self.url, repos_path))
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         
         result = self.env.run('migrate downgrade %s %s 1' % (self.url, repos_path), expect_error=True)
-        self.assertEquals(result.returncode, 2)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path))
 
@@ -326,26 +325,26 @@ class TestShellDatabase(Shell, DB):
         result = self.env.run('migrate create %s %s' % (repos_path, repos_name))
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
         result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_version(repos_path), 0)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         beforeCount = len(os.listdir(os.path.join(repos_path, 'versions')))  # hmm, this number changes sometimes based on running from svn
         result = self.env.run('migrate script_sql %s --repository=%s' % ('postgres', repos_path))
-        self.assertEquals(self.run_version(repos_path), 1)
-        self.assertEquals(len(os.listdir(os.path.join(repos_path, 'versions'))), beforeCount + 2)
+        self.assertEqual(self.run_version(repos_path), 1)
+        self.assertEqual(len(os.listdir(os.path.join(repos_path, 'versions'))), beforeCount + 2)
 
         open('%s/versions/001_postgres_upgrade.sql' % repos_path, 'a').write(upgrade_script)
         open('%s/versions/001_postgres_downgrade.sql' % repos_path, 'a').write(downgrade_script)
 
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         self.assertRaises(Exception, self.engine.text('select * from t_table').execute)
 
         result = self.env.run('migrate upgrade %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_db_version(self.url, repos_path), 1)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 1)
         self.engine.text('select * from t_table').execute()
 
         result = self.env.run('migrate downgrade %s %s 0' % (self.url, repos_path))
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         self.assertRaises(Exception, self.engine.text('select * from t_table').execute)
 
     # The tests below are written with some postgres syntax, but the stuff
@@ -387,14 +386,14 @@ class TestShellDatabase(Shell, DB):
         result = self.env.run('migrate create repository_name --repository=%s' % repos_path)
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
         result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_version(repos_path), 0)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         # Empty script should succeed
         result = self.env.run('migrate script Desc %s' % repos_path)
         result = self.env.run('migrate test %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_version(repos_path), 1)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 1)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         # Error script should fail
         script_path = self.tmp_py()
@@ -416,8 +415,8 @@ class TestShellDatabase(Shell, DB):
 
         result = self.env.run('migrate test %s %s bla' % (self.url, repos_path), expect_error=True)
         self.assertEqual(result.returncode, 2)
-        self.assertEquals(self.run_version(repos_path), 1)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 1)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         # Nonempty script using migrate_engine should succeed
         script_path = self.tmp_py()
@@ -446,8 +445,8 @@ class TestShellDatabase(Shell, DB):
         file.write(script_text)
         file.close()
         result = self.env.run('migrate test %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_version(repos_path), 1)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 1)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
         
     @usedb()
     def test_rundiffs_in_shell(self):
@@ -468,8 +467,8 @@ class TestShellDatabase(Shell, DB):
         result = self.env.run('migrate create %s %s' % (repos_path, repos_name))
         result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
         result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
-        self.assertEquals(self.run_version(repos_path), 0)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)
+        self.assertEqual(self.run_version(repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         # Setup helper script.
         result = self.env.run('migrate manage %s --repository=%s --url=%s --model=%s'\
@@ -491,8 +490,8 @@ class TestShellDatabase(Shell, DB):
         # Update db to latest model.
         result = self.env.run('migrate update_db_from_model %s %s %s'\
             % (self.url, repos_path, model_module))
-        self.assertEquals(self.run_version(repos_path), 0)
-        self.assertEquals(self.run_db_version(self.url, repos_path), 0)  # version did not get bumped yet because new version not yet created
+        self.assertEqual(self.run_version(repos_path), 0)
+        self.assertEqual(self.run_db_version(self.url, repos_path), 0)  # version did not get bumped yet because new version not yet created
 
         result = self.env.run('migrate compare_model_to_db %s %s %s'\
             % (self.url, repos_path, model_module))
@@ -520,7 +519,7 @@ class TestShellDatabase(Shell, DB):
 
         #result_script = self.env.run('migrate make_update_script_for_model %s %s %s %s'\
             #% (self.url, repos_path, old_model_module, model_module))
-        #self.assertEqualsIgnoreWhitespace(result_script.stdout,
+        #self.assertEqualIgnoreWhitespace(result_script.stdout,
         #'''from sqlalchemy import *
         #from migrate import *
 

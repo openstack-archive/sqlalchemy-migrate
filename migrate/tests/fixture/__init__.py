@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import unittest2
+import testtools
 
 def main(imports=None):
     if imports:
@@ -10,7 +10,7 @@ def main(imports=None):
         defaultTest='fixture.suite'
     else:
         defaultTest=None
-    return unittest2.TestProgram(defaultTest=defaultTest)
+    return testtools.TestProgram(defaultTest=defaultTest)
 
 from base import Base
 from migrate.tests.fixture.pathed import Pathed

@@ -126,7 +126,7 @@ def upgrade(migrate_engine):
 
         pyscript = self.cls(path)
         SQL = pyscript.preview_sql(self.url, 1)
-        self.assertEqualsIgnoreWhitespace("""
+        self.assertEqualIgnoreWhitespace("""
         CREATE TABLE "Link"
         ("link1ID" INTEGER,
         "link2ID" INTEGER,

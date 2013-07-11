@@ -1,3 +1,7 @@
+AUTHORS
+ChangeLog
+.tox/*
+.testrepository/*
 *.pyc
 *data/*
 *build/*

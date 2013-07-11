@@ -76,14 +76,14 @@ class TestVersion(fixture.Pathed):
         super(TestVersion, self).setUp()
 
     def test_str_to_filename(self):
-        self.assertEquals(str_to_filename(''), '')
-        self.assertEquals(str_to_filename('__'), '_')
-        self.assertEquals(str_to_filename('a'), 'a')
-        self.assertEquals(str_to_filename('Abc Def'), 'Abc_Def')
-        self.assertEquals(str_to_filename('Abc "D" Ef'), 'Abc_D_Ef')
-        self.assertEquals(str_to_filename("Abc's Stuff"), 'Abc_s_Stuff')
-        self.assertEquals(str_to_filename("a      b"), 'a_b')
-        self.assertEquals(str_to_filename("a.b to c"), 'a_b_to_c')
+        self.assertEqual(str_to_filename(''), '')
+        self.assertEqual(str_to_filename('__'), '_')
+        self.assertEqual(str_to_filename('a'), 'a')
+        self.assertEqual(str_to_filename('Abc Def'), 'Abc_Def')
+        self.assertEqual(str_to_filename('Abc "D" Ef'), 'Abc_D_Ef')
+        self.assertEqual(str_to_filename("Abc's Stuff"), 'Abc_s_Stuff')
+        self.assertEqual(str_to_filename("a      b"), 'a_b')
+        self.assertEqual(str_to_filename("a.b to c"), 'a_b_to_c')
 
     def test_collection(self):
         """Let's see how we handle versions collection"""
@@ -142,19 +142,19 @@ class TestVersion(fixture.Pathed):
             open(filepath, 'w').close()
 
         ver = Version(1, path, [sqlite_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('sqlite', 'upgrade').path), sqlite_upgrade_file)
+        self.assertEqual(os.path.basename(ver.script('sqlite', 'upgrade').path), sqlite_upgrade_file)
     
         ver = Version(1, path, [default_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('default', 'upgrade').path), default_upgrade_file)
+        self.assertEqual(os.path.basename(ver.script('default', 'upgrade').path), default_upgrade_file)
     
         ver = Version(1, path, [sqlite_upgrade_file, default_upgrade_file])
-        self.assertEquals(os.path.basename(ver.script('sqlite', 'upgrade').path), sqlite_upgrade_file)
+        self.assertEqual(os.path.basename(ver.script('sqlite', 'upgrade').path), sqlite_upgrade_file)
     
         ver = Version(1, path, [sqlite_upgrade_file, default_upgrade_file, python_file])
-        self.assertEquals(os.path.basename(ver.script('postgres', 'upgrade').path), default_upgrade_file)
+        self.assertEqual(os.path.basename(ver.script('postgres', 'upgrade').path), default_upgrade_file)
 
         ver = Version(1, path, [sqlite_upgrade_file, python_file])
-        self.assertEquals(os.path.basename(ver.script('postgres', 'upgrade').path), python_file)
+        self.assertEqual(os.path.basename(ver.script('postgres', 'upgrade').path), python_file)
 
     def test_bad_version(self):
         ver = Version(1, self.temp_usable_dir, [])

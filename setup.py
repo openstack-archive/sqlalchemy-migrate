@@ -1,34 +1,21 @@
-#!/usr/bin/python
-
-import os
+#!/usr/bin/env python
+# Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import setuptools
 
-required_deps = ['SQLAlchemy >= 0.6', 'decorator', 'Tempita >= 0.4']
-readme_file = open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                'README'))
-
 setuptools.setup(
-    name = "sqlalchemy-migrate",
-    version = "0.7.3",
-    packages = setuptools.find_packages(exclude=["migrate.tests*"]),
-    include_package_data = True,
-    description = "Database schema migration for SQLAlchemy",
-    long_description = readme_file.read(),
-    install_requires = required_deps,
-    extras_require = {
-        'docs' : ['sphinx >= 0.5'],
-    },
-    author = "Evan Rosson",
-    author_email = "evan.rosson@gmail.com",
-    url = "http://code.google.com/p/sqlalchemy-migrate/",
-    maintainer = "Jan Dittberner",
-    maintainer_email = "jan@dittberner.info",
-    license = "MIT",
-    entry_points = """
-    [console_scripts]
-    migrate = migrate.versioning.shell:main
-    migrate-repository = migrate.versioning.migrate_repository:main
-    """,
-    test_suite = "nose.collector",
-)
+    setup_requires=['d2to1>=0.2.10,<0.3', 'pbr>=0.5.10,<0.6'],
+    d2to1=True)

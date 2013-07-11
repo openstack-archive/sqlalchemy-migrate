@@ -34,9 +34,9 @@ To run automated tests:
 * Copy test_db.cfg.tmpl to test_db.cfg
 * Edit test_db.cfg with database connection strings suitable for running tests.
   (Use empty databases.)
-* $ pip install -r test-req.pip
+* $ pip install -r requirements.txt -r test-requirements.txt
 * $ python setup.py develop
-* $ nosetests
+* $ testr run --parallel
 
 Please report any issues with sqlalchemy-migrate to the issue tracker at
 `code.google.com issues

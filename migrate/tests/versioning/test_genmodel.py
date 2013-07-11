@@ -4,7 +4,6 @@ import os
 
 import sqlalchemy
 from sqlalchemy import *
-from nose.tools import eq_
 
 from migrate.versioning import genmodel, schemadiff
 from migrate.changeset import schema
@@ -45,7 +44,7 @@ class TestSchemaDiff(fixture.DB):
 
         def assertDiff(isDiff, tablesMissingInDatabase, tablesMissingInModel, tablesWithDiff):
             diff = schemadiff.getDiffOfModelAgainstDatabase(self.meta, self.engine, excludeTables=['migrate_version'])
-            eq_(
+            self.assertEqual(
                 (diff.tables_missing_from_B,
                  diff.tables_missing_from_A,
                  diff.tables_different.keys(),
@@ -66,7 +65,7 @@ class TestSchemaDiff(fixture.DB):
         # Feature test for a recent SQLa feature;
         # expect different output in that case.
         if repr(String()) == 'String()':
-            self.assertEqualsIgnoreWhitespace(decls, '''
+            self.assertEqualIgnoreWhitespace(decls, '''
             from migrate.changeset import schema
             pre_meta = MetaData()
             post_meta = MetaData()
@@ -77,7 +76,7 @@ class TestSchemaDiff(fixture.DB):
             )
             ''')
         else:
-            self.assertEqualsIgnoreWhitespace(decls, '''
+            self.assertEqualIgnoreWhitespace(decls, '''
             from migrate.changeset import schema
             pre_meta = MetaData()
             post_meta = MetaData()
@@ -157,8 +156,8 @@ class TestSchemaDiff(fixture.DB):
             # Make sure data is still present.
             result = self.engine.execute(self.table.select(self.table.c.id==dataId))
             rows = result.fetchall()
-            eq_(len(rows), 1)
-            eq_(rows[0].name, 'mydata')
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0].name, 'mydata')
 
             # Add data, later we'll make sure it's still present.
             result = self.engine.execute(self.table.insert(), id=2, name=u'mydata2', data2=123)
@@ -185,9 +184,9 @@ class TestSchemaDiff(fixture.DB):
             # Make sure data is still present.
             result = self.engine.execute(self.table.select(self.table.c.id==dataId2))
             rows = result.fetchall()
-            self.assertEquals(len(rows), 1)
-            self.assertEquals(rows[0].name, 'mydata2')
-            self.assertEquals(rows[0].data2, '123')
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0].name, 'mydata2')
+            self.assertEqual(rows[0].data2, '123')
 
             # Delete data, since we're about to make a required column.
             # Not even using sqlalchemy.PassiveDefault helps because we're doing explicit column select.

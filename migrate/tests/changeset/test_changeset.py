@@ -44,11 +44,11 @@ class TestAddDropColumn(fixture.DB):
             self.refresh_table(self.table_name)
             result = len(self.table.c)
 
-            self.assertEquals(result, num_of_expected_cols),
+            self.assertEqual(result, num_of_expected_cols),
             if col_k.get('primary_key', None):
                 # new primary key: check its length too
                 result = len(self.table.primary_key)
-                self.assertEquals(result, num_of_expected_cols)
+                self.assertEqual(result, num_of_expected_cols)
 
         # we have 1 columns and there is no data column  
         assert_numcols(1)
@@ -485,7 +485,7 @@ class TestRename(fixture.DB):
             """
             if not skip_object_check:
                 # Table object check
-                self.assertEquals(self.table.name,expected)
+                self.assertEqual(self.table.name,expected)
                 newname = self.table.name
             else:
                 # we know the object's name isn't consistent: just assign it
@@ -493,12 +493,12 @@ class TestRename(fixture.DB):
             # Table DB check
             self.meta.clear()
             self.table = Table(newname, self.meta, autoload=True)
-            self.assertEquals(self.table.name, expected)
+            self.assertEqual(self.table.name, expected)
 
         def assert_index_name(expected, skip_object_check=False):
             if not skip_object_check:
                 # Index object check
-                self.assertEquals(self.index.name, expected)
+                self.assertEqual(self.index.name, expected)
             else:
                 # object is inconsistent
                 self.index.name = expected
@@ -583,7 +583,7 @@ class TestColumnChange(fixture.DB):
         # Table content should be preserved in changed columns
         content = "fgsfds"
         self.engine.execute(self.table.insert(), data=content, id=42)
-        self.assertEquals(num_rows(self.table.c.data, content), 1)
+        self.assertEqual(num_rows(self.table.c.data, content), 1)
 
         # ...as a function, given a column object and the new name
         alter_column('data', name='data2', table=self.table)
@@ -592,14 +592,14 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_('data' not in self.table.c.keys())
         self.assert_('atad' in self.table.c.keys())
-        self.assertEquals(num_rows(self.table.c.atad, content), 1)
+        self.assertEqual(num_rows(self.table.c.atad, content), 1)
 
         # ...as a method, given a new name
         self.table.c.atad.alter(name='data')
         self.refresh_table(self.table.name)
         self.assert_('atad' not in self.table.c.keys())
         self.table.c.data # Should not raise exception
-        self.assertEquals(num_rows(self.table.c.data, content), 1)
+        self.assertEqual(num_rows(self.table.c.data, content), 1)
 
         # ...as a function, given a new object
         alter_column(self.table.c.data,
@@ -608,7 +608,7 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_('data' not in self.table.c.keys())
         self.table.c.atad   # Should not raise exception
-        self.assertEquals(num_rows(self.table.c.atad, content), 1)
+        self.assertEqual(num_rows(self.table.c.atad, content), 1)
 
         # ...as a method, given a new object
         self.table.c.atad.alter(
@@ -618,7 +618,7 @@ class TestColumnChange(fixture.DB):
         self.refresh_table(self.table.name)
         self.assert_('atad' not in self.table.c.keys())
         self.table.c.data   # Should not raise exception
-        self.assertEquals(num_rows(self.table.c.data,content), 1)
+        self.assertEqual(num_rows(self.table.c.data,content), 1)
         
     @fixture.usedb()
     def test_type(self):
@@ -628,15 +628,15 @@ class TestColumnChange(fixture.DB):
         self.table.c.data.alter(type=String(43))
         self.refresh_table(self.table.name)
         self.assert_(isinstance(self.table.c.data.type, String))
-        self.assertEquals(self.table.c.data.type.length, 43)
+        self.assertEqual(self.table.c.data.type.length, 43)
 
         # Different type
         self.assert_(isinstance(self.table.c.id.type, Integer))
-        self.assertEquals(self.table.c.id.nullable, False)
+        self.assertEqual(self.table.c.id.nullable, False)
 
         if not self.engine.name == 'firebird':
             self.table.c.id.alter(type=String(20))
-            self.assertEquals(self.table.c.id.nullable, False)
+            self.assertEqual(self.table.c.id.nullable, False)
             self.refresh_table(self.table.name)
             self.assert_(isinstance(self.table.c.id.type, String))
 
@@ -646,13 +646,13 @@ class TestColumnChange(fixture.DB):
         Only DefaultClauses are changed here: others are managed by the 
         application / by SA
         """
-        self.assertEquals(self.table.c.data.server_default.arg, 'tluafed')
+        self.assertEqual(self.table.c.data.server_default.arg, 'tluafed')
 
         # Just the new default 
         default = 'my_default'
         self.table.c.data.alter(server_default=DefaultClause(default))
         self.refresh_table(self.table.name)
-        #self.assertEquals(self.table.c.data.server_default.arg,default)
+        #self.assertEqual(self.table.c.data.server_default.arg,default)
         # TextClause returned by autoload
         self.assert_(default in str(self.table.c.data.server_default.arg))
         self.engine.execute(self.table.insert(), id=12)
@@ -679,18 +679,18 @@ class TestColumnChange(fixture.DB):
     @fixture.usedb(not_supported='firebird')
     def test_null(self):
         """Can change a column's null constraint"""
-        self.assertEquals(self.table.c.data.nullable, True)
+        self.assertEqual(self.table.c.data.nullable, True)
 
         # Full column
         self.table.c.data.alter(type=String(40), nullable=False)
         self.table.nullable = None
         self.refresh_table(self.table.name)
-        self.assertEquals(self.table.c.data.nullable, False)
+        self.assertEqual(self.table.c.data.nullable, False)
 
         # Just the new status
         self.table.c.data.alter(nullable=True)
         self.refresh_table(self.table.name)
-        self.assertEquals(self.table.c.data.nullable, True)
+        self.assertEqual(self.table.c.data.nullable, True)
 
     @fixture.usedb()
     def test_alter_deprecated(self):
@@ -793,7 +793,7 @@ class TestColumnDelta(fixture.DB):
         self.delta = ColumnDelta(original, *p, **k)
         result = self.delta.keys()
         result.sort()
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
         return self.delta
 
     def test_deltas_two_columns(self):
@@ -885,8 +885,8 @@ class TestColumnDelta(fixture.DB):
 
         # Change name, given an up-to-date definition and the current name
         delta = self.verify(['name'], col_orig, name='blah')
-        self.assertEquals(delta.get('name'), 'blah')
-        self.assertEquals(delta.current_name, 'id')
+        self.assertEqual(delta.get('name'), 'blah')
+        self.assertEqual(delta.current_name, 'id')
 
         col_orig = self.mkcol(primary_key=True)
         self.verify(['name', 'type'], col_orig, name='id12', type=Text, alter_metadata=True)

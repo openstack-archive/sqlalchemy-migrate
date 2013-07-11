@@ -20,12 +20,11 @@ list `migrate-announce <http://groups.google.com/group/migrate-announce>`_
 and at the Python package index `sqlalchemy-migrate
 <http://pypi.python.org/pypi/sqlalchemy-migrate>`_.
 
-Homepage is located at `code.google.com
-<http://code.google.com/p/sqlalchemy-migrate/>`_
+Homepage is located at `stackforge
+<http://github.com/stackforge/sqlalchemy-migrate/>`_
 
 You can also clone a current `development version
-<http://code.google.com/p/sqlalchemy-migrate/source/checkout>`_ from the
-project's `mercurial <http://mercurial.selenic.com/>`_ trunk.
+<http://github.com/stackforge/sqlalchmey-migrate>`_
 
 Tests and Bugs
 ------------------

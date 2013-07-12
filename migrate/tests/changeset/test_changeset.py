@@ -560,7 +560,7 @@ class TestColumnChange(fixture.DB):
             self.table.drop()
         try:
             self.table.create()
-        except sqlalchemy.exceptions.SQLError, e:
+        except sqlalchemy.exc.SQLError, e:
             # SQLite: database schema has changed
             if not self.url.startswith('sqlite://'):
                 raise
@@ -569,7 +569,7 @@ class TestColumnChange(fixture.DB):
         if self.table.exists():
             try:
                 self.table.drop(self.engine)
-            except sqlalchemy.exceptions.SQLError,e:
+            except sqlalchemy.exc.SQLError,e:
                 # SQLite: database schema has changed
                 if not self.url.startswith('sqlite://'):
                     raise

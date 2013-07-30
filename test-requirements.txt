@@ -21,5 +21,7 @@ testtools>=0.9.27
 
 # NOTE: scripttest 1.0.1 removes base_path argument to ScriptTest
 scripttest==1.0
-pytz
+# NOTE(rpodolyaka): This version identifier is currently necessary as
+#                   pytz otherwise does not install on pip 1.4 or higher
+pytz>=0a
 pysqlite

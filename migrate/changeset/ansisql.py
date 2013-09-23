@@ -154,19 +154,6 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
     name. NONE means the name is unchanged.
     """
 
-    def _index_identifier(self, ident):
-        """This function is move in 0.8 to _prepared_index_name"""
-        if isinstance(ident, sqlalchemy.sql.compiler.sql._truncated_label):
-            max = self.dialect.max_index_name_length or \
-                        self.dialect.max_identifier_length
-            if len(ident) > max:
-                ident = ident[0:max - 8] + \
-                                "_" + sqlalchemy.sql.compiler.util.md5_hex(ident)[-4:]
-        else:
-            self.dialect.validate_identifier(ident)
-
-        return ident
-
     def visit_table(self, table):
         """Rename a table. Other ops aren't supported."""
         self.start_alter_table(table)
@@ -185,8 +172,8 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
                     self.preparer.quote(
                         self._validate_identifier(
                             index.new_name, True), index.quote)))
-        else:
-            # SA >= 0.6.5
+        elif hasattr(self, '_index_identifier'):
+            # SA >= 0.6.5, < 0.8
             self.append("ALTER INDEX %s RENAME TO %s" % (
                     self.preparer.quote(
                         self._index_identifier(
@@ -194,6 +181,23 @@ class ANSISchemaChanger(AlterTableVisitor, SchemaGenerator):
                     self.preparer.quote(
                         self._index_identifier(
                             index.new_name), index.quote)))
+        else:
+            # SA >= 0.8
+            class NewName(object):
+                """Map obj.name -> obj.new_name"""
+                def __init__(self, index):
+                    self.name = index.new_name
+                    self._obj = index
+
+                def __getattr__(self, attr):
+                    if attr == 'name':
+                        return getattr(self, attr)
+                    return getattr(self._obj, attr)
+
+            self.append("ALTER INDEX %s RENAME TO %s" % (
+                    self._prepared_index_name(index),
+                    self._prepared_index_name(NewName(index))))
+
         self.execute()
 
     def visit_column(self, delta):

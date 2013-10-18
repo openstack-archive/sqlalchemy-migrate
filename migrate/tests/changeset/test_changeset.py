@@ -18,6 +18,7 @@ class TestAddDropColumn(fixture.DB):
     """
     level = fixture.DB.CONNECT
     table_name = 'tmp_adddropcol'
+    table_name_idx = 'tmp_adddropcol_idx'
     table_int = 0
 
     def _setup(self, url):
@@ -26,14 +27,27 @@ class TestAddDropColumn(fixture.DB):
         self.table = Table(self.table_name, self.meta,
             Column('id', Integer, unique=True),
         )
+        self.table_idx = Table(
+            self.table_name_idx,
+            self.meta,
+            Column('id', Integer, primary_key=True),
+            Column('a', Integer),
+            Column('b', Integer),
+            Index('test_idx', 'a', 'b')
+        )
         self.meta.bind = self.engine
         if self.engine.has_table(self.table.name):
             self.table.drop()
+        if self.engine.has_table(self.table_idx.name):
+            self.table_idx.drop()
         self.table.create()
+        self.table_idx.create()
 
     def _teardown(self):
         if self.engine.has_table(self.table.name):
             self.table.drop()
+        if self.engine.has_table(self.table_idx.name):
+            self.table_idx.drop()
         self.meta.clear()
         super(TestAddDropColumn,self)._teardown()
 
@@ -257,7 +271,26 @@ class TestAddDropColumn(fixture.DB):
 
         col.drop(self.table)
 
-# TODO: remove already attached columns with indexes, uniques, pks, fks ..
+# TODO: remove already attached columns with uniques, pks, fks ..
+    @fixture.usedb(not_supported='postgresql')
+    def test_drop_column_of_composite_index(self):
+        # NOTE(rpodolyaka): postgresql automatically drops a composite index
+        #                   if one of its columns is dropped
+        self.table_idx.c.b.drop()
+
+        reflected = Table(self.table_idx.name, MetaData(), autoload=True,
+                          autoload_with=self.engine)
+        index = next(iter(reflected.indexes))
+        self.assertEquals(['a'], [c.name for c in index.columns])
+
+    @fixture.usedb()
+    def test_drop_all_columns_of_composite_index(self):
+        self.table_idx.c.a.drop()
+        self.table_idx.c.b.drop()
+
+        reflected = Table(self.table_idx.name, MetaData(), autoload=True,
+                          autoload_with=self.engine)
+        self.assertEquals(0, len(reflected.indexes))
 
     def _check_index(self,expected):
         if 'mysql' in self.engine.name or 'postgres' in self.engine.name:

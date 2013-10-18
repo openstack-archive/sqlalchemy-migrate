@@ -11,7 +11,7 @@ from sqlalchemy.schema import ForeignKeyConstraint
 from sqlalchemy.schema import UniqueConstraint
 
 from migrate.exceptions import *
-from migrate.changeset import SQLA_07
+from migrate.changeset import SQLA_07, SQLA_08
 from migrate.changeset.databases.visitor import (get_engine_visitor,
                                                  run_single_visitor)
 
@@ -573,7 +573,9 @@ populated with defaults
                 if col.name!=self.name:
                     columns.append(col)
             if columns:
-                index.columns=columns
+                index.columns = columns
+                if SQLA_08:
+                    index.expressions = columns
             else:
                 to_drop.add(index)
         table.indexes = table.indexes - to_drop

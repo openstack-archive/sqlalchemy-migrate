@@ -30,7 +30,7 @@ Homepage is located at `stackforge
 <http://github.com/stackforge/sqlalchemy-migrate/>`_
 
 You can also clone a current `development version
-<http://github.com/stackforge/sqlalchmey-migrate>`_
+<http://github.com/stackforge/sqlalchemy-migrate>`_
 
 Tests and Bugs
 --------------

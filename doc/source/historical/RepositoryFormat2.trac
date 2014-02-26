@@ -1,6 +1,6 @@
 My original plan for Migrate's RepositoryFormat had several problems:
 
- * Bind parameters: We needed to bind parameters into statements to get something suitable for an .sql file. For some types of parameters, there's no clean way to do this without writing an entire parser - too great a cost for this project. There's a reason why SQLAlchemy's logs display the statement and its parameters separately: the binding is done at a lower level than we have access to. 
+ * Bind parameters: We needed to bind parameters into statements to get something suitable for an .sql file. For some types of parameters, there's no clean way to do this without writing an entire parser - too great a cost for this project. There's a reason why SQLAlchemy's logs display the statement and its parameters separately: the binding is done at a lower level than we have access to.
  * Failure: Discussed in #17, the old format had no easy way to find the Python statements associated with an SQL error. This makes it difficult to debug scripts.
 
 A new format will be used to solve this problem instead.
@@ -15,9 +15,9 @@ These files will contain the following information:
    * Parameters to be bound to the statement
    * A Python stack trace at the point the statement was logged - this allows us to tell what Python statements are associated with an SQL statement when there's an error
 
-These files will be created by pickling a Python object with the above information. 
+These files will be created by pickling a Python object with the above information.
 
-Such files may be executed by loading the log and having SQLAlchemy execute them as it might have before. 
+Such files may be executed by loading the log and having SQLAlchemy execute them as it might have before.
 
 Good:
  * Since the statements and bind parameters are stored separately and executed as SQLAlchemy would normally execute them, one problem discussed above is eliminated.

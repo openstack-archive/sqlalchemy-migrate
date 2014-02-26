@@ -1,4 +1,4 @@
-This is very much a draft/brainstorm right now. It should be made prettier and thought about in more detail later, but it at least gives some idea of the direction we're headed right now. 
+This is very much a draft/brainstorm right now. It should be made prettier and thought about in more detail later, but it at least gives some idea of the direction we're headed right now.
 ----
  * Two distinct tools; should not be coupled (can work independently):
    * Versioning tool

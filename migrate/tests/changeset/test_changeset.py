@@ -65,7 +65,7 @@ class TestAddDropColumn(fixture.DB):
                 result = len(self.table.primary_key)
                 self.assertEqual(result, num_of_expected_cols)
 
-        # we have 1 columns and there is no data column  
+        # we have 1 columns and there is no data column
         assert_numcols(1)
         self.assertTrue(getattr(self.table.c, 'data', None) is None)
         if len(col_p) == 0:
@@ -147,7 +147,7 @@ class TestAddDropColumn(fixture.DB):
             # Not necessarily bound to table
             return self.table.drop_column(col.name)
         return self.run_(add_func, drop_func)
-        
+
     @fixture.usedb()
     def test_byname(self):
         """Add/drop columns via functions; by table object and column name"""
@@ -302,7 +302,7 @@ class TestAddDropColumn(fixture.DB):
                 if index.name=='ix_data':
                     break
             self.assertEqual(expected,index.unique)
-        
+
     @fixture.usedb()
     def test_index(self):
         col = Column('data', Integer)
@@ -311,7 +311,7 @@ class TestAddDropColumn(fixture.DB):
         self._check_index(False)
 
         col.drop()
-        
+
     @fixture.usedb()
     def test_index_unique(self):
         # shows how to create a unique index
@@ -332,7 +332,7 @@ class TestAddDropColumn(fixture.DB):
         self._check_index(True)
 
         col.drop()
-        
+
     @fixture.usedb()
     def test_server_defaults(self):
         """Can create columns with server_default values"""
@@ -382,7 +382,7 @@ class TestAddDropColumn(fixture.DB):
             sorted([i.name for i in self.table.indexes]),
             [u'ix_tmp_adddropcol_d1', u'ix_tmp_adddropcol_d2']
             )
-            
+
         # delete one
         self.table.c.d2.drop()
 
@@ -392,7 +392,7 @@ class TestAddDropColumn(fixture.DB):
             sorted([i.name for i in self.table.indexes]),
             [u'ix_tmp_adddropcol_d1']
             )
-            
+
     def _actual_foreign_keys(self):
         from sqlalchemy.schema import ForeignKeyConstraint
         result = []
@@ -406,12 +406,12 @@ class TestAddDropColumn(fixture.DB):
                 result.append(col_names)
         result.sort()
         return result
-        
+
     @fixture.usedb()
     def test_drop_with_foreign_keys(self):
         self.table.drop()
         self.meta.clear()
-        
+
         # create FK's target
         reftable = Table('tmp_ref', self.meta,
             Column('id', Integer, primary_key=True),
@@ -419,7 +419,7 @@ class TestAddDropColumn(fixture.DB):
         if self.engine.has_table(reftable.name):
             reftable.drop()
         reftable.create()
-        
+
         # add a table with two foreign key columns
         self.table = Table(
             self.table_name, self.meta,
@@ -432,13 +432,13 @@ class TestAddDropColumn(fixture.DB):
         # paranoid check
         self.assertEqual([['r1'],['r2']],
                          self._actual_foreign_keys())
-        
+
         # delete one
         if self.engine.name == 'mysql':
             constraint.ForeignKeyConstraint([self.table.c.r2], [reftable.c.id],
                                             name='test_fk2').drop()
         self.table.c.r2.drop()
-        
+
         # check remaining foreign key is there
         self.assertEqual([['r1']],
                          self._actual_foreign_keys())
@@ -447,7 +447,7 @@ class TestAddDropColumn(fixture.DB):
     def test_drop_with_complex_foreign_keys(self):
         from sqlalchemy.schema import ForeignKeyConstraint
         from sqlalchemy.schema import UniqueConstraint
-        
+
         self.table.drop()
         self.meta.clear()
 
@@ -465,7 +465,7 @@ class TestAddDropColumn(fixture.DB):
         if self.engine.has_table(reftable.name):
             reftable.drop()
         reftable.create()
-        
+
         # add a table with a complex foreign key constraint
         self.table = Table(
             self.table_name, self.meta,
@@ -481,21 +481,21 @@ class TestAddDropColumn(fixture.DB):
         # paranoid check
         self.assertEqual([['r1','r2']],
                          self._actual_foreign_keys())
-        
+
         # delete one
         if self.engine.name == 'mysql':
             constraint.ForeignKeyConstraint([self.table.c.r1, self.table.c.r2],
                                             [reftable.c.id, reftable.c.jd],
                                             name='test_fk').drop()
         self.table.c.r2.drop()
-        
+
         # check the constraint is gone, since part of it
         # is no longer there - if people hit this,
         # they may be confused, maybe we should raise an error
         # and insist that the constraint is deleted first, separately?
         self.assertEqual([],
                          self._actual_foreign_keys())
-        
+
 class TestRename(fixture.DB):
     """Tests for table and index rename methods"""
     level = fixture.DB.CONNECT
@@ -575,7 +575,7 @@ class TestRename(fixture.DB):
             # test by just the string
             rename_table(table_name1, table_name2, engine=self.engine)
             assert_table_name(table_name2, True)   # object not updated
-    
+
             # Index renames
             if self.url.startswith('sqlite') or self.url.startswith('mysql'):
                 self.assertRaises(exceptions.NotSupportedError,
@@ -671,7 +671,7 @@ class TestColumnChange(fixture.DB):
         self.assert_('atad' not in self.table.c.keys())
         self.table.c.data   # Should not raise exception
         self.assertEqual(num_rows(self.table.c.data,content), 1)
-        
+
     @fixture.usedb()
     def test_type(self):
         # Test we can change a column's type
@@ -695,12 +695,12 @@ class TestColumnChange(fixture.DB):
     @fixture.usedb()
     def test_default(self):
         """Can change a column's server_default value (DefaultClauses only)
-        Only DefaultClauses are changed here: others are managed by the 
+        Only DefaultClauses are changed here: others are managed by the
         application / by SA
         """
         self.assertEqual(self.table.c.data.server_default.arg, 'tluafed')
 
-        # Just the new default 
+        # Just the new default
         default = 'my_default'
         self.table.c.data.alter(server_default=DefaultClause(default))
         self.refresh_table(self.table.name)
@@ -750,7 +750,7 @@ class TestColumnChange(fixture.DB):
             # py 2.4 compatability :-/
             cw = catch_warnings(record=True)
             w = cw.__enter__()
-            
+
             warnings.simplefilter("always")
             self.table.c.data.alter(Column('data', String(100)))
 
@@ -763,7 +763,7 @@ class TestColumnChange(fixture.DB):
                 str(w[-1].message))
         finally:
             cw.__exit__()
-            
+
     @fixture.usedb()
     def test_alter_returns_delta(self):
         """Test if alter constructs return delta"""
@@ -791,7 +791,7 @@ class TestColumnChange(fixture.DB):
         if self.engine.name == 'firebird':
             del kw['nullable']
         self.table.c.data.alter(**kw)
-        
+
         # test altered objects
         self.assertEqual(self.table.c.data.server_default.arg, 'foobar')
         if not self.engine.name == 'firebird':

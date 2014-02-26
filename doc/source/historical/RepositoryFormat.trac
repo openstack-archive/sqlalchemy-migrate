@@ -2,11 +2,11 @@ This plan has several problems and has been modified; new plan is discussed in w
 
 ----
 
-One problem with [http://www.rubyonrails.org/ Ruby on Rails'] (very good) schema migration system is the behavior of scripts that depend on outside sources; ie. the application. If those change, there's no guarantee that such scripts will behave as they did before, and you'll get strange results. 
+One problem with [http://www.rubyonrails.org/ Ruby on Rails'] (very good) schema migration system is the behavior of scripts that depend on outside sources; ie. the application. If those change, there's no guarantee that such scripts will behave as they did before, and you'll get strange results.
 
 For example, suppose one defines a SQLAlchemy table:
 {{{
-users = Table('users', metadata, 
+users = Table('users', metadata,
     Column('user_id', Integer, primary_key = True),
     Column('user_name', String(16), nullable = False),
     Column('password', String(20), nullable = False)
@@ -30,7 +30,7 @@ def upgrade():
 }}}
 ...and change our application's table definition:
 {{{
-users = Table('users', metadata, 
+users = Table('users', metadata,
     Column('user_id', Integer, primary_key = True),
     Column('user_name', String(16), nullable = False),
     Column('password', String(20), nullable = False),

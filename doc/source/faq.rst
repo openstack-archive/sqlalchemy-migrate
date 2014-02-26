@@ -1,7 +1,7 @@
 FAQ
 ===
 
-Q: Adding a **nullable=False** column 
+Q: Adding a **nullable=False** column
 **************************************
 
 A: Your table probably already contains data. That means if you add column, it's contents will be NULL.

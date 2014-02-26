@@ -7,7 +7,7 @@ An option not discussed below is "no versioning"; that is, simply apply any scri
 A single integer version number would specify the version of each database. This is stored in the database in a table, let's call it "schema"; each migration script is associated with a certain database version number.
 
 + Simple implementation[[br]]
-Of the 3 solutions presented here, this one is by far the simplest. 
+Of the 3 solutions presented here, this one is by far the simplest.
 
 + Past success[[br]]
 Used in [http://www.rubyonrails.org/ Ruby on Rails' migrations].
@@ -32,13 +32,13 @@ Similar to the database-wide version number; the contents of the new table are m
 - Determining the version of database-specific objects (ie. stored procedures, functions) is difficult.
 
 - Ultimately gains nothing over the previous solution.[[br]]
-The intent here was to allow multiple people to write scripts for a single database, but if database-wide version numbers aren't assigned until the script is placed in the repository, we could already do this. 
+The intent here was to allow multiple people to write scripts for a single database, but if database-wide version numbers aren't assigned until the script is placed in the repository, we could already do this.
 
 === Version determined via introspection ===
-Each script has a schema associated with it, rather than a version number. The database schema is loaded, analyzed, and compared to the schema expected by the script. 
+Each script has a schema associated with it, rather than a version number. The database schema is loaded, analyzed, and compared to the schema expected by the script.
 
 + No modifications to the database are necessary for this versioning system.[[br]]
-The primary advantage here is that no changes to the database are required. 
+The primary advantage here is that no changes to the database are required.
 
 - Most difficult solution to implement, by far.[[br]]
 Comparing the state of every schema object in the database is much more complex than simply comparing a version number, especially since we need to do it in a database-independent way (ie. we can't just diff the dump of each schema). SQLAlchemy's reflection would certainly be very helpful, but this remains the most complex solution.
@@ -53,4 +53,4 @@ When version numbers are stored in the database, you have some idea of where an 
 
 ----
 
-'''Conclusion''': database-wide version numbers are the best way to go. 
+'''Conclusion''': database-wide version numbers are the best way to go.

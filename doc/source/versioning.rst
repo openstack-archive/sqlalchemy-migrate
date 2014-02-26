@@ -75,7 +75,7 @@ script applied to the database increments this version number. You can retrieve
 a database's current :term:`version`::
 
  $ python my_repository/manage.py db_version sqlite:///project.db my_repository
- 0 
+ 0
 
 A freshly versioned database begins at version 0 by default. This assumes the
 database is empty or does only contain schema elements (tables, views,
@@ -140,7 +140,7 @@ Our first change script will create a simple table
 
     account = Table(
         'account', meta,
-	Column('id', Integer, primary_key=True),
+        Column('id', Integer, primary_key=True),
         Column('login', String(40)),
         Column('passwd', String(40)),
     )
@@ -172,7 +172,7 @@ Our change script predefines two functions, currently empty:
         Column('login', String(40)),
         Column('passwd', String(40)),
     )
-  
+
 
     def upgrade(migrate_engine):
         meta.bind = migrate_engine
@@ -251,9 +251,9 @@ Our :term:`repository's <repository>` :term:`version` is::
 
     The :option:`test` command executes actual scripts, be sure you are *NOT*
     doing this on production database.
-    
+
     If you need to test production changes you should:
-    
+
         #. get a dump of your production database
         #. import the dump into an empty database
         #. run :option:`test` or :option:`upgrade` on that copy
@@ -363,7 +363,7 @@ your application - the same SQL should be generated every time, despite any
 changes to your app's source code. You don't want your change scripts' behavior
 changing when your source code does.
 
-.. warning:: 
+.. warning::
 
     **Consider the following example of what NOT to do**
 
@@ -372,7 +372,7 @@ changing when your source code does.
     .. code-block:: python
 
         from sqlalchemy import *
- 
+
         meta = MetaData()
         table = Table('mytable', meta,
             Column('id', Integer, primary_key=True),
@@ -381,7 +381,7 @@ changing when your source code does.
     ... and uses this file to create a table in a change script:
 
     .. code-block:: python
- 
+
         from sqlalchemy import *
         from migrate import *
         import model
@@ -390,7 +390,7 @@ changing when your source code does.
             model.meta.bind = migrate_engine
 
         def downgrade(migrate_engine):
-            model.meta.bind = migrate_engine 
+            model.meta.bind = migrate_engine
             model.table.drop()
 
     This runs successfully the first time. But what happens if we change the
@@ -399,7 +399,7 @@ changing when your source code does.
     .. code-block:: python
 
         from sqlalchemy import *
- 
+
         meta = MetaData()
         table = Table('mytable', meta,
             Column('id', Integer, primary_key=True),
@@ -448,7 +448,7 @@ database. Use engine.name to get the name of the database you're working with
 
  >>> from sqlalchemy import *
  >>> from migrate import *
- >>> 
+ >>>
  >>> engine = create_engine('sqlite:///:memory:')
  >>> engine.name
  'sqlite'
@@ -537,7 +537,7 @@ function names match equivalent shell commands. You can use this to
 help integrate SQLAlchemy Migrate with your existing update process.
 
 For example, the following commands are similar:
- 
+
 *From the command line*::
 
  $ migrate help help
@@ -553,9 +553,9 @@ For example, the following commands are similar:
  migrate.versioning.api.help('help')
  # Output:
  # %prog help COMMAND
- # 
+ #
  #     Displays help on a given command.
-  
+
 
 .. _migrate.versioning.api: module-migrate.versioning.api.html
 
@@ -631,7 +631,7 @@ One may also want to specify custom themes. API functions accept
 ``templates_theme`` for this purpose (which defaults to `default`)
 
 Example::
-	
+
  /home/user/templates/manage $ ls
  default.py_tmpl
  pylons.py_tmpl

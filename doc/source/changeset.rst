@@ -80,10 +80,10 @@ You can create a column with :meth:`~ChangesetColumn.create`:
 
   You can pass `primary_key_name`, `index_name` and `unique_name` to the
   :meth:`~ChangesetColumn.create` method to issue ``ALTER TABLE ADD
-  CONSTRAINT`` after changing the column. 
+  CONSTRAINT`` after changing the column.
 
   For multi columns constraints and other advanced configuration, check the
-  :ref:`constraint tutorial <constraint-tutorial>`. 
+  :ref:`constraint tutorial <constraint-tutorial>`.
 
   .. versionadded:: 0.6.0
 
@@ -189,30 +189,30 @@ The following rundowns are true for all constraints classes:
 
         cons = PrimaryKeyConstraint('id', 'num', table=self.table)
 
-	# Create the constraint
-	cons.create()
+        # Create the constraint
+        cons.create()
 
-	# Drop the constraint
-	cons.drop()
+        # Drop the constraint
+        cons.drop()
 
    You can also pass in :class:`~sqlalchemy.schema.Column` objects (and table
    argument can be left out):
 
    .. code-block:: python
 
-	cons = PrimaryKeyConstraint(col1, col2)
+        cons = PrimaryKeyConstraint(col1, col2)
 
 #. Some dialects support ``CASCADE`` option when dropping constraints:
 
     .. code-block:: python
 
-	cons = PrimaryKeyConstraint(col1, col2)
+        cons = PrimaryKeyConstraint(col1, col2)
 
-	# Create the constraint
-	cons.create()
+        # Create the constraint
+        cons.create()
 
-	# Drop the constraint
-	cons.drop(cascade=True)
+        # Drop the constraint
+        cons.drop(cascade=True)
 
 .. note::
     SQLAlchemy Migrate will try to guess the name of the constraints for
@@ -244,12 +244,12 @@ Foreign key constraints:
 .. code-block:: python
 
     from migrate.changeset.constraint import ForeignKeyConstraint
-    
+
     cons = ForeignKeyConstraint([table.c.fkey], [othertable.c.id])
-    
+
     # Create the constraint
     cons.create()
-    
+
     # Drop the constraint
     cons.drop()
 
@@ -258,9 +258,9 @@ Check constraints:
 .. code-block:: python
 
     from migrate.changeset.constraint import CheckConstraint
-    
+
     cons = CheckConstraint('id > 3', columns=[table.c.id])
-    
+
     # Create the constraint
     cons.create()
 
@@ -272,7 +272,7 @@ Unique constraints:
 .. code-block:: python
 
     from migrate.changeset.constraint import UniqueConstraint
-    
+
     cons = UniqueConstraint('id', 'age', table=self.table)
 
     # Create the constraint

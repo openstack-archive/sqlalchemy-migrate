@@ -14,7 +14,7 @@ mox>=0.5.3
 MySQL-python
 psycopg2
 pylint==0.25.2
-python-subunit
+python-subunit>=0.0.18
 sphinx>=1.1.2,<1.2
 sphinxcontrib_issuetracker
 testrepository>=0.0.17

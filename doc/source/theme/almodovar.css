@@ -33,7 +33,7 @@ body {
 
 #content p,
 #content ul,
-#content blockquote { 
+#content blockquote {
   line-height: 1.6em;
 }
 
@@ -55,7 +55,7 @@ h1, h2, h3 {
   margin-bottom: .7em;
     }
 
-h1 { 
+h1 {
   font-size: 2.5em;
 }
 h2 {
@@ -73,9 +73,9 @@ h1 a, h2 a, h3 a {
     color: #33a;
 }
 
-h1, h1 a, h1 a:hover, h1 a:visited, 
-h2, h2 a, h2 a:hover, h2 a:visited, 
-h3, h3 a, h3 a:hover, h3 a:visited, 
+h1, h1 a, h1 a:hover, h1 a:visited,
+h2, h2 a, h2 a:hover, h2 a:visited,
+h3, h3 a, h3 a:hover, h3 a:visited,
 cite {
     text-decoration: none;
 }
@@ -113,12 +113,12 @@ a:hover {
 }
 
 /* Special case doc-title */
-h1.doc-title { 
+h1.doc-title {
   text-transform: lowercase;
   font-size: 4em;
   margin: 0;
 }
-h1.doc-title a { 
+h1.doc-title a {
   display: block;
   padding-left: 0.8em;
   padding-bottom: .5em;
@@ -126,8 +126,8 @@ h1.doc-title a {
   margin: 0;
   border-bottom: 1px #fff solid;
 }
-h1.doc-title, 
-h1.doc-title a, 
+h1.doc-title,
+h1.doc-title a,
 h1.doc-title a:visited,
 h1.doc-title a:hover {
     text-decoration: none;
@@ -149,7 +149,7 @@ body {
     max-width: 60em;
     border: 1px solid #555596;
 }
-* html #page { 
+* html #page {
 *   width: 60em;
 *   }
 *
@@ -157,7 +157,7 @@ body {
 *       margin: 0 1em 0 3em;
 *       }
 *
-*       #content h1 { 
+*       #content h1 {
 *         margin-left: 0;
 *         }
 *

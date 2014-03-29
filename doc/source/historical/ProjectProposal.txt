@@ -69,5 +69,5 @@ One recurring problem I've had with this project is dealing with changes to the 
 I'm now working on another project that will be making use of SQLAlchemy: it fits many of my project's requirements, but lacks a migration tool that will be much needed. This presents an opportunity for me to make my first contribution to open source - I've long been interested in open source software and use it regularly, but haven't contributed to any until now. I'm particularly interested in the application of this tool with the TurboGears framework, as this project was inspired by a suggestion the TurboGears mailing list and I'm working on a project using TurboGears - but there is no reason to couple an SQLAlchemy enhancement with TurboGears; this project may be used by anyone who uses SQLAlchemy.
 
 
-Further information: 
+Further information:
 http://evan.zealgame.com/soc

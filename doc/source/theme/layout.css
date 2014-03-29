@@ -4,10 +4,10 @@
 /* Basic Style
 ----------------------------------- */
 
-h1.pudge-member-page-heading { 
+h1.pudge-member-page-heading {
   font-size: 300%;
 }
-h4.pudge-member-page-subheading { 
+h4.pudge-member-page-subheading {
   font-size: 130%;
   font-style: italic;
   margin-top: -2.0em;
@@ -15,24 +15,24 @@ h4.pudge-member-page-subheading {
   margin-bottom: .3em;
   color: #0050CC;
 }
-p.pudge-member-blurb { 
+p.pudge-member-blurb {
   font-style: italic;
   font-weight: bold;
   font-size: 120%;
   margin-top: 0.2em;
   color: #999;
 }
-p.pudge-member-parent-link { 
+p.pudge-member-parent-link {
   margin-top: 0;
 }
-/*div.pudge-module-doc { 
+/*div.pudge-module-doc {
   max-width: 45em;
 }*/
-div.pudge-section { 
+div.pudge-section {
   margin-left: 2em;
   max-width: 45em;
 }
-/* Section Navigation 
+/* Section Navigation
 ----------------------------------- */
 
 div#pudge-section-nav
@@ -42,7 +42,7 @@ div#pudge-section-nav
   height: 20px;
 }
 
-div#pudge-section-nav ul { 
+div#pudge-section-nav ul {
   border: 0;
   margin: 0;
   padding: 0;
@@ -90,33 +90,33 @@ div#pudge-section-nav ul li .pudge-section-link {
 
 /* Module Lists
 ----------------------------------- */
-dl.pudge-module-list dt { 
+dl.pudge-module-list dt {
   font-style: normal;
   font-size: 110%;
 }
-dl.pudge-module-list dd { 
+dl.pudge-module-list dd {
   color: #555;
 }
 
 /* Misc Overrides */
-.rst-doc p.topic-title a { 
+.rst-doc p.topic-title a {
   color: #777;
 }
 .rst-doc ul.auto-toc a,
-.rst-doc div.contents a { 
+.rst-doc div.contents a {
   color: #333;
 }
 pre { background: #eee; }
 
-.rst-doc dl dt { 
+.rst-doc dl dt {
   color: #444;
   margin-top: 1em;
   font-weight: bold;
 }
-.rst-doc dl dd { 
+.rst-doc dl dd {
   margin-top: .2em;
 }
-.rst-doc hr { 
+.rst-doc hr {
   display: block;
   margin: 2em 0;
 }

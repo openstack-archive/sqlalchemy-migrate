@@ -165,7 +165,7 @@ SQLAlchemy Migrate is split into two parts, database schema versioning
 
 
 API Documentation
------------------- 
+------------------
 
 .. toctree::
 

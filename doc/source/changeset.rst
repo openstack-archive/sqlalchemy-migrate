@@ -80,10 +80,10 @@ You can create a column with :meth:`~ChangesetColumn.create`:
 
   You can pass `primary_key_name`, `index_name` and `unique_name` to the
   :meth:`~ChangesetColumn.create` method to issue ``ALTER TABLE ADD
-  CONSTRAINT`` after changing the column. 
+  CONSTRAINT`` after changing the column.
 
   For multi columns constraints and other advanced configuration, check the
-  :ref:`constraint tutorial <constraint-tutorial>`. 
+  :ref:`constraint tutorial <constraint-tutorial>`.
 
   .. versionadded:: 0.6.0
 
@@ -244,12 +244,12 @@ Foreign key constraints:
 .. code-block:: python
 
     from migrate.changeset.constraint import ForeignKeyConstraint
-    
+
     cons = ForeignKeyConstraint([table.c.fkey], [othertable.c.id])
-    
+
     # Create the constraint
     cons.create()
-    
+
     # Drop the constraint
     cons.drop()
 
@@ -258,9 +258,9 @@ Check constraints:
 .. code-block:: python
 
     from migrate.changeset.constraint import CheckConstraint
-    
+
     cons = CheckConstraint('id > 3', columns=[table.c.id])
-    
+
     # Create the constraint
     cons.create()
 
@@ -272,7 +272,7 @@ Unique constraints:
 .. code-block:: python
 
     from migrate.changeset.constraint import UniqueConstraint
-    
+
     cons = UniqueConstraint('id', 'age', table=self.table)
 
     # Create the constraint

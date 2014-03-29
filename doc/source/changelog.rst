@@ -130,9 +130,9 @@ Fixed bugs
 - fixed case sensitivity in setup.py dependencies
 - moved :py:mod:`migrate.changeset.exceptions` and
   :py:mod:`migrate.versioning.exceptions` to :py:mod:`migrate.exceptions`
-- cleared up test output and improved testing of deprecation warnings. 
+- cleared up test output and improved testing of deprecation warnings.
 - some documentation fixes
-- #107: fixed syntax error in genmodel.py 
+- #107: fixed syntax error in genmodel.py
 - #96: fixed bug with column dropping in sqlite
 - #94: fixed bug that prevented non-unique indexes being created
 - fixed bug with column dropping involving foreign keys
@@ -140,7 +140,7 @@ Fixed bugs
 - rewrite of the schema diff internals, now supporting column
   differences in additon to missing columns and tables.
 - fixed bug when passing empty list in
-  :py:func:`migrate.versioning.shell.main` failed 
+  :py:func:`migrate.versioning.shell.main` failed
 - #108: Fixed issues with firebird support.
 
 0.6 (11.07.2010)

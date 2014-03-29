@@ -140,7 +140,7 @@ Our first change script will create a simple table
 
     account = Table(
         'account', meta,
-	Column('id', Integer, primary_key=True),
+        Column('id', Integer, primary_key=True),
         Column('login', String(40)),
         Column('passwd', String(40)),
     )

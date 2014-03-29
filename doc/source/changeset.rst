@@ -189,30 +189,30 @@ The following rundowns are true for all constraints classes:
 
         cons = PrimaryKeyConstraint('id', 'num', table=self.table)
 
-	# Create the constraint
-	cons.create()
+        # Create the constraint
+        cons.create()
 
-	# Drop the constraint
-	cons.drop()
+        # Drop the constraint
+        cons.drop()
 
    You can also pass in :class:`~sqlalchemy.schema.Column` objects (and table
    argument can be left out):
 
    .. code-block:: python
 
-	cons = PrimaryKeyConstraint(col1, col2)
+        cons = PrimaryKeyConstraint(col1, col2)
 
 #. Some dialects support ``CASCADE`` option when dropping constraints:
 
     .. code-block:: python
 
-	cons = PrimaryKeyConstraint(col1, col2)
+        cons = PrimaryKeyConstraint(col1, col2)
 
-	# Create the constraint
-	cons.create()
+        # Create the constraint
+        cons.create()
 
-	# Drop the constraint
-	cons.drop(cascade=True)
+        # Drop the constraint
+        cons.drop(cascade=True)
 
 .. note::
     SQLAlchemy Migrate will try to guess the name of the constraints for

@@ -13,16 +13,16 @@ def initialize(t):
    t.home_title = g.organization
 ?>
 
-<html xmlns="http://www.w3.org/1999/xhtml" 
+<html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:py="http://purl.org/kid/ns#"
       py:def="layout">
-  
+
   <head>
     <title>${title}</title>
     <link rel="stylesheet" type="text/css" href="layout.css"/>
-    <link py:if="generator.syndication_url" 
-          rel="alternate" 
-          type="application/rss+xml" 
+    <link py:if="generator.syndication_url"
+          rel="alternate"
+          type="application/rss+xml"
           title="RSS 2.0" href="${generator.syndication_url}"/>
 
   </head>
@@ -39,12 +39,12 @@ def initialize(t):
                    title="Project Home / Index">${doc_title}</a>
               </li>
               <li class="page_item">
-                <a href="module-index.html" 
+                <a href="module-index.html"
                    class="${'module-index.html'== destfile and 'selected' or ''}"
                    title="${doc_title.lower()} package and module reference">Modules</a>
               </li>
-              <?python 
-              trac_url = generator.trac_url 
+              <?python
+              trac_url = generator.trac_url
               mailing_list_url = generator.mailing_list_url
               ?>
               <li py:if="trac_url">
@@ -64,19 +64,19 @@ def initialize(t):
           </li>
         </ul>
       </div>
-      
+
       <hr />
-      
+
       <div id="content" py:content="content()"/>
-      
+
       <div id="footer">
         <?python license = generator.get_document('doc-license') ?>
-        
+
         <p style="float: left;">
-          built with 
+          built with
           <a href="http://lesscode.org/projects/pudge/"
              >pudge/${pudge.__version__}</a><br />
-             original design by 
+             original design by
           <a href="http://blog.ratterobert.com/"
              >ratter / robert</a><br />
         </p>

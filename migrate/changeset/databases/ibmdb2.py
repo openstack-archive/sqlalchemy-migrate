@@ -262,13 +262,13 @@ class IBMDBConstraintGenerator(ansisql.ANSIConstraintGenerator):
         if (isinstance(constraint, UniqueConstraint) and
                 is_unique_constraint_with_null_columns_supported(
                     self.dialect)):
-            for column in constraint.columns._all_cols:
+            for column in constraint:
                 if column.nullable:
                     constraint.exclude_nulls = True
                     break
         if getattr(constraint, 'exclude_nulls', None):
             index = Index(constraint.name,
-                          *(column for column in constraint.columns._all_cols),
+                          *(column for column in constraint),
                           unique=True)
             sql = self.process(CreateIndex(index))
             sql += ' EXCLUDE NULL KEYS'
@@ -285,7 +285,7 @@ class IBMDBConstraintDropper(ansisql.ANSIConstraintDropper,
         if (isinstance(constraint, UniqueConstraint) and
                 is_unique_constraint_with_null_columns_supported(
                     self.dialect)):
-            for column in constraint.columns._all_cols:
+            for column in constraint:
                 if column.nullable:
                     constraint.exclude_nulls = True
                     break

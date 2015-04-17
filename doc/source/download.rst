@@ -21,51 +21,32 @@ command use::
  $ migrate help COMMAND
 
 If you'd like to be notified when new versions of SQLAlchemy Migrate
-are released, subscribe to `migrate-announce`_.
+are released, subscribe to `openstack-dev`_.
 
 .. _pip: http://pip.openplans.org/
 .. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
 .. _sqlalchemy: http://www.sqlalchemy.org/download.html
-.. _`project's download page`: http://code.google.com/p/sqlalchemy-migrate/downloads/list
 .. _`cheese shop`: http://pypi.python.org/pypi/sqlalchemy-migrate
-.. _`migrate-announce`: http://groups.google.com/group/migrate-announce
+.. _`openstack-dev`: http://lists.openstack.org/cgi-bin/mailman/listinfo/openstack-dev
 
 .. _development:
 
 Development
 -----------
 
-Migrate's Mercurial_ repository is located at `Google Code`_.
+If you would like to contribute to the development of OpenStack,
+you must follow the steps in this page:
 
-To get the latest trunk::
+   http://docs.openstack.org/infra/manual/developers.html
 
- $ hg clone http://sqlalchemy-migrate.googlecode.com/hg/
+Once those steps have been completed, changes to OpenStack
+should be submitted for review via the Gerrit tool, following
+the workflow documented at:
 
-Patches should be submitted to the `issue tracker`_. You are free to create
-your own clone to provide your patches. We are open to pull requests in our
-`issue tracker`_.
+   http://docs.openstack.org/infra/manual/developers.html#development-workflow
 
-If you want to work on sqlalchemy-migrate you might want to use a `virtualenv`.
+Pull requests submitted through GitHub will be ignored.
 
-To run the included test suite you have to copy :file:`test_db.cfg.tmpl` to
-:file:`test_db.cfg` and put SQLAlchemy database URLs valid for your environment
-into that file. We use `nose`_ for our tests and include a test requirements
-file for pip. You might use the following commands to install the test
-requirements and run the tests::
+Bugs should be filed on Launchpad, not GitHub:
 
- $ pip install -r test-req.pip
- $ python setup.py develop
- $ python setup.py nosetests
-
-If you are curious about status changes of sqlalchemy-migrate's issues you
-might want to subscribe to `sqlalchemy-migrate-issues`_.
-
-We use a `Jenkins CI`_ continuous integration tool installation to
-help us run tests on most of the databases that migrate supports.
-
-.. _Mercurial: http://www.mercurial-scm.org/
-.. _Google Code: http://sqlalchemy-migrate.googlecode.com/hg/
-.. _issue tracker: http://code.google.com/p/sqlalchemy-migrate/issues/list
-.. _sqlalchemy-migrate-issues: http://groups.google.com/group/sqlalchemy-migrate-issues
-.. _Jenkins CI: http://jenkins.gnuviech-server.de/job/sqlalchemy-migrate-all/
-.. _nose: http://readthedocs.org/docs/nose/
+   https://bugs.launchpad.net/sqlalchemy-migrate

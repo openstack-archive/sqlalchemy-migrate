@@ -465,42 +465,61 @@ class TestShellDatabase(Shell, DB):
         self.meta.reflect()
         self.meta.drop_all()  # in case junk tables are lying around in the test database
 
-        result = self.env.run('migrate create %s %s' % (repos_path, repos_name))
-        result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
-        result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
+        result = self.env.run(
+            'migrate create %s %s' % (repos_path, repos_name),
+            expect_stderr=True)
+        result = self.env.run(
+            'migrate drop_version_control %s %s' % (self.url, repos_path),
+            expect_stderr=True, expect_error=True)
+        result = self.env.run(
+            'migrate version_control %s %s' % (self.url, repos_path),
+            expect_stderr=True)
         self.assertEqual(self.run_version(repos_path), 0)
         self.assertEqual(self.run_db_version(self.url, repos_path), 0)
 
         # Setup helper script.
-        result = self.env.run('migrate manage %s --repository=%s --url=%s --model=%s'\
-            % (script_path, repos_path, self.url, model_module))
+        result = self.env.run(
+            'migrate manage %s --repository=%s --url=%s --model=%s'\
+            % (script_path, repos_path, self.url, model_module),
+            expect_stderr=True)
         self.assertTrue(os.path.exists(script_path))
 
         # Model is defined but database is empty.
         result = self.env.run('migrate compare_model_to_db %s %s --model=%s' \
-            % (self.url, repos_path, model_module))
-        self.assertTrue("tables missing from database: tmp_account_rundiffs" in result.stdout)
+            % (self.url, repos_path, model_module), expect_stderr=True)
+        self.assertTrue(
+            "tables missing from database: tmp_account_rundiffs"
+            in result.stdout)
 
         # Test Deprecation
         result = self.env.run('migrate compare_model_to_db %s %s --model=%s' \
-            % (self.url, repos_path, model_module.replace(":", ".")), expect_error=True)
+            % (self.url, repos_path, model_module.replace(":", ".")),
+            expect_stderr=True, expect_error=True)
         self.assertEqual(result.returncode, 0)
-        self.assertTrue("tables missing from database: tmp_account_rundiffs" in result.stdout)
+        self.assertTrue(
+            "tables missing from database: tmp_account_rundiffs"
+            in result.stdout)
 
         # Update db to latest model.
         result = self.env.run('migrate update_db_from_model %s %s %s'\
-            % (self.url, repos_path, model_module))
+            % (self.url, repos_path, model_module), expect_stderr=True)
         self.assertEqual(self.run_version(repos_path), 0)
         self.assertEqual(self.run_db_version(self.url, repos_path), 0)  # version did not get bumped yet because new version not yet created
 
         result = self.env.run('migrate compare_model_to_db %s %s %s'\
-            % (self.url, repos_path, model_module))
+            % (self.url, repos_path, model_module), expect_stderr=True)
         self.assertTrue("No schema diffs" in result.stdout)
 
-        result = self.env.run('migrate drop_version_control %s %s' % (self.url, repos_path), expect_error=True)
-        result = self.env.run('migrate version_control %s %s' % (self.url, repos_path))
+        result = self.env.run(
+            'migrate drop_version_control %s %s' % (self.url, repos_path),
+            expect_stderr=True, expect_error=True)
+        result = self.env.run(
+            'migrate version_control %s %s' % (self.url, repos_path),
+            expect_stderr=True)
 
-        result = self.env.run('migrate create_model %s %s' % (self.url, repos_path))
+        result = self.env.run(
+            'migrate create_model %s %s' % (self.url, repos_path),
+            expect_stderr=True)
         temp_dict = dict()
         six.exec_(result.stdout, temp_dict)
 
@@ -514,7 +533,7 @@ class TestShellDatabase(Shell, DB):
   ##Column('passwd', String(length=None, convert_unicode=False, assert_unicode=None))""" in result.stdout)
 
         ## We're happy with db changes, make first db upgrade script to go from version 0 -> 1.
-        #result = self.env.run('migrate make_update_script_for_model', expect_error=True)
+        #result = self.env.run('migrate make_update_script_for_model', expect_error=True, expect_stderr=True)
         #self.assertTrue('Not enough arguments' in result.stderr)
 
         #result_script = self.env.run('migrate make_update_script_for_model %s %s %s %s'\

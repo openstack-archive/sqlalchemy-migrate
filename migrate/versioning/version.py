@@ -252,7 +252,7 @@ class Version(object):
         self.python = script.PythonScript(path)
 
 
-class Extensions:
+class Extensions(object):
     """A namespace for file extensions"""
     py = 'py'
     sql = 'sql'

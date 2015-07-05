@@ -164,7 +164,7 @@ def with_engine(f, *a, **kw):
             engine.dispose()
 
 
-class Memoize:
+class Memoize(object):
     """Memoize(fn) - an instance which acts like fn but memoizes its arguments
        Will only work on functions with non-mutable arguments
 

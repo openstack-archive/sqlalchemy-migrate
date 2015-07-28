@@ -65,6 +65,9 @@ class VerNum(object):
     def __int__(self):
         return int(self.value)
 
+    def __index__(self):
+        return int(self.value)
+
     if six.PY3:
         def __hash__(self):
             return hash(self.value)

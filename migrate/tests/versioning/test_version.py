@@ -69,6 +69,13 @@ class TestVerNum(fixture.Base):
         self.assertTrue(VerNum(2) >= 1)
         self.assertFalse(VerNum(1) >= 2)
 
+    def test_int_cast(self):
+        ver = VerNum(3)
+        # test __int__
+        self.assertEqual(int(ver), 3)
+        # test __index__: range() doesn't call __int__
+        self.assertEqual(list(range(ver, ver)), [])
+
 
 class TestVersion(fixture.Pathed):
 

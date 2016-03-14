@@ -156,11 +156,22 @@ class Collection(pathed.Pathed):
             self.versions[ver].add_script(filepath)
 
     def version(self, vernum=None):
-        """Returns latest Version if vernum is not given.
-        Otherwise, returns wanted version"""
+        """Returns required version.
+
+        If vernum is not given latest version will be returned otherwise
+        required version will be returned.
+        :raises: : exceptions.VersionNotFoundError if respective migration
+        script file of version is not present in the migration repository.
+        """
         if vernum is None:
             vernum = self.latest
-        return self.versions[VerNum(vernum)]
+
+        try:
+            return self.versions[VerNum(vernum)]
+        except KeyError:
+            raise exceptions.VersionNotFoundError(
+                ("Database schema file with version %(args)s doesn't "
+                 "exist.") % {'args': VerNum(vernum)})
 
     @classmethod
     def clear(cls):

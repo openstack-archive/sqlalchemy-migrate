@@ -33,7 +33,14 @@ def load_model(dotted_name):
             warnings.warn('model should be in form of module.model:User '
                 'and not module.model.User', exceptions.MigrateDeprecationWarning)
             dotted_name = ':'.join(dotted_name.rsplit('.', 1))
-        return EntryPoint.parse('x=%s' % dotted_name).load(False)
+
+        ep = EntryPoint.parse('x=%s' % dotted_name)
+        if hasattr(ep, 'resolve'):
+            # this is available on setuptools >= 10.2
+            return ep.resolve()
+        else:
+            # this causes a DeprecationWarning on setuptools >= 11.3
+            return ep.load(False)
     else:
         # Assume it's already loaded.
         return dotted_name

@@ -687,11 +687,24 @@ class TestColumnChange(fixture.DB):
         self.assertTrue(isinstance(self.table.c.id.type, Integer))
         self.assertEqual(self.table.c.id.nullable, False)
 
+        # SQLAlchemy 1.1 adds a third state to "autoincrement" called
+        # "auto".
+        self.assertTrue(self.table.c.id.autoincrement in ('auto', True))
+
         if not self.engine.name == 'firebird':
             self.table.c.id.alter(type=String(20))
             self.assertEqual(self.table.c.id.nullable, False)
+
+            # a rule makes sure that autoincrement is set to False
+            # when we change off of Integer
+            self.assertEqual(self.table.c.id.autoincrement, False)
             self.refresh_table(self.table.name)
             self.assertTrue(isinstance(self.table.c.id.type, String))
+
+            # note that after reflection, "autoincrement" is likely
+            # to change back to a database-generated value.   Should be
+            # False or "auto".  if True, it's a bug; at least one of these
+            # exists prior to SQLAlchemy 1.1.3
 
     @fixture.usedb()
     def test_default(self):

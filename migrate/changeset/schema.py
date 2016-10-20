@@ -353,8 +353,14 @@ class ColumnDelta(six.with_metaclass(MyMeta, DictMixin, sqlalchemy.schema.Schema
         self.process_column(self.result_column)
 
         # create an instance of class type if not yet
-        if 'type' in diffs and callable(self.result_column.type):
-            self.result_column.type = self.result_column.type()
+        if 'type' in diffs:
+            if callable(self.result_column.type):
+                self.result_column.type = self.result_column.type()
+            if self.result_column.autoincrement and \
+                    not issubclass(
+                        self.result_column.type._type_affinity,
+                        sqlalchemy.Integer):
+                self.result_column.autoincrement = False
 
         # add column to the table
         if self.table is not None and self.alter_metadata:

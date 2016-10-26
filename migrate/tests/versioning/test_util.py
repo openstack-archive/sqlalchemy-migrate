@@ -42,7 +42,7 @@ class TestUtil(fixture.Pathed):
 
         # deprecated echo=True parameter
         try:
-            # py 2.4 compatability :-/
+            # py 2.4 compatibility :-/
             cw = catch_warnings(record=True)
             w = cw.__enter__()
 
@@ -100,7 +100,7 @@ class TestUtil(fixture.Pathed):
         f.close()
 
         try:
-            # py 2.4 compatability :-/
+            # py 2.4 compatibility :-/
             cw = catch_warnings(record=True)
             w = cw.__enter__()
 

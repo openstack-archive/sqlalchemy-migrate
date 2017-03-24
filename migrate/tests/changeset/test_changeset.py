@@ -761,7 +761,7 @@ class TestColumnChange(fixture.DB):
     @fixture.usedb()
     def test_alter_deprecated(self):
         try:
-            # py 2.4 compatability :-/
+            # py 2.4 compatibility :-/
             cw = catch_warnings(record=True)
             w = cw.__enter__()
 

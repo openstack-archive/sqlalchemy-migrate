@@ -1,4 +1,4 @@
-sqlalchemy-migrate
+SQLAlchemy Migrate
 ==================
 
 Fork from http://code.google.com/p/sqlalchemy-migrate/ to get it working with

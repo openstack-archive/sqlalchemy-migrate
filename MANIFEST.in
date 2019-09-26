@@ -1,8 +1,0 @@
-include AUTHORS
-include ChangeLog
-include README
-recursive-include docs *
-recursive-include migrate *
-recursive-include tests *
-global-exclude *pyc
-recursive-exclude docs/_build *
